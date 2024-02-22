@@ -1,9 +1,9 @@
 import type { Repository } from 'typeorm';
 import type { UUID } from 'crypto';
-import type UseCase from '../../common/application/interfaces/IUseCase';
-import type NewVotingRoundRequest from './NewVotingRoundRequest';
-import { VotingRound } from '../../domain/VotingRound';
-import { toBigIntString } from '../../domain/typeAliasesUtils';
+import type UseCase from '../../../application/interfaces/IUseCase';
+import type NewVotingRoundRequest from './NewVotingRound.Request';
+import { VotingRound } from '../../../domain/VotingRound';
+import { toBigIntString } from '../../../domain/typeUtils';
 
 export default class StartVotingRoundUseCase
   implements UseCase<NewVotingRoundRequest, UUID>

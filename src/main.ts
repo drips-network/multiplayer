@@ -1,21 +1,29 @@
 import ApiServer from './api/ApiServer';
 import 'reflect-metadata';
-import StartVotingRoundUseCase from './features/startVotingRound/StartVotingRound.UseCase';
-import StartVotingRoundEndpoint from './features/startVotingRound/StartVotingRound.Endpoint';
-import AppDataSource from './infrastructure/AppDataSource';
+import StartVotingRoundUseCase from './features/votingRound/startVotingRound/StartVotingRound.UseCase';
+import StartVotingRoundEndpoint from './features/votingRound/startVotingRound/StartVotingRound.Endpoint';
 import { VotingRound } from './domain/VotingRound';
 import logger from './infrastructure/logger';
 import appSettings from './appSettings';
+import CreateDraftDripListEndpoint from './features/draftDripList/createDraftDripList/CreateDraftDripList.Endpoint';
+import CreateDraftDripListUseCase from './features/draftDripList/createDraftDripList/CreateDraftDripList.UseCase';
+import { DraftDripList } from './domain/DraftDripList';
+import { initializeAppDataSource } from './infrastructure/AppDataSource';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
   logger.info(`App Settings: ${JSON.stringify(appSettings, null, 2)}`);
 
+  const AppDataSource = await initializeAppDataSource();
+
+  const createDraftDripListEndpoint = new CreateDraftDripListEndpoint(
+    new CreateDraftDripListUseCase(AppDataSource.getRepository(DraftDripList)),
+  );
   const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
     new StartVotingRoundUseCase(AppDataSource.getRepository(VotingRound)),
   );
 
-  await ApiServer.run(startVotingRoundEndpoint);
+  await ApiServer.run(startVotingRoundEndpoint, createDraftDripListEndpoint);
 }
 
 (async () => {

@@ -1,15 +1,18 @@
 import type { Request, Response } from 'express';
 import express from 'express';
 import { validationResult } from 'express-validator';
-import type StartVotingRoundEndpoint from '../features/startVotingRound/StartVotingRound.Endpoint';
-import { startVotingRoundRequestRequestValidators } from '../features/startVotingRound/startVotingRoundRequestRequestValidators';
-import type { IEndpoint } from '../common/application/interfaces/IEndpoint';
+import type StartVotingRoundEndpoint from '../features/votingRound/startVotingRound/StartVotingRound.Endpoint';
+import { startVotingRoundRequestRequestValidators } from '../features/votingRound/startVotingRound/startVotingRoundRequestRequestValidators';
+import type { IEndpoint } from '../application/interfaces/IEndpoint';
 import appSettings from '../appSettings';
 import logger from '../infrastructure/logger';
+import { createDraftDripListRequestRequestValidators } from '../features/draftDripList/createDraftDripList/createDraftDripListRequestRequestValidators';
+import type CreateDraftDripListEndpoint from '../features/draftDripList/createDraftDripList/CreateDraftDripList.Endpoint';
 
 export default class ApiServer {
   public static async run(
-    createDraftDripListEndpoint: StartVotingRoundEndpoint,
+    startVotingRoundEndpoint: StartVotingRoundEndpoint,
+    createDraftDripListEndpoint: CreateDraftDripListEndpoint,
     port: number = appSettings.apiPort,
   ): Promise<void> {
     const app = express();
@@ -19,6 +22,12 @@ export default class ApiServer {
     app.post(
       '/start-voting-round',
       ...startVotingRoundRequestRequestValidators,
+      ApiServer.useEndpoint(startVotingRoundEndpoint),
+    );
+
+    app.post(
+      '/drafts',
+      ...createDraftDripListRequestRequestValidators,
       ApiServer.useEndpoint(createDraftDripListEndpoint),
     );
 

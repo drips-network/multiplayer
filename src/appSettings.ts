@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import shouldNeverHappen from './common/application/shouldNeverHappen';
+import shouldNeverHappen from './application/shouldNeverHappen';
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 

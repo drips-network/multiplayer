@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
 import type { UUID } from 'crypto';
 import type StartVotingRoundUseCase from './StartVotingRound.UseCase';
-import type { IEndpoint } from '../../common/application/interfaces/IEndpoint';
-import type NewVotingRoundRequest from './NewVotingRoundRequest';
+import type { IEndpoint } from '../../../application/interfaces/IEndpoint';
+import type NewVotingRoundRequest from './NewVotingRound.Request';
 
 export default class StartVotingRoundEndpoint implements IEndpoint {
   private readonly _startVotingRoundUseCase: StartVotingRoundUseCase;

@@ -1,16 +1,13 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
-import {
-  createVotingRoundId,
-  type BigIntString,
-  type VotingRoundId,
-} from './typeAliasesUtils';
+import { randomUUID, type UUID } from 'crypto';
+import { type BigIntString } from './typeUtils';
 
 @Entity()
 export class VotingRound {
   @PrimaryColumn({
     type: 'uuid',
   })
-  public readonly id: VotingRoundId;
+  public readonly id: UUID;
 
   @Column('varchar', { length: 78 })
   public readonly draftDripListId: BigIntString;
@@ -22,7 +19,7 @@ export class VotingRound {
   public readonly endsAt: Date;
 
   constructor(startsAt: Date, endsAt: Date, draftDripListId: BigIntString) {
-    this.id = createVotingRoundId();
+    this.id = randomUUID();
     this.startsAt = startsAt;
     this.endsAt = endsAt;
     this.draftDripListId = draftDripListId;
