@@ -1,11 +1,11 @@
 import type { Repository } from 'typeorm';
-import type { UUID } from 'crypto';
 import type UseCase from '../../../application/interfaces/IUseCase';
-import type CreateDraftDripListRequest from './CreateDraftDripList.Request';
 import { DraftDripList } from '../../../domain/DraftDripList';
+import type { CreateDraftDripListResponse } from './CreateDraftDripList.Response';
+import type { CreateDraftDripListRequest } from './CreateDraftDripList.Request';
 
 export default class CreateDraftDripListUseCase
-  implements UseCase<CreateDraftDripListRequest, UUID>
+  implements UseCase<CreateDraftDripListRequest, CreateDraftDripListResponse>
 {
   private readonly _repository: Repository<DraftDripList>;
 
@@ -13,14 +13,17 @@ export default class CreateDraftDripListUseCase
     this._repository = repository;
   }
 
-  public async execute({
-    name,
-    description,
-  }: CreateDraftDripListRequest): Promise<UUID> {
+  public async execute(
+    request: CreateDraftDripListRequest,
+  ): Promise<CreateDraftDripListResponse> {
+    const { name, description } = request;
+
     const draftDripList = new DraftDripList(name, description);
 
     await this._repository.save(draftDripList);
 
-    return draftDripList.id;
+    return {
+      draftDripListId: draftDripList.id,
+    };
   }
 }

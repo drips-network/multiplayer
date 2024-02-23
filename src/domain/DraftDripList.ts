@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
-import { randomUUID, type UUID } from 'crypto';
+import type { UUID } from 'crypto';
+import { randomUUID } from 'crypto';
 import type { DripListId } from './typeUtils';
 import type Collaborator from './Collaborator';
 

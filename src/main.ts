@@ -1,14 +1,16 @@
-import ApiServer from './api/ApiServer';
+import ApiServer from './ApiServer';
 import 'reflect-metadata';
 import StartVotingRoundUseCase from './features/votingRound/startVotingRound/StartVotingRound.UseCase';
 import StartVotingRoundEndpoint from './features/votingRound/startVotingRound/StartVotingRound.Endpoint';
 import { VotingRound } from './domain/VotingRound';
 import logger from './infrastructure/logger';
 import appSettings from './appSettings';
-import CreateDraftDripListEndpoint from './features/draftDripList/createDraftDripList/CreateDraftDripList.Endpoint';
-import CreateDraftDripListUseCase from './features/draftDripList/createDraftDripList/CreateDraftDripList.UseCase';
 import { DraftDripList } from './domain/DraftDripList';
 import { initializeAppDataSource } from './infrastructure/AppDataSource';
+import CreateDraftDripListEndpoint from './features/draftDripList/create/CreateDraftDripList.Endpoint';
+import CreateDraftDripListUseCase from './features/draftDripList/create/CreateDraftDripList.UseCase';
+import GetDraftDripListByIdEndpoint from './features/draftDripList/getById/GetDraftDripListById.Endpoint';
+import GetDraftDripListByIdUseCase from './features/draftDripList/getById/GetDraftDripListById.UseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -16,6 +18,9 @@ export async function main(): Promise<void> {
 
   const AppDataSource = await initializeAppDataSource();
 
+  const getDraftDripListByIdEndpoint = new GetDraftDripListByIdEndpoint(
+    new GetDraftDripListByIdUseCase(AppDataSource.getRepository(DraftDripList)),
+  );
   const createDraftDripListEndpoint = new CreateDraftDripListEndpoint(
     new CreateDraftDripListUseCase(AppDataSource.getRepository(DraftDripList)),
   );
@@ -23,7 +28,11 @@ export async function main(): Promise<void> {
     new StartVotingRoundUseCase(AppDataSource.getRepository(VotingRound)),
   );
 
-  await ApiServer.run(startVotingRoundEndpoint, createDraftDripListEndpoint);
+  await ApiServer.run(
+    startVotingRoundEndpoint,
+    createDraftDripListEndpoint,
+    getDraftDripListByIdEndpoint,
+  );
 }
 
 (async () => {
