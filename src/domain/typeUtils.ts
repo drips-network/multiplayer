@@ -44,6 +44,12 @@ export function isEthAddress(str: string): str is Address {
   return regex.test(str);
 }
 
+export function assertIsEthAddress(str: string): asserts str is Address {
+  if (!isEthAddress(str)) {
+    throw new Error('Invalid address.');
+  }
+}
+
 export type ProjectId = string & { __type: 'ProjectId' };
 
 export function isProjectId(id: string): id is ProjectId {

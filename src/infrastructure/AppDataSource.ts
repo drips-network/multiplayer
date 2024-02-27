@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { VotingRound } from '../domain/draftDripListAggregate/VotingRound';
+import VotingRound from '../domain/draftDripListAggregate/VotingRound';
 import appSettings from '../appSettings';
 import logger from './logger';
 import Collaborator from '../domain/draftDripListAggregate/Collaborator';

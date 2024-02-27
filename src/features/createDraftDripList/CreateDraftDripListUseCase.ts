@@ -3,14 +3,21 @@ import type UseCase from '../../application/interfaces/IUseCase';
 import { DraftDripList } from '../../domain/draftDripListAggregate/DraftDripList';
 import type { CreateDraftDripListResponse } from './CreateDraftDripListResponse';
 import type { CreateDraftDripListRequest } from './CreateDraftDripListRequest';
+import Publisher from '../../domain/draftDripListAggregate/Publisher';
+import { assertIsEthAddress } from '../../domain/typeUtils';
 
 export default class CreateDraftDripListUseCase
   implements UseCase<CreateDraftDripListRequest, CreateDraftDripListResponse>
 {
-  private readonly _repository: Repository<DraftDripList>;
+  private readonly _draftDripListsRepository: Repository<DraftDripList>;
+  private readonly _publishersRepository: Repository<Publisher>;
 
-  public constructor(repository: Repository<DraftDripList>) {
-    this._repository = repository;
+  public constructor(
+    draftDripListsRepository: Repository<DraftDripList>,
+    publishersRepository: Repository<Publisher>,
+  ) {
+    this._draftDripListsRepository = draftDripListsRepository;
+    this._publishersRepository = publishersRepository;
   }
 
   public async execute(
@@ -18,14 +25,19 @@ export default class CreateDraftDripListUseCase
   ): Promise<CreateDraftDripListResponse> {
     const { publisherAddressId, publisherAddress, name, description } = request;
 
-    const draftDripList = DraftDripList.new(
-      name,
-      description,
-      publisherAddressId,
-      publisherAddress,
-    );
+    assertIsEthAddress(publisherAddress);
 
-    await this._repository.save(draftDripList);
+    let publisher = await this._publishersRepository.findOne({
+      where: { _address: publisherAddress },
+    });
+
+    if (!publisher) {
+      publisher = Publisher.new(publisherAddressId, publisherAddress);
+    }
+
+    const draftDripList = DraftDripList.new(name, description, publisher);
+
+    await this._draftDripListsRepository.save(draftDripList);
 
     return {
       draftDripListId: draftDripList.id,

@@ -3,7 +3,7 @@ import { isAccountId, isEthAddress } from '../typeUtils';
 import type { AccountId, Address } from '../typeUtils';
 import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../DataSchemaConstants';
-import type { VotingRound } from './VotingRound';
+import type VotingRound from './VotingRound';
 
 @Entity({
   name: 'Collaborators',
@@ -11,10 +11,7 @@ import type { VotingRound } from './VotingRound';
 export default class Collaborator extends BaseEntity {
   @ManyToMany('VotingRound')
   @JoinTable({ name: 'CollaboratorVotingRounds' })
-  private _votingRounds!: VotingRound[];
-  get votingRounds(): VotingRound[] {
-    return this._votingRounds;
-  }
+  public _votingRounds!: VotingRound[];
 
   @Column('varchar', {
     length: DataSchemaConstants.ACCOUNT_ID_LENGTH,
@@ -22,10 +19,7 @@ export default class Collaborator extends BaseEntity {
     unique: true,
     name: 'addressId',
   })
-  private _addressId!: AccountId;
-  get addressId(): AccountId {
-    return this._addressId;
-  }
+  public _addressId!: AccountId;
 
   @Column('varchar', {
     length: DataSchemaConstants.ADDRESS_LENGTH,
@@ -33,10 +27,7 @@ export default class Collaborator extends BaseEntity {
     unique: true,
     name: 'address',
   })
-  private _address!: Address;
-  get address(): Address {
-    return this._address;
-  }
+  public _address!: Address;
 
   public constructor() {
     super();

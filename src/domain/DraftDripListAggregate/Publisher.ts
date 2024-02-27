@@ -1,5 +1,10 @@
 import { Column, Entity } from 'typeorm';
-import type { Address, AddressId } from '../typeUtils';
+import {
+  isAddressId,
+  type Address,
+  type AddressId,
+  isEthAddress,
+} from '../typeUtils';
 import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../DataSchemaConstants';
 
@@ -12,19 +17,29 @@ export default class Publisher extends BaseEntity {
     nullable: false,
     unique: true,
   })
-  public readonly addressId: AddressId;
+  public _addressId!: AddressId;
 
   @Column('varchar', {
     length: DataSchemaConstants.ADDRESS_LENGTH,
     nullable: false,
     unique: true,
   })
-  public readonly address: Address;
+  public _address!: Address;
 
-  public constructor(addressId: AddressId, address: Address) {
-    super();
+  public static new(addressId: string, address: string) {
+    if (!isAddressId(addressId)) {
+      throw new Error('Invalid addressId.');
+    }
 
-    this.addressId = addressId;
-    this.address = address;
+    if (!isEthAddress(address)) {
+      throw new Error('Invalid address.');
+    }
+
+    const publisher = new Publisher();
+
+    publisher._addressId = addressId;
+    publisher._address = address;
+
+    return publisher;
   }
 }

@@ -30,7 +30,7 @@ export default class ApiServer {
     );
 
     app.get(
-      '/drafts/:id',
+      '/drafts/:draftDripListId',
       ...getDraftDripListByIdRequestValidators,
       ApiServer.useEndpoint(getDraftDripListByIdEndpoint),
     );

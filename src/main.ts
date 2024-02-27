@@ -10,6 +10,7 @@ import DeleteDraftDripListEndpoint from './features/deleteDraftDripList/DeleteDr
 import DeleteDraftDripListUseCase from './features/deleteDraftDripList/DeleteDraftDripListUseCase';
 import GetDraftDripListByIdEndpoint from './features/getDraftDripListById/GetDraftDripListByIdEndpoint';
 import GetDraftDripListByIdUseCase from './features/getDraftDripListById/GetDraftDripListByIdUseCase';
+import Publisher from './domain/draftDripListAggregate/Publisher';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -17,14 +18,20 @@ export async function main(): Promise<void> {
 
   const AppDataSource = await initializeAppDataSource();
 
+  const publisherRepository = AppDataSource.getRepository(Publisher);
+  const draftDripListRepository = AppDataSource.getRepository(DraftDripList);
+
   const createDraftDripListEndpoint = new CreateDraftDripListEndpoint(
-    new CreateDraftDripListUseCase(AppDataSource.getRepository(DraftDripList)),
+    new CreateDraftDripListUseCase(
+      draftDripListRepository,
+      publisherRepository,
+    ),
   );
   const getDraftDripListByIdEndpoint = new GetDraftDripListByIdEndpoint(
-    new GetDraftDripListByIdUseCase(AppDataSource.getRepository(DraftDripList)),
+    new GetDraftDripListByIdUseCase(draftDripListRepository),
   );
   const deleteDraftDripListEndpoint = new DeleteDraftDripListEndpoint(
-    new DeleteDraftDripListUseCase(AppDataSource.getRepository(DraftDripList)),
+    new DeleteDraftDripListUseCase(draftDripListRepository),
   );
 
   await ApiServer.run(

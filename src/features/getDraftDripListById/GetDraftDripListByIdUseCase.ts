@@ -29,19 +29,19 @@ export default class GetDraftDripListByIdUseCase
 
     return {
       id: draftDripList.id,
-      name: draftDripList.name,
-      description: draftDripList.description,
+      name: draftDripList._name,
+      description: draftDripList._description,
       currentVotingRound: draftDripList.currentVotingRound
         ? {
             id: draftDripList.currentVotingRound.id,
-            startsAt: draftDripList.currentVotingRound.startsAt,
-            endsAt: draftDripList.currentVotingRound.endsAt,
+            startsAt: draftDripList.currentVotingRound._startsAt,
+            endsAt: draftDripList.currentVotingRound._endsAt,
           }
         : null,
       publisher: {
-        id: draftDripList.publisher.id,
-        address: draftDripList.publisher.address,
-        addressDriverId: draftDripList.publisher.addressId,
+        id: draftDripList._publisher.id,
+        address: draftDripList._publisher._address,
+        addressDriverId: draftDripList._publisher._addressId,
       },
     };
   }

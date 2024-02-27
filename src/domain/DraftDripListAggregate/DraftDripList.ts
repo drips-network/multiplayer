@@ -1,12 +1,12 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import type { UUID } from 'crypto';
-import { isAddressId, type DripListId, isEthAddress } from '../typeUtils';
-import Publisher from './Publisher';
-import { VotingRound } from './VotingRound';
+import { type DripListId } from '../typeUtils';
 import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../DataSchemaConstants';
 import Collaborator from './Collaborator';
 import type IAggregateRoot from '../IAggregateRoot';
+import type Publisher from './Publisher';
+import VotingRound from './VotingRound';
 
 @Entity({
   name: 'DraftDripLists',
@@ -17,33 +17,21 @@ export class DraftDripList extends BaseEntity implements IAggregateRoot {
     nullable: true,
     name: 'publishedDripListId',
   })
-  private _publishedDripListId!: DripListId | null;
-  get publishedDripListId(): DripListId | null {
-    return this._publishedDripListId;
-  }
+  public _publishedDripListId!: DripListId | null;
 
   @Column('varchar', { length: 50, name: 'name', nullable: false })
-  private _name!: string;
-  get name(): string {
-    return this._name;
-  }
+  public _name!: string;
 
   @Column('varchar', { length: 200, name: 'description', nullable: false })
-  private _description!: string;
-  get description(): string {
-    return this._description;
-  }
+  public _description!: string;
 
   @ManyToOne('Publisher', { nullable: false, cascade: true })
   @JoinColumn({ name: 'publisherId' })
-  private _publisher!: Publisher;
-  get publisher(): Publisher {
-    return this._publisher;
-  }
+  public _publisher!: Publisher;
 
   @OneToMany(
     'VotingRound',
-    (votingRound: VotingRound) => votingRound['_draftDripList'], // eslint-disable-line dot-notation
+    (votingRound: VotingRound) => votingRound._draftDripList,
     { nullable: true, orphanedRowAction: 'soft-delete' },
   )
   public _votingRounds!: VotingRound[];
@@ -56,12 +44,7 @@ export class DraftDripList extends BaseEntity implements IAggregateRoot {
     return this._votingRounds[this._votingRounds.length - 1] || null;
   }
 
-  public static new(
-    name: string,
-    description: string,
-    addressId: string,
-    address: string,
-  ) {
+  public static new(name: string, description: string, publisher: Publisher) {
     if (name?.length === 0 || name?.length > 50) {
       throw new Error('Invalid name.');
     }
@@ -70,20 +53,12 @@ export class DraftDripList extends BaseEntity implements IAggregateRoot {
       throw new Error('Invalid description.');
     }
 
-    if (!isAddressId(addressId)) {
-      throw new Error('Invalid addressId.');
-    }
-
-    if (!isEthAddress(address)) {
-      throw new Error('Invalid address.');
-    }
-
     const draftDripList = new DraftDripList();
 
     draftDripList._name = name;
     draftDripList._description = description;
+    draftDripList._publisher = publisher;
     draftDripList._publishedDripListId = null;
-    draftDripList._publisher = new Publisher(addressId, address);
 
     return draftDripList;
   }
@@ -160,7 +135,7 @@ export class DraftDripList extends BaseEntity implements IAggregateRoot {
       throw new Error('Cannot add a collaborator to a completed voting round.');
     }
 
-    this.currentVotingRound.collaborators.push(
+    this.currentVotingRound._collaborators.push(
       Collaborator.new(accountId, address),
     );
   }
@@ -182,14 +157,14 @@ export class DraftDripList extends BaseEntity implements IAggregateRoot {
       );
     }
 
-    const index = this.currentVotingRound.collaborators.findIndex(
-      (c) => c.addressId === accountId,
+    const index = this.currentVotingRound._collaborators.findIndex(
+      (c) => c._addressId === accountId,
     );
 
     if (index === -1) {
       throw new Error('Collaborator not found in this voting round.');
     }
 
-    this.currentVotingRound.collaborators.splice(index, 1);
+    this.currentVotingRound._collaborators.splice(index, 1);
   }
 }
