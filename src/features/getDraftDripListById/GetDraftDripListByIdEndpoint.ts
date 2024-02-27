@@ -1,9 +1,9 @@
-import type { IEndpoint } from '../../../application/interfaces/IEndpoint';
-import type GetDraftDripListByIdUseCase from './GetDraftDripListById.UseCase';
-import type { TypedResponse } from '../../../application/interfaces/ITypedResponse';
-import type { GetDraftDripListByIdRequest } from './GetDraftDripListById.Request';
-import type { GetDraftDripListByIdResponse } from './GetDraftDripListById.Response';
-import type { TypedRequestParams } from '../../../application/interfaces/ITypedRequestParams';
+import type { IEndpoint } from '../../application/interfaces/IEndpoint';
+import type GetDraftDripListByIdUseCase from './GetDraftDripListByIdUseCase';
+import type { TypedResponse } from '../../application/interfaces/ITypedResponse';
+import type { GetDraftDripListByIdRequest } from './GetDraftDripListByIdRequest';
+import type { GetDraftDripListByIdResponse } from './GetDraftDripListByIdResponse';
+import type { TypedRequestParams } from '../../application/interfaces/ITypedRequestParams';
 
 export default class GetDraftDripListByIdEndpoint implements IEndpoint {
   private readonly _getDraftDripListByIdUseCase: GetDraftDripListByIdUseCase;

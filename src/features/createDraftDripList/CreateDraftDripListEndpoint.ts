@@ -1,9 +1,9 @@
-import type { IEndpoint } from '../../../application/interfaces/IEndpoint';
-import type CreateDraftDripListUseCase from './CreateDraftDripList.UseCase';
-import type TypedRequestBody from '../../../application/interfaces/ITypedRequestBody';
-import type { TypedResponse } from '../../../application/interfaces/ITypedResponse';
-import type { CreateDraftDripListResponse } from './CreateDraftDripList.Response';
-import type { CreateDraftDripListRequest } from './CreateDraftDripList.Request';
+import type { IEndpoint } from '../../application/interfaces/IEndpoint';
+import type CreateDraftDripListUseCase from './CreateDraftDripListUseCase';
+import type TypedRequestBody from '../../application/interfaces/ITypedRequestBody';
+import type { TypedResponse } from '../../application/interfaces/ITypedResponse';
+import type { CreateDraftDripListResponse } from './CreateDraftDripListResponse';
+import type { CreateDraftDripListRequest } from './CreateDraftDripListRequest';
 
 export default class CreateDraftDripListEndpoint implements IEndpoint {
   private readonly _createDraftDripListUseCase: CreateDraftDripListUseCase;

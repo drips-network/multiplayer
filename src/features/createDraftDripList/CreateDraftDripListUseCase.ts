@@ -1,8 +1,8 @@
 import type { Repository } from 'typeorm';
-import type UseCase from '../../../application/interfaces/IUseCase';
-import { DraftDripList } from '../../../domain/DraftDripList';
-import type { CreateDraftDripListResponse } from './CreateDraftDripList.Response';
-import type { CreateDraftDripListRequest } from './CreateDraftDripList.Request';
+import type UseCase from '../../application/interfaces/IUseCase';
+import { DraftDripList } from '../../domain/draftDripListAggregate/DraftDripList';
+import type { CreateDraftDripListResponse } from './CreateDraftDripListResponse';
+import type { CreateDraftDripListRequest } from './CreateDraftDripListRequest';
 
 export default class CreateDraftDripListUseCase
   implements UseCase<CreateDraftDripListRequest, CreateDraftDripListResponse>
@@ -16,9 +16,14 @@ export default class CreateDraftDripListUseCase
   public async execute(
     request: CreateDraftDripListRequest,
   ): Promise<CreateDraftDripListResponse> {
-    const { name, description } = request;
+    const { publisherAddressId, publisherAddress, name, description } = request;
 
-    const draftDripList = new DraftDripList(name, description);
+    const draftDripList = DraftDripList.new(
+      name,
+      description,
+      publisherAddressId,
+      publisherAddress,
+    );
 
     await this._repository.save(draftDripList);
 

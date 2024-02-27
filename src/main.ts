@@ -1,16 +1,15 @@
 import ApiServer from './ApiServer';
 import 'reflect-metadata';
-import StartVotingRoundUseCase from './features/votingRound/startVotingRound/StartVotingRound.UseCase';
-import StartVotingRoundEndpoint from './features/votingRound/startVotingRound/StartVotingRound.Endpoint';
-import { VotingRound } from './domain/VotingRound';
 import logger from './infrastructure/logger';
 import appSettings from './appSettings';
-import { DraftDripList } from './domain/DraftDripList';
+import { DraftDripList } from './domain/draftDripListAggregate/DraftDripList';
 import { initializeAppDataSource } from './infrastructure/AppDataSource';
-import CreateDraftDripListEndpoint from './features/draftDripList/create/CreateDraftDripList.Endpoint';
-import CreateDraftDripListUseCase from './features/draftDripList/create/CreateDraftDripList.UseCase';
-import GetDraftDripListByIdEndpoint from './features/draftDripList/getById/GetDraftDripListById.Endpoint';
-import GetDraftDripListByIdUseCase from './features/draftDripList/getById/GetDraftDripListById.UseCase';
+import CreateDraftDripListEndpoint from './features/createDraftDripList/CreateDraftDripListEndpoint';
+import CreateDraftDripListUseCase from './features/createDraftDripList/CreateDraftDripListUseCase';
+import DeleteDraftDripListEndpoint from './features/deleteDraftDripList/DeleteDraftDripListEndpoint';
+import DeleteDraftDripListUseCase from './features/deleteDraftDripList/DeleteDraftDripListUseCase';
+import GetDraftDripListByIdEndpoint from './features/getDraftDripListById/GetDraftDripListByIdEndpoint';
+import GetDraftDripListByIdUseCase from './features/getDraftDripListById/GetDraftDripListByIdUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -18,20 +17,20 @@ export async function main(): Promise<void> {
 
   const AppDataSource = await initializeAppDataSource();
 
-  const getDraftDripListByIdEndpoint = new GetDraftDripListByIdEndpoint(
-    new GetDraftDripListByIdUseCase(AppDataSource.getRepository(DraftDripList)),
-  );
   const createDraftDripListEndpoint = new CreateDraftDripListEndpoint(
     new CreateDraftDripListUseCase(AppDataSource.getRepository(DraftDripList)),
   );
-  const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
-    new StartVotingRoundUseCase(AppDataSource.getRepository(VotingRound)),
+  const getDraftDripListByIdEndpoint = new GetDraftDripListByIdEndpoint(
+    new GetDraftDripListByIdUseCase(AppDataSource.getRepository(DraftDripList)),
+  );
+  const deleteDraftDripListEndpoint = new DeleteDraftDripListEndpoint(
+    new DeleteDraftDripListUseCase(AppDataSource.getRepository(DraftDripList)),
   );
 
   await ApiServer.run(
-    startVotingRoundEndpoint,
     createDraftDripListEndpoint,
     getDraftDripListByIdEndpoint,
+    deleteDraftDripListEndpoint,
   );
 }
 

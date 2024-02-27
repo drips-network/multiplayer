@@ -1,22 +1,22 @@
 import type { Request, Response } from 'express';
 import express from 'express';
 import { validationResult } from 'express-validator';
-import type StartVotingRoundEndpoint from './features/votingRound/startVotingRound/StartVotingRound.Endpoint';
-import { startVotingRoundRequestRequestValidators } from './features/votingRound/startVotingRound/startVotingRoundRequestRequestValidators';
 import type { IEndpoint } from './application/interfaces/IEndpoint';
 import appSettings from './appSettings';
 import logger from './infrastructure/logger';
 import NotFoundError from './application/ NotFoundError';
-import type CreateDraftDripListEndpoint from './features/draftDripList/create/CreateDraftDripList.Endpoint';
-import { createDraftDripListRequestRequestValidators } from './features/draftDripList/create/createDraftDripListRequestValidators';
-import { getDraftDripListByIdRequestValidators } from './features/draftDripList/getById/getDripListByIdRequestValidators';
-import type GetDraftDripListByIdEndpoint from './features/draftDripList/getById/GetDraftDripListById.Endpoint';
+import type CreateDraftDripListEndpoint from './features/createDraftDripList/CreateDraftDripListEndpoint';
+import { createDraftDripListRequestRequestValidators } from './features/createDraftDripList/createDraftDripListRequestValidators';
+import { deleteDraftDripListRequestRequestValidators } from './features/deleteDraftDripList/deleteDraftDripListRequestValidators';
+import type DeleteDraftDripListEndpoint from './features/deleteDraftDripList/DeleteDraftDripListEndpoint';
+import type GetDraftDripListByIdEndpoint from './features/getDraftDripListById/GetDraftDripListByIdEndpoint';
+import { getDraftDripListByIdRequestValidators } from './features/getDraftDripListById/getDraftDripListByIdRequestValidators';
 
 export default class ApiServer {
   public static async run(
-    startVotingRoundEndpoint: StartVotingRoundEndpoint,
     createDraftDripListEndpoint: CreateDraftDripListEndpoint,
     getDraftDripListByIdEndpoint: GetDraftDripListByIdEndpoint,
+    deleteDraftDripListEndpoint: DeleteDraftDripListEndpoint,
     port: number = appSettings.apiPort,
   ): Promise<void> {
     const app = express();
@@ -24,9 +24,9 @@ export default class ApiServer {
     app.use(express.json());
 
     app.post(
-      '/start-voting-round',
-      ...startVotingRoundRequestRequestValidators,
-      ApiServer.useEndpoint(startVotingRoundEndpoint),
+      '/drafts',
+      ...createDraftDripListRequestRequestValidators,
+      ApiServer.useEndpoint(createDraftDripListEndpoint),
     );
 
     app.get(
@@ -35,10 +35,10 @@ export default class ApiServer {
       ApiServer.useEndpoint(getDraftDripListByIdEndpoint),
     );
 
-    app.post(
-      '/drafts',
-      ...createDraftDripListRequestRequestValidators,
-      ApiServer.useEndpoint(createDraftDripListEndpoint),
+    app.delete(
+      '/drafts/:draftDripListId',
+      ...deleteDraftDripListRequestRequestValidators,
+      ApiServer.useEndpoint(deleteDraftDripListEndpoint),
     );
 
     app.listen(port, () => {
@@ -56,12 +56,12 @@ export default class ApiServer {
 
       try {
         return await endpoint.handle(req, res);
-      } catch (error) {
+      } catch (error: any) {
         if (error instanceof NotFoundError) {
           // 404 Not Found
           return res.status(404).json({ error: error.message });
         }
-        logger.error(error);
+        logger.error(`${error.message}\n${error.stack}`);
 
         // 500 Internal Server Error
         return res.status(500).json({ error: 'An unexpected error occurred.' });
