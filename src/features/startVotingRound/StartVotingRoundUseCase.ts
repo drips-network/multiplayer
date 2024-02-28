@@ -1,9 +1,9 @@
 import type { Repository } from 'typeorm';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { StartVotingRoundResponse } from './StartVotingRoundResponse';
-import type { DraftDripList } from '../../domain/draftDripListAggregate/DraftDripList';
 import type { StartVotingRoundRequest } from './StartVotingRoundRequest';
 import { NotFoundError } from '../../application/errors';
+import type DraftDripList from '../../domain/draftDripListAggregate/DraftDripList';
 
 export default class StartVotingRoundUseCase
   implements UseCase<StartVotingRoundRequest, StartVotingRoundResponse>

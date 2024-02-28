@@ -1,7 +1,7 @@
 import type { Repository } from 'typeorm';
 import type UseCase from '../../application/interfaces/IUseCase';
-import type { DraftDripList } from '../../domain/draftDripListAggregate/DraftDripList';
 import type { DeleteDraftDripListRequest } from './DeleteDraftDripListRequest';
+import type DraftDripList from '../../domain/draftDripListAggregate/DraftDripList';
 
 export default class DeleteDraftDripListUseCase
   implements UseCase<DeleteDraftDripListRequest>

@@ -1,9 +1,9 @@
 import type { Repository } from 'typeorm';
 import type UseCase from '../../application/interfaces/IUseCase';
-import type { DraftDripList } from '../../domain/draftDripListAggregate/DraftDripList';
 import type { GetDraftDripListByIdResponse } from './GetDraftDripListByIdResponse';
 import type { GetDraftDripListByIdRequest } from './GetDraftDripListByIdRequest';
 import { NotFoundError } from '../../application/errors';
+import type DraftDripList from '../../domain/draftDripListAggregate/DraftDripList';
 
 export default class GetDraftDripListByIdUseCase
   implements UseCase<GetDraftDripListByIdRequest, GetDraftDripListByIdResponse>
@@ -36,6 +36,7 @@ export default class GetDraftDripListByIdUseCase
             id: draftDripList.currentVotingRound.id,
             startsAt: draftDripList.currentVotingRound._startsAt,
             endsAt: draftDripList.currentVotingRound._endsAt,
+            status: draftDripList.currentVotingRound.status,
           }
         : null,
       publisher: {

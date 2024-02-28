@@ -12,7 +12,10 @@ import { InvalidVotingRoundOperationError } from '../errors';
 @Entity({
   name: 'DraftDripLists',
 })
-export class DraftDripList extends BaseEntity implements IAggregateRoot {
+export default class DraftDripList
+  extends BaseEntity
+  implements IAggregateRoot
+{
   @Column('varchar', {
     length: DataSchemaConstants.ACCOUNT_ID_LENGTH,
     nullable: true,

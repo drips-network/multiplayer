@@ -3,7 +3,7 @@ import type UseCase from '../../application/interfaces/IUseCase';
 import type { CreateDraftDripListResponse } from './CreateDraftDripListResponse';
 import type { CreateDraftDripListRequest } from './CreateDraftDripListRequest';
 import { assertIsEthAddress } from '../../domain/typeUtils';
-import { DraftDripList } from '../../domain/draftDripListAggregate/DraftDripList';
+import DraftDripList from '../../domain/draftDripListAggregate/DraftDripList';
 import Publisher from '../../domain/draftDripListAggregate/Publisher';
 
 export default class CreateDraftDripListUseCase

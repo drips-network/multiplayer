@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import BaseEntity from '../BaseEntity';
-import type { DraftDripList } from './DraftDripList';
+import type DraftDripList from './DraftDripList';
 import type Collaborator from './Collaborator';
 
 export enum VotingRoundStatus {

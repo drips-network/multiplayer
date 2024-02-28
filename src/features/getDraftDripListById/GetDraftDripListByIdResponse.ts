@@ -8,6 +8,7 @@ export type GetDraftDripListByIdResponse = {
     id: UUID;
     startsAt: Date;
     endsAt: Date;
+    status: 'started' | 'completed' | 'deleted';
   } | null;
   publisher: {
     id: UUID;

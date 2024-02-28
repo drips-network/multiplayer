@@ -2,7 +2,6 @@ import ApiServer from './ApiServer';
 import 'reflect-metadata';
 import logger from './infrastructure/logger';
 import appSettings from './appSettings';
-import { DraftDripList } from './domain/draftDripListAggregate/DraftDripList';
 import { initializeAppDataSource } from './infrastructure/AppDataSource';
 import CreateDraftDripListEndpoint from './features/createDraftDripList/CreateDraftDripListEndpoint';
 import CreateDraftDripListUseCase from './features/createDraftDripList/CreateDraftDripListUseCase';
@@ -10,9 +9,10 @@ import DeleteDraftDripListEndpoint from './features/deleteDraftDripList/DeleteDr
 import DeleteDraftDripListUseCase from './features/deleteDraftDripList/DeleteDraftDripListUseCase';
 import GetDraftDripListByIdEndpoint from './features/getDraftDripListById/GetDraftDripListByIdEndpoint';
 import GetDraftDripListByIdUseCase from './features/getDraftDripListById/GetDraftDripListByIdUseCase';
-import Publisher from './domain/draftDripListAggregate/Publisher';
 import StartVotingRoundEndpoint from './features/startVotingRound/StartVotingRoundEndpoint';
 import StartVotingRoundUseCase from './features/startVotingRound/StartVotingRoundUseCase';
+import Publisher from './domain/draftDripListAggregate/Publisher';
+import DraftDripList from './domain/draftDripListAggregate/DraftDripList';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -40,10 +40,13 @@ export async function main(): Promise<void> {
   );
 
   await ApiServer.run(
-    createDraftDripListEndpoint,
-    getDraftDripListByIdEndpoint,
-    deleteDraftDripListEndpoint,
-    startVotingRoundEndpoint,
+    [
+      createDraftDripListEndpoint,
+      getDraftDripListByIdEndpoint,
+      deleteDraftDripListEndpoint,
+      startVotingRoundEndpoint,
+    ],
+    appSettings.apiPort,
   );
 }
 
