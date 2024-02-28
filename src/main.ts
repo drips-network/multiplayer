@@ -11,6 +11,8 @@ import DeleteDraftDripListUseCase from './features/deleteDraftDripList/DeleteDra
 import GetDraftDripListByIdEndpoint from './features/getDraftDripListById/GetDraftDripListByIdEndpoint';
 import GetDraftDripListByIdUseCase from './features/getDraftDripListById/GetDraftDripListByIdUseCase';
 import Publisher from './domain/draftDripListAggregate/Publisher';
+import StartVotingRoundEndpoint from './features/startVotingRound/StartVotingRoundEndpoint';
+import StartVotingRoundUseCase from './features/startVotingRound/StartVotingRoundUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -33,11 +35,15 @@ export async function main(): Promise<void> {
   const deleteDraftDripListEndpoint = new DeleteDraftDripListEndpoint(
     new DeleteDraftDripListUseCase(draftDripListRepository),
   );
+  const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
+    new StartVotingRoundUseCase(draftDripListRepository),
+  );
 
   await ApiServer.run(
     createDraftDripListEndpoint,
     getDraftDripListByIdEndpoint,
     deleteDraftDripListEndpoint,
+    startVotingRoundEndpoint,
   );
 }
 
@@ -47,7 +53,4 @@ export async function main(): Promise<void> {
 
 process.on('uncaughtException', (error: Error) => {
   logger.error(`Uncaught Exception: ${error.message}`);
-
-  // Railways will restart the process if it exits with a non-zero exit code.
-  process.exit(1);
 });

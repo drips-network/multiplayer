@@ -7,6 +7,7 @@ import Collaborator from './Collaborator';
 import type IAggregateRoot from '../IAggregateRoot';
 import type Publisher from './Publisher';
 import VotingRound from './VotingRound';
+import { InvalidVotingRoundOperationError } from '../errors';
 
 @Entity({
   name: 'DraftDripLists',
@@ -32,25 +33,29 @@ export class DraftDripList extends BaseEntity implements IAggregateRoot {
   @OneToMany(
     'VotingRound',
     (votingRound: VotingRound) => votingRound._draftDripList,
-    { nullable: true, orphanedRowAction: 'soft-delete' },
+    { nullable: true, orphanedRowAction: 'soft-delete', cascade: true },
   )
-  public _votingRounds!: VotingRound[];
+  public _votingRounds!: VotingRound[] | null;
 
   public get isPublished(): boolean {
     return this._publishedDripListId !== null;
   }
 
   public get currentVotingRound(): VotingRound | null {
+    if (!this._votingRounds?.length) {
+      return null;
+    }
+
     return this._votingRounds[this._votingRounds.length - 1] || null;
   }
 
   public static new(name: string, description: string, publisher: Publisher) {
     if (name?.length === 0 || name?.length > 50) {
-      throw new Error('Invalid name.');
+      throw new InvalidVotingRoundOperationError('Invalid name.');
     }
 
     if (description?.length === 0 || description?.length > 200) {
-      throw new Error('Invalid description.');
+      throw new InvalidVotingRoundOperationError('Invalid description.');
     }
 
     const draftDripList = new DraftDripList();
@@ -64,54 +69,74 @@ export class DraftDripList extends BaseEntity implements IAggregateRoot {
   }
 
   public startVotingRound(startsAt: Date, endsAt: Date): void {
+    if (!this._votingRounds?.length) {
+      this._votingRounds = [];
+    }
+
     if (
       this._votingRounds.some((votingRound) => votingRound.status === 'started')
     ) {
-      throw new Error('A voting round is already started for this Drip List.');
+      throw new InvalidVotingRoundOperationError(
+        'Cannot start a new voting round while another is active.',
+      );
     }
 
-    this._votingRounds.push(new VotingRound(startsAt, endsAt));
+    this._votingRounds.push(VotingRound.new(startsAt, endsAt));
   }
 
   public deleteCurrentVotingRound(): UUID | null {
     const { currentVotingRound } = this;
 
-    const index = this._votingRounds.findIndex(
+    if (!currentVotingRound) {
+      throw new InvalidVotingRoundOperationError('No voting round to delete.');
+    }
+
+    // If currentVotingRound is not null, then _votingRounds is not null.
+
+    const index = this._votingRounds!.findIndex(
       (vr) => vr.id === currentVotingRound?.id,
     );
 
     if (index === -1) {
-      throw new Error('No voting round to delete.');
+      throw new InvalidVotingRoundOperationError('No voting round to delete.');
     }
 
-    if (this._votingRounds[index].status === 'completed') {
-      throw new Error('Cannot delete a completed voting round.');
+    if (this._votingRounds![index].status === 'completed') {
+      throw new InvalidVotingRoundOperationError(
+        'Cannot delete a completed voting round.',
+      );
     }
 
-    if (this._votingRounds[index].status === 'deleted') {
-      throw new Error('Voting round already deleted.');
+    if (this._votingRounds![index].status === 'deleted') {
+      throw new InvalidVotingRoundOperationError(
+        'Voting round already deleted.',
+      );
     }
 
-    return this._votingRounds.pop()?.id || null;
+    return this._votingRounds!.pop()?.id || null;
   }
 
   public publishDripList(publishedDripListId: DripListId): void {
     if (this._publishedDripListId !== null) {
-      throw new Error('Drip list already published.');
+      throw new InvalidVotingRoundOperationError(
+        'Drip list already published.',
+      );
     }
 
     if (this.currentVotingRound === null) {
-      throw new Error('No active voting round to publish a Drip List with.');
+      throw new InvalidVotingRoundOperationError(
+        'No active voting round to publish a Drip List with.',
+      );
     }
 
     if (this.currentVotingRound.status === 'started') {
-      throw new Error(
+      throw new InvalidVotingRoundOperationError(
         'Cannot publish a Drip List with an active voting round.',
       );
     }
 
     if (this.currentVotingRound.status === 'deleted') {
-      throw new Error(
+      throw new InvalidVotingRoundOperationError(
         'Cannot publish a Drip List with a deleted voting round.',
       );
     }
@@ -128,11 +153,15 @@ export class DraftDripList extends BaseEntity implements IAggregateRoot {
 
   public addCollaborator(accountId: string, address: string): void {
     if (!this.currentVotingRound) {
-      throw new Error('No active voting round to add a collaborator to.');
+      throw new InvalidVotingRoundOperationError(
+        'No active voting round to add a collaborator to.',
+      );
     }
 
     if (this.currentVotingRound.status !== 'started') {
-      throw new Error('Cannot add a collaborator to a completed voting round.');
+      throw new InvalidVotingRoundOperationError(
+        'Cannot add a collaborator to a completed voting round.',
+      );
     }
 
     this.currentVotingRound._collaborators.push(
@@ -142,17 +171,19 @@ export class DraftDripList extends BaseEntity implements IAggregateRoot {
 
   public removeCollaborator(accountId: string): void {
     if (!this.currentVotingRound) {
-      throw new Error('No active voting round to remove a collaborator from.');
+      throw new InvalidVotingRoundOperationError(
+        'No active voting round to remove a collaborator from.',
+      );
     }
 
     if (this.currentVotingRound.status === 'completed') {
-      throw new Error(
+      throw new InvalidVotingRoundOperationError(
         'Cannot remove a collaborator from a completed voting round.',
       );
     }
 
     if (this.currentVotingRound.status === 'deleted') {
-      throw new Error(
+      throw new InvalidVotingRoundOperationError(
         'Cannot remove a collaborator from a deleted voting round.',
       );
     }
@@ -162,7 +193,9 @@ export class DraftDripList extends BaseEntity implements IAggregateRoot {
     );
 
     if (index === -1) {
-      throw new Error('Collaborator not found in this voting round.');
+      throw new InvalidVotingRoundOperationError(
+        'Collaborator not found in this voting round.',
+      );
     }
 
     this.currentVotingRound._collaborators.splice(index, 1);

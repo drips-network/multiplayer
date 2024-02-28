@@ -1,13 +1,5 @@
 import getContractNameFromAccountId from './getContractNameFromAccountId';
 
-export type BigIntString = string & { __type: 'BigIntString' };
-
-export function toBigIntString(string: string): BigIntString {
-  const bigInt = BigInt(string);
-
-  return bigInt.toString() as BigIntString;
-}
-
 export type AddressId = string & { __type: 'AddressId' };
 
 export function isAddressId(idAsString: string): idAsString is AddressId {

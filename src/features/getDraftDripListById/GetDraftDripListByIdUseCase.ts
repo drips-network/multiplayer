@@ -1,9 +1,9 @@
 import type { Repository } from 'typeorm';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { DraftDripList } from '../../domain/draftDripListAggregate/DraftDripList';
-import NotFoundError from '../../application/ NotFoundError';
 import type { GetDraftDripListByIdResponse } from './GetDraftDripListByIdResponse';
 import type { GetDraftDripListByIdRequest } from './GetDraftDripListByIdRequest';
+import { NotFoundError } from '../../application/errors';
 
 export default class GetDraftDripListByIdUseCase
   implements UseCase<GetDraftDripListByIdRequest, GetDraftDripListByIdResponse>

@@ -4,19 +4,23 @@ import { validationResult } from 'express-validator';
 import type { IEndpoint } from './application/interfaces/IEndpoint';
 import appSettings from './appSettings';
 import logger from './infrastructure/logger';
-import NotFoundError from './application/ NotFoundError';
 import type CreateDraftDripListEndpoint from './features/createDraftDripList/CreateDraftDripListEndpoint';
-import { createDraftDripListRequestRequestValidators } from './features/createDraftDripList/createDraftDripListRequestValidators';
-import { deleteDraftDripListRequestRequestValidators } from './features/deleteDraftDripList/deleteDraftDripListRequestValidators';
+import { createDraftDripListRequestValidators } from './features/createDraftDripList/createDraftDripListRequestValidators';
 import type DeleteDraftDripListEndpoint from './features/deleteDraftDripList/DeleteDraftDripListEndpoint';
 import type GetDraftDripListByIdEndpoint from './features/getDraftDripListById/GetDraftDripListByIdEndpoint';
 import { getDraftDripListByIdRequestValidators } from './features/getDraftDripListById/getDraftDripListByIdRequestValidators';
+import { startVotingRoundRequestRequestValidators } from './features/startVotingRound/startVotingRoundRequestRequestValidators';
+import { NotFoundError } from './application/errors';
+import type StartVotingRoundEndpoint from './features/startVotingRound/StartVotingRoundEndpoint';
+import { InvalidVotingRoundOperationError } from './domain/errors';
+import { deleteDraftDripListRequestValidators } from './features/deleteDraftDripList/deleteDraftDripListRequestValidators';
 
 export default class ApiServer {
   public static async run(
     createDraftDripListEndpoint: CreateDraftDripListEndpoint,
     getDraftDripListByIdEndpoint: GetDraftDripListByIdEndpoint,
     deleteDraftDripListEndpoint: DeleteDraftDripListEndpoint,
+    startVotingRoundEndpoint: StartVotingRoundEndpoint,
     port: number = appSettings.apiPort,
   ): Promise<void> {
     const app = express();
@@ -25,7 +29,7 @@ export default class ApiServer {
 
     app.post(
       '/drafts',
-      ...createDraftDripListRequestRequestValidators,
+      ...createDraftDripListRequestValidators,
       ApiServer.useEndpoint(createDraftDripListEndpoint),
     );
 
@@ -37,8 +41,14 @@ export default class ApiServer {
 
     app.delete(
       '/drafts/:draftDripListId',
-      ...deleteDraftDripListRequestRequestValidators,
+      ...deleteDraftDripListRequestValidators,
       ApiServer.useEndpoint(deleteDraftDripListEndpoint),
+    );
+
+    app.post(
+      '/drafts/:draftDripListId/startVotingRound',
+      ...startVotingRoundRequestRequestValidators,
+      ApiServer.useEndpoint(startVotingRoundEndpoint),
     );
 
     app.listen(port, () => {
@@ -57,14 +67,20 @@ export default class ApiServer {
       try {
         return await endpoint.handle(req, res);
       } catch (error: any) {
+        // 400 Bad Request
+        if (error instanceof InvalidVotingRoundOperationError) {
+          return res.status(400).json({ error: error.message });
+        }
+
+        // 404 Not Found
         if (error instanceof NotFoundError) {
-          // 404 Not Found
           return res.status(404).json({ error: error.message });
         }
+
         logger.error(`${error.message}\n${error.stack}`);
 
         // 500 Internal Server Error
-        return res.status(500).json({ error: 'An unexpected error occurred.' });
+        return res.status(500).json({ error: error.message });
       }
     };
   }

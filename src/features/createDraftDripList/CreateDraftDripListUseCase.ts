@@ -1,10 +1,10 @@
 import type { Repository } from 'typeorm';
 import type UseCase from '../../application/interfaces/IUseCase';
-import { DraftDripList } from '../../domain/draftDripListAggregate/DraftDripList';
 import type { CreateDraftDripListResponse } from './CreateDraftDripListResponse';
 import type { CreateDraftDripListRequest } from './CreateDraftDripListRequest';
-import Publisher from '../../domain/draftDripListAggregate/Publisher';
 import { assertIsEthAddress } from '../../domain/typeUtils';
+import { DraftDripList } from '../../domain/draftDripListAggregate/DraftDripList';
+import Publisher from '../../domain/draftDripListAggregate/Publisher';
 
 export default class CreateDraftDripListUseCase
   implements UseCase<CreateDraftDripListRequest, CreateDraftDripListResponse>

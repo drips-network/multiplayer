@@ -14,10 +14,10 @@ export enum VotingRoundStatus {
 })
 export default class VotingRound extends BaseEntity {
   @Column('timestamptz')
-  public readonly _startsAt: Date;
+  public _startsAt!: Date;
 
   @Column('timestamptz')
-  public readonly _endsAt: Date;
+  public _endsAt!: Date;
 
   @ManyToOne(
     'DraftDripList',
@@ -59,10 +59,27 @@ export default class VotingRound extends BaseEntity {
     return this._endsAt;
   }
 
-  constructor(startsAt: Date, endsAt: Date) {
-    super();
+  public static new(startsAt: Date, endsAt: Date): VotingRound {
+    const startsAtTime = new Date(startsAt).getTime();
+    const endsAtTime = new Date(endsAt).getTime();
 
-    this._startsAt = startsAt;
-    this._endsAt = endsAt;
+    if (startsAtTime > endsAtTime) {
+      throw new Error('Start date must be before end date.');
+    }
+
+    if (startsAtTime < new Date().getTime()) {
+      throw new Error('Start date must be in the future.');
+    }
+
+    if (endsAtTime < new Date().getTime()) {
+      throw new Error('End date must be in the future.');
+    }
+
+    const votingRound = new VotingRound();
+
+    votingRound._startsAt = startsAt;
+    votingRound._endsAt = endsAt;
+
+    return votingRound;
   }
 }
