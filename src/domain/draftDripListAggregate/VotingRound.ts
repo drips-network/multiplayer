@@ -37,7 +37,7 @@ export default class VotingRound extends BaseEntity {
   public _collaborators!: Collaborator[];
 
   public get status(): VotingRoundStatus {
-    if (this.deletedAt) {
+    if (this._deletedAt) {
       return VotingRoundStatus.Deleted;
     }
 
@@ -49,8 +49,8 @@ export default class VotingRound extends BaseEntity {
   }
 
   public get completedAt(): Date | null {
-    if (this.deletedAt) {
-      return this.deletedAt;
+    if (this._deletedAt) {
+      return this._deletedAt;
     }
     if (this._endsAt.getTime() > new Date().getTime()) {
       return null;

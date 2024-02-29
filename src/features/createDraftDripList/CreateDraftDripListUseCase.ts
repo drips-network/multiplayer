@@ -48,11 +48,11 @@ export default class CreateDraftDripListUseCase
     await this._draftDripListsRepository.save(draftDripList);
 
     this._logger.info(
-      `Created successfully a new draft drip list with ID '${draftDripList.id}'.`,
+      `Created successfully a new draft drip list with ID '${draftDripList._id}'.`,
     );
 
     return {
-      draftDripListId: draftDripList.id,
+      draftDripListId: draftDripList._id,
     };
   }
 }

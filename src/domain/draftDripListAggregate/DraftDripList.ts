@@ -1,5 +1,4 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
-import type { UUID } from 'crypto';
 import { type DripListId } from '../typeUtils';
 import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../DataSchemaConstants';
@@ -87,36 +86,26 @@ export default class DraftDripList
     this._votingRounds.push(VotingRound.new(startsAt, endsAt));
   }
 
-  public deleteCurrentVotingRound(): UUID {
+  public deleteCurrentVotingRound(): void {
     const { currentVotingRound } = this;
 
     if (!currentVotingRound) {
       throw new InvalidVotingRoundOperationError('No voting round to delete.');
     }
 
-    // If currentVotingRound is not null, then _votingRounds is not null.
-
-    const index = this._votingRounds!.findIndex(
-      (vr) => vr.id === currentVotingRound?.id,
-    );
-
-    if (index === -1) {
-      throw new InvalidVotingRoundOperationError('No voting round to delete.');
-    }
-
-    if (this._votingRounds![index].status === 'completed') {
+    if (currentVotingRound.status === 'completed') {
       throw new InvalidVotingRoundOperationError(
         'Cannot delete a completed voting round.',
       );
     }
 
-    if (this._votingRounds![index].status === 'deleted') {
+    if (currentVotingRound.status === 'deleted') {
       throw new InvalidVotingRoundOperationError(
         'Voting round already deleted.',
       );
     }
 
-    return this._votingRounds!.pop()!.id || null;
+    this._votingRounds?.pop();
   }
 
   public publishDripList(publishedDripListId: DripListId): void {

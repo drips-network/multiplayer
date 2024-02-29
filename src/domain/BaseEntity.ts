@@ -8,21 +8,23 @@ import {
 } from 'typeorm';
 
 export default abstract class BaseEntity {
-  @PrimaryColumn('uuid')
-  id!: UUID;
+  @PrimaryColumn('uuid', {
+    name: 'id',
+  })
+  public _id!: UUID;
   @BeforeInsert()
   generateUuid() {
-    if (!this.id) {
-      this.id = randomUUID();
+    if (!this._id) {
+      this._id = randomUUID();
     }
   }
 
-  @CreateDateColumn()
-  createdAt!: Date;
+  @CreateDateColumn({ name: 'createdAt' })
+  public _createdAt!: Date;
 
-  @UpdateDateColumn()
-  updatedAt!: Date;
+  @UpdateDateColumn({ name: 'updatedAt' })
+  public _updatedAt!: Date;
 
-  @DeleteDateColumn()
-  deletedAt!: Date;
+  @DeleteDateColumn({ name: 'deletedAt' })
+  public _deletedAt!: Date;
 }

@@ -20,7 +20,7 @@ export default class DeleteDraftDripListUseCase
     this._logger.info(`Deleting the draft drip list with ID '${request.id}'.`);
 
     const draftDripList = await this._repository.findOne({
-      where: { id: request.id },
+      where: { _id: request.id },
       relations: ['_votingRounds'],
     });
 

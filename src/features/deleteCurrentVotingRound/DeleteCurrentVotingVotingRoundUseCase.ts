@@ -26,7 +26,7 @@ export default class DeleteCurrentVotingRoundUseCase
     );
 
     const draftDripList = await this._repository.findOne({
-      where: { id },
+      where: { _id: id },
       relations: ['_votingRounds'],
     });
 

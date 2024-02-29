@@ -27,7 +27,7 @@ export default class StartVotingRoundUseCase
     );
 
     const draftDripList = await this._repository.findOne({
-      where: { id },
+      where: { _id: id },
       relations: ['_votingRounds'],
     });
 
@@ -39,7 +39,7 @@ export default class StartVotingRoundUseCase
 
     await this._repository.save(draftDripList);
 
-    const votingRoundId = draftDripList.currentVotingRound!.id;
+    const votingRoundId = draftDripList.currentVotingRound!._id;
 
     this._logger.info(
       `Started successfully a new voting round with ID '${votingRoundId}'.`,

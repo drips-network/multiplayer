@@ -18,27 +18,28 @@ export default class GetDraftDripListByIdUseCase
     request: GetDraftDripListByIdRequest,
   ): Promise<GetDraftDripListByIdResponse> {
     const draftDripList = await this._repository.findOne({
-      where: { id: request.id },
+      where: { _id: request.id },
       relations: ['_publisher', '_votingRounds'],
+      withDeleted: true,
     });
     if (!draftDripList) {
       throw new NotFoundError(`DraftDripList with id ${request.id} not found.`);
     }
 
     return {
-      id: draftDripList.id,
+      id: draftDripList._id,
       name: draftDripList._name,
       description: draftDripList._description,
       currentVotingRound: draftDripList.currentVotingRound
         ? {
-            id: draftDripList.currentVotingRound.id,
+            id: draftDripList.currentVotingRound._id,
             startsAt: draftDripList.currentVotingRound._startsAt,
             endsAt: draftDripList.currentVotingRound._endsAt,
             status: draftDripList.currentVotingRound.status,
           }
         : null,
       publisher: {
-        id: draftDripList._publisher.id,
+        id: draftDripList._publisher._id,
         address: draftDripList._publisher._address,
         addressDriverId: draftDripList._publisher._addressId,
       },
