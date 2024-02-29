@@ -18,13 +18,11 @@ export default class GetDraftDripListByIdUseCase
     request: GetDraftDripListByIdRequest,
   ): Promise<GetDraftDripListByIdResponse> {
     const draftDripList = await this._repository.findOne({
-      where: { id: request.draftDripListId },
+      where: { id: request.id },
       relations: ['_publisher', '_votingRounds'],
     });
     if (!draftDripList) {
-      throw new NotFoundError(
-        `DraftDripList with id ${request.draftDripListId} not found.`,
-      );
+      throw new NotFoundError(`DraftDripList with id ${request.id} not found.`);
     }
 
     return {

@@ -43,11 +43,13 @@ export default class ApiServer {
       } catch (error: any) {
         // 400 Bad Request
         if (error instanceof InvalidVotingRoundOperationError) {
+          logger.info(`${error.message}`);
           return res.status(400).json({ error: error.message });
         }
 
         // 404 Not Found
         if (error instanceof NotFoundError) {
+          logger.info(`${error.message}`);
           return res.status(404).json({ error: error.message });
         }
 

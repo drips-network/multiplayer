@@ -1,4 +1,5 @@
 import type { Repository } from 'typeorm';
+import type { Logger } from 'winston';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { StartVotingRoundResponse } from './StartVotingRoundResponse';
 import type { StartVotingRoundRequest } from './StartVotingRoundRequest';
@@ -8,19 +9,25 @@ import type DraftDripList from '../../domain/draftDripListAggregate/DraftDripLis
 export default class StartVotingRoundUseCase
   implements UseCase<StartVotingRoundRequest, StartVotingRoundResponse>
 {
+  private readonly _logger: Logger;
   private readonly _repository: Repository<DraftDripList>;
 
-  public constructor(repository: Repository<DraftDripList>) {
+  public constructor(logger: Logger, repository: Repository<DraftDripList>) {
+    this._logger = logger;
     this._repository = repository;
   }
 
   public async execute(
     request: StartVotingRoundRequest,
   ): Promise<StartVotingRoundResponse> {
-    const { draftDripListId, startsAt, endsAt } = request;
+    const { id, startsAt, endsAt } = request;
+
+    this._logger.info(
+      `Starting a new voting round for the draft drip list with ID '${id}'.`,
+    );
 
     const draftDripList = await this._repository.findOne({
-      where: { id: draftDripListId },
+      where: { id },
       relations: ['_votingRounds'],
     });
 
@@ -32,8 +39,14 @@ export default class StartVotingRoundUseCase
 
     await this._repository.save(draftDripList);
 
+    const votingRoundId = draftDripList.currentVotingRound!.id;
+
+    this._logger.info(
+      `Started successfully a new voting round with ID '${votingRoundId}'.`,
+    );
+
     return {
-      votingRoundId: draftDripList.currentVotingRound!.id,
+      votingRoundId,
     };
   }
 }

@@ -15,7 +15,7 @@ export default class DeleteDraftDripListEndpoint implements IEndpoint {
 
   configure(app: Application): void {
     app.delete(
-      '/drafts/:draftDripListId',
+      '/drafts/:id',
       ...deleteDraftDripListRequestValidators,
       ApiServer.useEndpoint(this),
     );

@@ -1,5 +1,5 @@
 import { param } from 'express-validator';
 
-export const deleteDraftDripListRequestValidators = [
+export const deleteCurrentVotingRoundRequestRequestValidators = [
   param('id').isUUID().escape(),
 ];

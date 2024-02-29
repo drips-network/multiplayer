@@ -13,16 +13,16 @@ export enum VotingRoundStatus {
   name: 'VotingRounds',
 })
 export default class VotingRound extends BaseEntity {
-  @Column('timestamptz')
+  @Column('timestamptz', { name: 'startsAt' })
   public _startsAt!: Date;
 
-  @Column('timestamptz')
+  @Column('timestamptz', { name: 'endsAt' })
   public _endsAt!: Date;
 
   @ManyToOne(
     'DraftDripList',
     (draftDripList: DraftDripList) => draftDripList._votingRounds,
-    { nullable: false },
+    { nullable: false, orphanedRowAction: 'soft-delete' },
   )
   @JoinColumn({
     name: 'draftDripListId',

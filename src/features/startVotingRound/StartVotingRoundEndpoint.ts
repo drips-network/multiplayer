@@ -17,7 +17,7 @@ export default class StartVotingRoundEndpoint implements IEndpoint {
 
   configure(app: Application): void {
     app.post(
-      '/drafts/:draftDripListId/startVotingRound',
+      '/drafts/:id/startVotingRound',
       ...startVotingRoundRequestRequestValidators,
       ApiServer.useEndpoint(this),
     );
@@ -25,12 +25,12 @@ export default class StartVotingRoundEndpoint implements IEndpoint {
 
   public async handle(
     req: TypedRequestParams<{
-      draftDripListId: UUID;
+      id: UUID;
     }>,
     res: TypedResponse<StartVotingRoundResponse>,
   ): Promise<Response<StartVotingRoundResponse>> {
     const startVotingRoundResult = await this._startVotingRoundUseCase.execute({
-      draftDripListId: req.params.draftDripListId,
+      id: req.params.id,
       startsAt: req.body.startsAt,
       endsAt: req.body.endsAt,
     });

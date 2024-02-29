@@ -36,7 +36,7 @@ export default class DraftDripList
   @OneToMany(
     'VotingRound',
     (votingRound: VotingRound) => votingRound._draftDripList,
-    { nullable: true, orphanedRowAction: 'soft-delete', cascade: true },
+    { nullable: false, orphanedRowAction: 'soft-delete', cascade: true },
   )
   public _votingRounds!: VotingRound[] | null;
 
@@ -87,7 +87,7 @@ export default class DraftDripList
     this._votingRounds.push(VotingRound.new(startsAt, endsAt));
   }
 
-  public deleteCurrentVotingRound(): UUID | null {
+  public deleteCurrentVotingRound(): UUID {
     const { currentVotingRound } = this;
 
     if (!currentVotingRound) {
@@ -116,7 +116,7 @@ export default class DraftDripList
       );
     }
 
-    return this._votingRounds!.pop()?.id || null;
+    return this._votingRounds!.pop()!.id || null;
   }
 
   public publishDripList(publishedDripListId: DripListId): void {

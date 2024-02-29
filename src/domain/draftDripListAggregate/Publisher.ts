@@ -16,6 +16,7 @@ export default class Publisher extends BaseEntity {
     length: DataSchemaConstants.ACCOUNT_ID_LENGTH,
     nullable: false,
     unique: true,
+    name: 'addressId',
   })
   public _addressId!: AddressId;
 
@@ -23,6 +24,7 @@ export default class Publisher extends BaseEntity {
     length: DataSchemaConstants.ADDRESS_LENGTH,
     nullable: false,
     unique: true,
+    name: 'address',
   })
   public _address!: Address;
 

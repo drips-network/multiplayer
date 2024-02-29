@@ -17,7 +17,7 @@ export default class GetDraftDripListByIdEndpoint implements IEndpoint {
 
   configure(app: Application): void {
     app.get(
-      '/drafts/:draftDripListId',
+      '/drafts/:id',
       ...getDraftDripListByIdRequestValidators,
       ApiServer.useEndpoint(this),
     );

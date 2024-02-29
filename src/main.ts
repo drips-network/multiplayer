@@ -13,6 +13,8 @@ import StartVotingRoundEndpoint from './features/startVotingRound/StartVotingRou
 import StartVotingRoundUseCase from './features/startVotingRound/StartVotingRoundUseCase';
 import Publisher from './domain/draftDripListAggregate/Publisher';
 import DraftDripList from './domain/draftDripListAggregate/DraftDripList';
+import DeleteCurrentVotingRoundEndpoint from './features/deleteCurrentVotingRound/DeleteCurrentVotingVotingRoundEndpoint';
+import DeleteCurrentVotingRoundUseCase from './features/deleteCurrentVotingRound/DeleteCurrentVotingVotingRoundUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -25,18 +27,22 @@ export async function main(): Promise<void> {
 
   const createDraftDripListEndpoint = new CreateDraftDripListEndpoint(
     new CreateDraftDripListUseCase(
-      draftDripListRepository,
+      logger,
       publisherRepository,
+      draftDripListRepository,
     ),
   );
   const getDraftDripListByIdEndpoint = new GetDraftDripListByIdEndpoint(
     new GetDraftDripListByIdUseCase(draftDripListRepository),
   );
   const deleteDraftDripListEndpoint = new DeleteDraftDripListEndpoint(
-    new DeleteDraftDripListUseCase(draftDripListRepository),
+    new DeleteDraftDripListUseCase(logger, draftDripListRepository),
   );
   const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
-    new StartVotingRoundUseCase(draftDripListRepository),
+    new StartVotingRoundUseCase(logger, draftDripListRepository),
+  );
+  const deleteCurrentVotingRoundEndpoint = new DeleteCurrentVotingRoundEndpoint(
+    new DeleteCurrentVotingRoundUseCase(logger, draftDripListRepository),
   );
 
   await ApiServer.run(
@@ -45,6 +51,7 @@ export async function main(): Promise<void> {
       getDraftDripListByIdEndpoint,
       deleteDraftDripListEndpoint,
       startVotingRoundEndpoint,
+      deleteCurrentVotingRoundEndpoint,
     ],
     appSettings.apiPort,
   );

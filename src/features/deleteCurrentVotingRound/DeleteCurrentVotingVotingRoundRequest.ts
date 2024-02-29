@@ -1,5 +1,5 @@
 import type { UUID } from 'crypto';
 
-export type GetDraftDripListByIdRequest = {
+export type DeleteCurrentVotingRoundRequest = {
   id: UUID;
 };
