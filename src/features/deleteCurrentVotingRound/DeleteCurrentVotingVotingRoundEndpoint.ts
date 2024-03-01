@@ -15,7 +15,7 @@ export default class DeleteCurrentVotingRoundEndpoint implements IEndpoint {
 
   configure(app: Application): void {
     app.post(
-      '/drafts/:id/deleteVotingRound',
+      '/drafts/:id/votingRounds/deleteCurrent',
       ...deleteDraftDripListRequestValidators,
       ApiServer.useEndpoint(this),
     );

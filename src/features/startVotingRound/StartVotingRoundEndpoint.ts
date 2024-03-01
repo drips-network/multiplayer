@@ -17,7 +17,7 @@ export default class StartVotingRoundEndpoint implements IEndpoint {
 
   configure(app: Application): void {
     app.post(
-      '/drafts/:id/startVotingRound',
+      '/drafts/:id/votingRounds',
       ...startVotingRoundRequestRequestValidators,
       ApiServer.useEndpoint(this),
     );

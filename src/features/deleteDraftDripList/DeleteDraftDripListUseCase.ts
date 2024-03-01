@@ -17,6 +17,8 @@ export default class DeleteDraftDripListUseCase
   }
 
   public async execute(request: DeleteDraftDripListRequest): Promise<void> {
+    // TODO: Verify the request is coming from the publisher by checking the signature token.
+
     this._logger.info(`Deleting the draft drip list with ID '${request.id}'.`);
 
     const draftDripList = await this._repository.findOne({

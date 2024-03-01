@@ -1,17 +1,15 @@
-import { Column, Entity } from 'typeorm';
+import { Column } from 'typeorm';
 import {
   isAddressId,
   type Address,
   type AddressId,
   isEthAddress,
 } from '../typeUtils';
-import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../DataSchemaConstants';
+import type { IValueObject } from '../IValueObject';
+import { InvalidArgumentError } from '../errors';
 
-@Entity({
-  name: 'Publishers',
-})
-export default class Publisher extends BaseEntity {
+export default class Publisher implements IValueObject {
   @Column('varchar', {
     length: DataSchemaConstants.ACCOUNT_ID_LENGTH,
     nullable: false,
@@ -30,11 +28,11 @@ export default class Publisher extends BaseEntity {
 
   public static new(addressId: string, address: string) {
     if (!isAddressId(addressId)) {
-      throw new Error('Invalid addressId.');
+      throw new InvalidArgumentError('Invalid addressId.');
     }
 
     if (!isEthAddress(address)) {
-      throw new Error('Invalid address.');
+      throw new InvalidArgumentError('Invalid address.');
     }
 
     const publisher = new Publisher();

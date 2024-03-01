@@ -1,12 +1,15 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { type DripListId } from '../typeUtils';
 import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../DataSchemaConstants';
 import Collaborator from './Collaborator';
 import type IAggregateRoot from '../IAggregateRoot';
-import type Publisher from './Publisher';
+import Publisher from './Publisher';
 import VotingRound from './VotingRound';
-import { InvalidVotingRoundOperationError } from '../errors';
+import {
+  InvalidArgumentError,
+  InvalidVotingRoundOperationError,
+} from '../errors';
 
 @Entity({
   name: 'DraftDripLists',
@@ -28,8 +31,9 @@ export default class DraftDripList
   @Column('varchar', { length: 200, name: 'description', nullable: false })
   public _description!: string;
 
-  @ManyToOne('Publisher', { nullable: false, cascade: true })
-  @JoinColumn({ name: 'publisherId' })
+  @Column(() => Publisher, {
+    prefix: 'publisher',
+  })
   public _publisher!: Publisher;
 
   @OneToMany(
@@ -51,20 +55,28 @@ export default class DraftDripList
     return this._votingRounds[this._votingRounds.length - 1] || null;
   }
 
-  public static new(name: string, description: string, publisher: Publisher) {
+  public static new(
+    name: string,
+    description: string,
+    publisherAddressDriverId: string,
+    publisherAddress: string,
+  ) {
     if (name?.length === 0 || name?.length > 50) {
-      throw new InvalidVotingRoundOperationError('Invalid name.');
+      throw new InvalidArgumentError('Invalid name.');
     }
 
     if (description?.length === 0 || description?.length > 200) {
-      throw new InvalidVotingRoundOperationError('Invalid description.');
+      throw new InvalidArgumentError('Invalid description.');
     }
 
     const draftDripList = new DraftDripList();
 
     draftDripList._name = name;
     draftDripList._description = description;
-    draftDripList._publisher = publisher;
+    draftDripList._publisher = Publisher.new(
+      publisherAddressDriverId,
+      publisherAddress,
+    );
     draftDripList._publishedDripListId = null;
 
     return draftDripList;

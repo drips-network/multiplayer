@@ -19,6 +19,8 @@ export default class DeleteCurrentVotingRoundUseCase
   public async execute(
     request: DeleteCurrentVotingRoundRequest,
   ): Promise<void> {
+    // TODO: Verify the request is coming from the publisher by checking the signature token.
+
     const { id } = request;
 
     this._logger.info(

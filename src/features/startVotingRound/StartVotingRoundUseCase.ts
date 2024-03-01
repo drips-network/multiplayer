@@ -20,6 +20,8 @@ export default class StartVotingRoundUseCase
   public async execute(
     request: StartVotingRoundRequest,
   ): Promise<StartVotingRoundResponse> {
+    // TODO: Verify the request is coming from the publisher by checking the signature token.
+
     const { id, startsAt, endsAt } = request;
 
     this._logger.info(

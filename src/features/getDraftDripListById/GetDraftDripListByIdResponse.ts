@@ -11,7 +11,6 @@ export type GetDraftDripListByIdResponse = {
     status: 'started' | 'completed' | 'deleted';
   } | null;
   publisher: {
-    id: UUID;
     address: string;
     addressDriverId: string;
   };

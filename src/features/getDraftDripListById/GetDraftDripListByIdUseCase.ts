@@ -39,7 +39,6 @@ export default class GetDraftDripListByIdUseCase
           }
         : null,
       publisher: {
-        id: draftDripList._publisher._id,
         address: draftDripList._publisher._address,
         addressDriverId: draftDripList._publisher._addressId,
       },

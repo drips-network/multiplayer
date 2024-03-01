@@ -5,7 +5,10 @@ import type { IEndpoint } from './application/interfaces/IEndpoint';
 import appSettings from './appSettings';
 import logger from './infrastructure/logger';
 import { NotFoundError } from './application/errors';
-import { InvalidVotingRoundOperationError } from './domain/errors';
+import {
+  InvalidArgumentError,
+  InvalidVotingRoundOperationError,
+} from './domain/errors';
 
 export default class ApiServer {
   public static async run(
@@ -42,7 +45,10 @@ export default class ApiServer {
         return await endpoint.handle(req, res);
       } catch (error: any) {
         // 400 Bad Request
-        if (error instanceof InvalidVotingRoundOperationError) {
+        if (
+          error instanceof InvalidArgumentError ||
+          error instanceof InvalidVotingRoundOperationError
+        ) {
           logger.info(`${error.message}`);
           return res.status(400).json({ error: error.message });
         }

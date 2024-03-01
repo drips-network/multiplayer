@@ -11,7 +11,6 @@ import GetDraftDripListByIdEndpoint from './features/getDraftDripListById/GetDra
 import GetDraftDripListByIdUseCase from './features/getDraftDripListById/GetDraftDripListByIdUseCase';
 import StartVotingRoundEndpoint from './features/startVotingRound/StartVotingRoundEndpoint';
 import StartVotingRoundUseCase from './features/startVotingRound/StartVotingRoundUseCase';
-import Publisher from './domain/draftDripListAggregate/Publisher';
 import DraftDripList from './domain/draftDripListAggregate/DraftDripList';
 import DeleteCurrentVotingRoundEndpoint from './features/deleteCurrentVotingRound/DeleteCurrentVotingVotingRoundEndpoint';
 import DeleteCurrentVotingRoundUseCase from './features/deleteCurrentVotingRound/DeleteCurrentVotingVotingRoundUseCase';
@@ -22,15 +21,10 @@ export async function main(): Promise<void> {
 
   const AppDataSource = await initializeAppDataSource();
 
-  const publisherRepository = AppDataSource.getRepository(Publisher);
   const draftDripListRepository = AppDataSource.getRepository(DraftDripList);
 
   const createDraftDripListEndpoint = new CreateDraftDripListEndpoint(
-    new CreateDraftDripListUseCase(
-      logger,
-      publisherRepository,
-      draftDripListRepository,
-    ),
+    new CreateDraftDripListUseCase(logger, draftDripListRepository),
   );
   const getDraftDripListByIdEndpoint = new GetDraftDripListByIdEndpoint(
     new GetDraftDripListByIdUseCase(draftDripListRepository),
