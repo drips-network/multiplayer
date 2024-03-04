@@ -3,8 +3,8 @@ import appSettings from '../appSettings';
 import logger from './logger';
 import DraftDripList from '../domain/draftDripListAggregate/DraftDripList';
 import Publisher from '../domain/draftDripListAggregate/Publisher';
-import VotingRound from '../domain/draftDripListAggregate/VotingRound';
-import Collaborator from '../domain/draftDripListAggregate/Collaborator';
+import VotingRound from '../domain/votingRoundAggregate/VotingRound';
+import Collaborator from '../domain/votingRoundAggregate/Collaborator';
 
 export async function initializeAppDataSource() {
   try {

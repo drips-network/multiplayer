@@ -1,7 +1,9 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import BaseEntity from '../BaseEntity';
-import type DraftDripList from './DraftDripList';
+import type DraftDripList from '../draftDripListAggregate/DraftDripList';
 import type Collaborator from './Collaborator';
+import { InvalidArgumentError } from '../errors';
+import type IAggregateRoot from '../IAggregateRoot';
 
 export enum VotingRoundStatus {
   Started = 'started',
@@ -12,7 +14,7 @@ export enum VotingRoundStatus {
 @Entity({
   name: 'VotingRounds',
 })
-export default class VotingRound extends BaseEntity {
+export default class VotingRound extends BaseEntity implements IAggregateRoot {
   @Column('timestamptz', { name: 'startsAt' })
   public _startsAt!: Date;
 
@@ -59,7 +61,7 @@ export default class VotingRound extends BaseEntity {
     return this._endsAt;
   }
 
-  public static new(startsAt: Date, endsAt: Date): VotingRound {
+  public static create(startsAt: Date, endsAt: Date): VotingRound {
     const startsAtTime = new Date(startsAt).getTime();
     const endsAtTime = new Date(endsAt).getTime();
 
@@ -81,5 +83,13 @@ export default class VotingRound extends BaseEntity {
     votingRound._endsAt = endsAt;
 
     return votingRound;
+  }
+
+  public setCollaborators(collaborators: Collaborator[]): void {
+    if (!collaborators?.length) {
+      throw new InvalidArgumentError('Collaborators cannot be empty.');
+    }
+
+    this._collaborators = collaborators;
   }
 }

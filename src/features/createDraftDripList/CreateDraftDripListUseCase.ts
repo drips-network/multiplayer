@@ -1,20 +1,21 @@
-import type { Repository } from 'typeorm';
 import type { Logger } from 'winston';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { CreateDraftDripListResponse } from './CreateDraftDripListResponse';
 import type { CreateDraftDripListRequest } from './CreateDraftDripListRequest';
 import { assertIsEthAddress } from '../../domain/typeUtils';
 import DraftDripList from '../../domain/draftDripListAggregate/DraftDripList';
+import Publisher from '../../domain/draftDripListAggregate/Publisher';
+import type IDraftDripListRepository from '../../domain/draftDripListAggregate/IDraftDripListRepository';
 
 export default class CreateDraftDripListUseCase
   implements UseCase<CreateDraftDripListRequest, CreateDraftDripListResponse>
 {
   private readonly _logger: Logger;
-  private readonly __repository: Repository<DraftDripList>;
+  private readonly _repository: IDraftDripListRepository;
 
-  public constructor(logger: Logger, _repository: Repository<DraftDripList>) {
+  public constructor(logger: Logger, repository: IDraftDripListRepository) {
     this._logger = logger;
-    this.__repository = _repository;
+    this._repository = repository;
   }
 
   public async execute(
@@ -28,14 +29,13 @@ export default class CreateDraftDripListUseCase
 
     assertIsEthAddress(publisherAddress);
 
-    const draftDripList = DraftDripList.new(
+    const draftDripList = DraftDripList.create(
       name,
       description,
-      publisherAddressId,
-      publisherAddress,
+      Publisher.create(publisherAddressId, publisherAddress),
     );
 
-    await this.__repository.save(draftDripList);
+    await this._repository.save(draftDripList);
 
     this._logger.info(
       `Created successfully a new draft drip list with ID '${draftDripList._id}'.`,

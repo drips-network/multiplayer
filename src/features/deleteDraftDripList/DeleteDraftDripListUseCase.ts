@@ -1,17 +1,16 @@
-import type { Repository } from 'typeorm';
 import type { Logger } from 'winston';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { DeleteDraftDripListRequest } from './DeleteDraftDripListRequest';
-import type DraftDripList from '../../domain/draftDripListAggregate/DraftDripList';
 import { NotFoundError } from '../../application/errors';
+import type IDraftDripListRepository from '../../domain/draftDripListAggregate/IDraftDripListRepository';
 
 export default class DeleteDraftDripListUseCase
   implements UseCase<DeleteDraftDripListRequest>
 {
   private readonly _logger: Logger;
-  private readonly _repository: Repository<DraftDripList>;
+  private readonly _repository: IDraftDripListRepository;
 
-  public constructor(logger: Logger, repository: Repository<DraftDripList>) {
+  public constructor(logger: Logger, repository: IDraftDripListRepository) {
     this._logger = logger;
     this._repository = repository;
   }
@@ -21,10 +20,11 @@ export default class DeleteDraftDripListUseCase
 
     this._logger.info(`Deleting the draft drip list with ID '${request.id}'.`);
 
-    const draftDripList = await this._repository.findOne({
-      where: { _id: request.id },
-      relations: ['_votingRounds'],
-    });
+    const draftDripList = await this._repository.getById(
+      request.id,
+      false,
+      false,
+    );
 
     if (!draftDripList) {
       throw new NotFoundError(`DraftDripList with id ${request.id} not found.`);

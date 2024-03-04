@@ -11,9 +11,9 @@ import GetDraftDripListByIdEndpoint from './features/getDraftDripListById/GetDra
 import GetDraftDripListByIdUseCase from './features/getDraftDripListById/GetDraftDripListByIdUseCase';
 import StartVotingRoundEndpoint from './features/startVotingRound/StartVotingRoundEndpoint';
 import StartVotingRoundUseCase from './features/startVotingRound/StartVotingRoundUseCase';
-import DraftDripList from './domain/draftDripListAggregate/DraftDripList';
 import DeleteCurrentVotingRoundEndpoint from './features/deleteCurrentVotingRound/DeleteCurrentVotingVotingRoundEndpoint';
 import DeleteCurrentVotingRoundUseCase from './features/deleteCurrentVotingRound/DeleteCurrentVotingVotingRoundUseCase';
+import DraftDripListRepository from './infrastructure/DraftDripListRepository';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -21,7 +21,7 @@ export async function main(): Promise<void> {
 
   const AppDataSource = await initializeAppDataSource();
 
-  const draftDripListRepository = AppDataSource.getRepository(DraftDripList);
+  const draftDripListRepository = new DraftDripListRepository(AppDataSource);
 
   const createDraftDripListEndpoint = new CreateDraftDripListEndpoint(
     new CreateDraftDripListUseCase(logger, draftDripListRepository),

@@ -1,11 +1,10 @@
 import { Column, Entity, OneToMany } from 'typeorm';
 import { type DripListId } from '../typeUtils';
 import BaseEntity from '../BaseEntity';
-import DataSchemaConstants from '../DataSchemaConstants';
-import Collaborator from './Collaborator';
+import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type IAggregateRoot from '../IAggregateRoot';
 import Publisher from './Publisher';
-import VotingRound from './VotingRound';
+import VotingRound from '../votingRoundAggregate/VotingRound';
 import {
   InvalidArgumentError,
   InvalidVotingRoundOperationError,
@@ -55,11 +54,10 @@ export default class DraftDripList
     return this._votingRounds[this._votingRounds.length - 1] || null;
   }
 
-  public static new(
+  public static create(
     name: string,
     description: string,
-    publisherAddressDriverId: string,
-    publisherAddress: string,
+    publisher: Publisher,
   ) {
     if (name?.length === 0 || name?.length > 50) {
       throw new InvalidArgumentError('Invalid name.');
@@ -73,10 +71,7 @@ export default class DraftDripList
 
     draftDripList._name = name;
     draftDripList._description = description;
-    draftDripList._publisher = Publisher.new(
-      publisherAddressDriverId,
-      publisherAddress,
-    );
+    draftDripList._publisher = publisher;
     draftDripList._publishedDripListId = null;
 
     return draftDripList;
@@ -95,7 +90,7 @@ export default class DraftDripList
       );
     }
 
-    this._votingRounds.push(VotingRound.new(startsAt, endsAt));
+    this._votingRounds.push(VotingRound.create(startsAt, endsAt));
   }
 
   public deleteCurrentVotingRound(): void {
@@ -153,24 +148,6 @@ export default class DraftDripList
   public updateDraftDripListInfo(name?: string, description?: string): void {
     this._name = name ?? this._name;
     this._description = description ?? this._description;
-  }
-
-  public addCollaborator(accountId: string, address: string): void {
-    if (!this.currentVotingRound) {
-      throw new InvalidVotingRoundOperationError(
-        'No active voting round to add a collaborator to.',
-      );
-    }
-
-    if (this.currentVotingRound.status !== 'started') {
-      throw new InvalidVotingRoundOperationError(
-        'Cannot add a collaborator to a completed voting round.',
-      );
-    }
-
-    this.currentVotingRound._collaborators.push(
-      Collaborator.new(accountId, address),
-    );
   }
 
   public removeCollaborator(accountId: string): void {

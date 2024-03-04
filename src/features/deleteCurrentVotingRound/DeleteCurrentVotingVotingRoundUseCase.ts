@@ -1,17 +1,16 @@
-import type { Repository } from 'typeorm';
 import type { Logger } from 'winston';
 import type UseCase from '../../application/interfaces/IUseCase';
-import type DraftDripList from '../../domain/draftDripListAggregate/DraftDripList';
 import { NotFoundError } from '../../application/errors';
 import type { DeleteCurrentVotingRoundRequest } from './DeleteCurrentVotingVotingRoundRequest';
+import type IDraftDripListRepository from '../../domain/draftDripListAggregate/IDraftDripListRepository';
 
 export default class DeleteCurrentVotingRoundUseCase
   implements UseCase<DeleteCurrentVotingRoundRequest>
 {
   private readonly _logger: Logger;
-  private readonly _repository: Repository<DraftDripList>;
+  private readonly _repository: IDraftDripListRepository;
 
-  public constructor(logger: Logger, repository: Repository<DraftDripList>) {
+  public constructor(logger: Logger, repository: IDraftDripListRepository) {
     this._logger = logger;
     this._repository = repository;
   }
@@ -27,10 +26,7 @@ export default class DeleteCurrentVotingRoundUseCase
       `Deleting the current voting round for the draft drip list with ID '${id}'.`,
     );
 
-    const draftDripList = await this._repository.findOne({
-      where: { _id: id },
-      relations: ['_votingRounds'],
-    });
+    const draftDripList = await this._repository.getById(id, true, false);
 
     if (!draftDripList) {
       throw new NotFoundError('DraftDripList not found.');
@@ -38,10 +34,10 @@ export default class DeleteCurrentVotingRoundUseCase
 
     draftDripList.deleteCurrentVotingRound();
 
+    await this._repository.save(draftDripList);
+
     this._logger.info(
       `Deleted successfully the current voting round for the draft drip list with ID '${id}'.`,
     );
-
-    await this._repository.save(draftDripList);
   }
 }

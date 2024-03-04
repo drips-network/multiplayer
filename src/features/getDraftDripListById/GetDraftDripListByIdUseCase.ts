@@ -1,27 +1,27 @@
-import type { Repository } from 'typeorm';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { GetDraftDripListByIdResponse } from './GetDraftDripListByIdResponse';
 import type { GetDraftDripListByIdRequest } from './GetDraftDripListByIdRequest';
 import { NotFoundError } from '../../application/errors';
-import type DraftDripList from '../../domain/draftDripListAggregate/DraftDripList';
+import type IDraftDripListRepository from '../../domain/draftDripListAggregate/IDraftDripListRepository';
 
 export default class GetDraftDripListByIdUseCase
   implements UseCase<GetDraftDripListByIdRequest, GetDraftDripListByIdResponse>
 {
-  private readonly _repository: Repository<DraftDripList>;
+  private readonly _repository: IDraftDripListRepository;
 
-  public constructor(repository: Repository<DraftDripList>) {
+  public constructor(repository: IDraftDripListRepository) {
     this._repository = repository;
   }
 
   public async execute(
     request: GetDraftDripListByIdRequest,
   ): Promise<GetDraftDripListByIdResponse> {
-    const draftDripList = await this._repository.findOne({
-      where: { _id: request.id },
-      relations: ['_publisher', '_votingRounds'],
-      withDeleted: true,
-    });
+    const draftDripList = await this._repository.getById(
+      request.id,
+      true,
+      false,
+    );
+
     if (!draftDripList) {
       throw new NotFoundError(`DraftDripList with id ${request.id} not found.`);
     }

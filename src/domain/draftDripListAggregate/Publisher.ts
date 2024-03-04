@@ -5,7 +5,7 @@ import {
   type AddressId,
   isEthAddress,
 } from '../typeUtils';
-import DataSchemaConstants from '../DataSchemaConstants';
+import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type { IValueObject } from '../IValueObject';
 import { InvalidArgumentError } from '../errors';
 
@@ -13,7 +13,6 @@ export default class Publisher implements IValueObject {
   @Column('varchar', {
     length: DataSchemaConstants.ACCOUNT_ID_LENGTH,
     nullable: false,
-    unique: true,
     name: 'addressId',
   })
   public _addressId!: AddressId;
@@ -21,12 +20,11 @@ export default class Publisher implements IValueObject {
   @Column('varchar', {
     length: DataSchemaConstants.ADDRESS_LENGTH,
     nullable: false,
-    unique: true,
     name: 'address',
   })
   public _address!: Address;
 
-  public static new(addressId: string, address: string) {
+  public static create(addressId: string, address: string) {
     if (!isAddressId(addressId)) {
       throw new InvalidArgumentError('Invalid addressId.');
     }
