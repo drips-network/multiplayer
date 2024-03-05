@@ -26,7 +26,7 @@ export default class DeleteCurrentVotingRoundUseCase
       `Deleting the current voting round for the draft drip list with ID '${id}'.`,
     );
 
-    const draftDripList = await this._repository.getById(id, true, false);
+    const draftDripList = await this._repository.getById(id);
 
     if (!draftDripList) {
       throw new NotFoundError('DraftDripList not found.');

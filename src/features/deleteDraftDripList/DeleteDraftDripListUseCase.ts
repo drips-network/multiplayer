@@ -20,11 +20,7 @@ export default class DeleteDraftDripListUseCase
 
     this._logger.info(`Deleting the draft drip list with ID '${request.id}'.`);
 
-    const draftDripList = await this._repository.getById(
-      request.id,
-      false,
-      false,
-    );
+    const draftDripList = await this._repository.getById(request.id);
 
     if (!draftDripList) {
       throw new NotFoundError(`DraftDripList with id ${request.id} not found.`);

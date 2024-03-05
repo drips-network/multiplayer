@@ -19,6 +19,8 @@ import SetCollaboratorsEndpoint from './features/setCollaborators/SetCollaborato
 import SetCollaboratorsUseCase from './features/setCollaborators/SetCollaboratorsUseCase';
 import VotingRoundService from './domain/services/VotingRoundService';
 import CollaboratorRepository from './infrastructure/repositories/CollaboratorRepository';
+import GetVotingRoundByIdEndpoint from './features/getVotingRoundById/GetVotingRoundByIdEndpoint';
+import GetVotingRoundByIdUseCase from './features/getVotingRoundById/GetVotingRoundByIdUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -27,9 +29,10 @@ export async function main(): Promise<void> {
   const AppDataSource = await initializeAppDataSource();
 
   const draftDripListRepository = new DraftDripListRepository(AppDataSource);
+  const votingRoundRepository = new VotingRoundRepository(AppDataSource);
   const votingRoundService = new VotingRoundService(
     new CollaboratorRepository(AppDataSource),
-    new VotingRoundRepository(AppDataSource),
+    votingRoundRepository,
   );
 
   const createDraftDripListEndpoint = new CreateDraftDripListEndpoint(
@@ -50,6 +53,9 @@ export async function main(): Promise<void> {
   const setCollaboratorsEndpoint = new SetCollaboratorsEndpoint(
     new SetCollaboratorsUseCase(logger, votingRoundService),
   );
+  const getVotingRoundById = new GetVotingRoundByIdEndpoint(
+    new GetVotingRoundByIdUseCase(votingRoundRepository),
+  );
 
   await ApiServer.run(
     [
@@ -59,6 +65,7 @@ export async function main(): Promise<void> {
       startVotingRoundEndpoint,
       deleteCurrentVotingRoundEndpoint,
       setCollaboratorsEndpoint,
+      getVotingRoundById,
     ],
     appSettings.apiPort,
   );

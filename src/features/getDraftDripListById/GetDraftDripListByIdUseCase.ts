@@ -16,11 +16,7 @@ export default class GetDraftDripListByIdUseCase
   public async execute(
     request: GetDraftDripListByIdRequest,
   ): Promise<GetDraftDripListByIdResponse> {
-    const draftDripList = await this._repository.getById(
-      request.id,
-      true,
-      false,
-    );
+    const draftDripList = await this._repository.getById(request.id);
 
     if (!draftDripList) {
       throw new NotFoundError(`DraftDripList with id ${request.id} not found.`);

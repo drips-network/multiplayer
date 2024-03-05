@@ -27,10 +27,10 @@ export default class GetDraftDripListByIdEndpoint implements IEndpoint {
     req: TypedRequestParams<GetDraftDripListByIdRequest>,
     res: TypedResponse<GetDraftDripListByIdResponse>,
   ) {
-    const draftDripList = await this._getDraftDripListByIdUseCase.execute(
+    const votingRound = await this._getDraftDripListByIdUseCase.execute(
       req.params,
     );
 
-    return res.status(200).json(draftDripList);
+    return res.status(200).json(votingRound);
   }
 }
