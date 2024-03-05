@@ -18,16 +18,16 @@ export default class DraftDripList
   implements IAggregateRoot
 {
   @Column('varchar', {
-    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
     nullable: true,
+    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
     name: 'publishedDripListId',
   })
-  public _publishedDripListId!: DripListId | null;
+  public _publishedDripListId: DripListId | undefined;
 
-  @Column('varchar', { length: 50, name: 'name', nullable: false })
+  @Column('varchar', { nullable: false, length: 50, name: 'name' })
   public _name!: string;
 
-  @Column('varchar', { length: 200, name: 'description', nullable: false })
+  @Column('varchar', { nullable: false, length: 200, name: 'description' })
   public _description!: string;
 
   @Column(() => Publisher, {
@@ -40,7 +40,7 @@ export default class DraftDripList
     (votingRound: VotingRound) => votingRound._draftDripList,
     { nullable: false, orphanedRowAction: 'soft-delete', cascade: true },
   )
-  public _votingRounds!: VotingRound[] | null;
+  public _votingRounds: VotingRound[] | undefined;
 
   public get isPublished(): boolean {
     return this._publishedDripListId !== null;
@@ -74,7 +74,6 @@ export default class DraftDripList
     draftDripList._name = name;
     draftDripList._description = description;
     draftDripList._publisher = publisher;
-    draftDripList._publishedDripListId = null;
 
     return draftDripList;
   }
@@ -150,37 +149,5 @@ export default class DraftDripList
   public updateDraftDripListInfo(name?: string, description?: string): void {
     this._name = name ?? this._name;
     this._description = description ?? this._description;
-  }
-
-  public removeCollaborator(accountId: string): void {
-    if (!this.currentVotingRound) {
-      throw new InvalidVotingRoundOperationError(
-        'No active voting round to remove a collaborator from.',
-      );
-    }
-
-    if (this.currentVotingRound.status === 'completed') {
-      throw new InvalidVotingRoundOperationError(
-        'Cannot remove a collaborator from a completed voting round.',
-      );
-    }
-
-    if (this.currentVotingRound.status === 'deleted') {
-      throw new InvalidVotingRoundOperationError(
-        'Cannot remove a collaborator from a deleted voting round.',
-      );
-    }
-
-    const index = this.currentVotingRound._collaborators.findIndex(
-      (c) => c._addressId === accountId,
-    );
-
-    if (index === -1) {
-      throw new InvalidVotingRoundOperationError(
-        'Collaborator not found in this voting round.',
-      );
-    }
-
-    this.currentVotingRound._collaborators.splice(index, 1);
   }
 }

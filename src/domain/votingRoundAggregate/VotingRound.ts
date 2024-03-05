@@ -15,10 +15,10 @@ export enum VotingRoundStatus {
   name: 'VotingRounds',
 })
 export default class VotingRound extends BaseEntity implements IAggregateRoot {
-  @Column('timestamptz', { name: 'startsAt' })
+  @Column('timestamptz', { nullable: false, name: 'startsAt' })
   public _startsAt!: Date;
 
-  @Column('timestamptz', { name: 'endsAt' })
+  @Column('timestamptz', { nullable: false, name: 'endsAt' })
   public _endsAt!: Date;
 
   @ManyToOne(
@@ -36,7 +36,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     (collaborator: Collaborator) => collaborator._votingRounds,
     { nullable: true, orphanedRowAction: 'soft-delete', cascade: true },
   )
-  public _collaborators!: Collaborator[];
+  public _collaborators: Collaborator[] | undefined;
 
   public get status(): VotingRoundStatus {
     if (this._deletedAt) {

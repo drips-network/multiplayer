@@ -11,16 +11,16 @@ import { InvalidArgumentError } from '../errors';
 
 export default class Publisher implements IValueObject {
   @Column('varchar', {
-    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
     nullable: false,
     name: 'addressDriverId',
+    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
   })
   public _addressId!: AddressDriverId;
 
   @Column('varchar', {
-    length: DataSchemaConstants.ADDRESS_LENGTH,
     nullable: false,
     name: 'address',
+    length: DataSchemaConstants.ADDRESS_LENGTH,
   })
   public _address!: Address;
 

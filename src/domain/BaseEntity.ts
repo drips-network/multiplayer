@@ -26,5 +26,5 @@ export default abstract class BaseEntity {
   public _updatedAt!: Date;
 
   @DeleteDateColumn({ name: 'deletedAt' })
-  public _deletedAt!: Date;
+  public _deletedAt: Date | undefined;
 }
