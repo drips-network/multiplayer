@@ -1,8 +1,8 @@
 import { Column } from 'typeorm';
 import {
-  isAddressId,
+  isAddressDriverId,
   type Address,
-  type AddressId,
+  type AddressDriverId,
   isEthAddress,
 } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
@@ -11,11 +11,11 @@ import { InvalidArgumentError } from '../errors';
 
 export default class Publisher implements IValueObject {
   @Column('varchar', {
-    length: DataSchemaConstants.ACCOUNT_ID_LENGTH,
+    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
     nullable: false,
-    name: 'addressId',
+    name: 'addressDriverId',
   })
-  public _addressId!: AddressId;
+  public _addressId!: AddressDriverId;
 
   @Column('varchar', {
     length: DataSchemaConstants.ADDRESS_LENGTH,
@@ -24,9 +24,9 @@ export default class Publisher implements IValueObject {
   })
   public _address!: Address;
 
-  public static create(addressId: string, address: string) {
-    if (!isAddressId(addressId)) {
-      throw new InvalidArgumentError('Invalid addressId.');
+  public static create(addressDriverId: string, address: string) {
+    if (!isAddressDriverId(addressDriverId)) {
+      throw new InvalidArgumentError('Invalid addressDriverId.');
     }
 
     if (!isEthAddress(address)) {
@@ -35,7 +35,7 @@ export default class Publisher implements IValueObject {
 
     const publisher = new Publisher();
 
-    publisher._addressId = addressId;
+    publisher._addressId = addressDriverId;
     publisher._address = address;
 
     return publisher;

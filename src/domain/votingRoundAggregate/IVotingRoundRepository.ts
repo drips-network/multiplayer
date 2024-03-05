@@ -4,5 +4,5 @@ import type VotingRound from './VotingRound';
 export default interface IVotingRoundRepository {
   getById(votingRoundId: UUID): Promise<VotingRound | null>;
 
-  save(draftDripList: VotingRound): Promise<void>;
+  save(votingRound: VotingRound): Promise<void>;
 }

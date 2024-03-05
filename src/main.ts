@@ -13,7 +13,12 @@ import StartVotingRoundEndpoint from './features/startVotingRound/StartVotingRou
 import StartVotingRoundUseCase from './features/startVotingRound/StartVotingRoundUseCase';
 import DeleteCurrentVotingRoundEndpoint from './features/deleteCurrentVotingRound/DeleteCurrentVotingVotingRoundEndpoint';
 import DeleteCurrentVotingRoundUseCase from './features/deleteCurrentVotingRound/DeleteCurrentVotingVotingRoundUseCase';
-import DraftDripListRepository from './infrastructure/DraftDripListRepository';
+import DraftDripListRepository from './infrastructure/repositories/DraftDripListRepository';
+import VotingRoundRepository from './infrastructure/repositories/VotingRoundRepository';
+import SetCollaboratorsEndpoint from './features/setCollaborators/SetCollaboratorsEndpoint';
+import SetCollaboratorsUseCase from './features/setCollaborators/SetCollaboratorsUseCase';
+import VotingRoundService from './domain/services/VotingRoundService';
+import CollaboratorRepository from './infrastructure/repositories/CollaboratorRepository';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -22,6 +27,10 @@ export async function main(): Promise<void> {
   const AppDataSource = await initializeAppDataSource();
 
   const draftDripListRepository = new DraftDripListRepository(AppDataSource);
+  const votingRoundService = new VotingRoundService(
+    new CollaboratorRepository(AppDataSource),
+    new VotingRoundRepository(AppDataSource),
+  );
 
   const createDraftDripListEndpoint = new CreateDraftDripListEndpoint(
     new CreateDraftDripListUseCase(logger, draftDripListRepository),
@@ -38,6 +47,9 @@ export async function main(): Promise<void> {
   const deleteCurrentVotingRoundEndpoint = new DeleteCurrentVotingRoundEndpoint(
     new DeleteCurrentVotingRoundUseCase(logger, draftDripListRepository),
   );
+  const setCollaboratorsEndpoint = new SetCollaboratorsEndpoint(
+    new SetCollaboratorsUseCase(logger, votingRoundService),
+  );
 
   await ApiServer.run(
     [
@@ -46,6 +58,7 @@ export async function main(): Promise<void> {
       deleteDraftDripListEndpoint,
       startVotingRoundEndpoint,
       deleteCurrentVotingRoundEndpoint,
+      setCollaboratorsEndpoint,
     ],
     appSettings.apiPort,
   );

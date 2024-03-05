@@ -1,7 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne } from 'typeorm';
 import BaseEntity from '../BaseEntity';
 import type DraftDripList from '../draftDripListAggregate/DraftDripList';
-import type Collaborator from './Collaborator';
+import type Collaborator from '../collaboratorAggregate/Collaborator';
 import { InvalidArgumentError } from '../errors';
 import type IAggregateRoot from '../IAggregateRoot';
 
@@ -31,10 +31,10 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   })
   public _draftDripList!: DraftDripList;
 
-  @OneToMany(
+  @ManyToMany(
     'Collaborator',
     (collaborator: Collaborator) => collaborator._votingRounds,
-    { nullable: true, orphanedRowAction: 'soft-delete' },
+    { nullable: true, orphanedRowAction: 'soft-delete', cascade: true },
   )
   public _collaborators!: Collaborator[];
 

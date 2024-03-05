@@ -1,8 +1,10 @@
 import getContractNameFromAccountId from './getContractNameFromAccountId';
 
-export type AddressId = string & { __type: 'AddressId' };
+export type AddressDriverId = string & { __type: 'AddressDriverId' };
 
-export function isAddressId(idAsString: string): idAsString is AddressId {
+export function isAddressDriverId(
+  idAsString: string,
+): idAsString is AddressDriverId {
   const isNaN = Number.isNaN(Number(idAsString));
 
   const isAccountIdOfAddressDriver =
@@ -13,6 +15,20 @@ export function isAddressId(idAsString: string): idAsString is AddressId {
   }
 
   return true;
+}
+
+export function assertIsAddressDriverId(
+  idAsString: string,
+): asserts idAsString is AddressDriverId {
+  if (!isAddressDriverId(idAsString)) {
+    throw new Error('Invalid addressDriverId.');
+  }
+}
+
+export function toAddressDriverId(idAsString: string): AddressDriverId {
+  assertIsAddressDriverId(idAsString);
+
+  return idAsString as AddressDriverId;
 }
 
 export type DripListId = string & { __type: 'DripListId' };
@@ -42,6 +58,12 @@ export function assertIsEthAddress(str: string): asserts str is Address {
   }
 }
 
+export function toAddress(str: string): Address {
+  assertIsEthAddress(str);
+
+  return str as Address;
+}
+
 export type ProjectId = string & { __type: 'ProjectId' };
 
 export function isProjectId(id: string): id is ProjectId {
@@ -59,7 +81,7 @@ export function isProjectId(id: string): id is ProjectId {
 export type AccountId = string & { __type: 'AccountId' };
 
 export function isAccountId(id: string): id is AccountId {
-  if (isProjectId(id) || isDripListId(id) || isAddressId(id)) {
+  if (isProjectId(id) || isDripListId(id) || isAddressDriverId(id)) {
     return true;
   }
 

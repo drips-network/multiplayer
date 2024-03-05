@@ -1,7 +1,7 @@
 import type { DataSource, Repository } from 'typeorm';
 import type { UUID } from 'crypto';
-import DraftDripList from '../domain/draftDripListAggregate/DraftDripList';
-import type IDraftDripListRepository from '../domain/draftDripListAggregate/IDraftDripListRepository';
+import DraftDripList from '../../domain/draftDripListAggregate/DraftDripList';
+import type IDraftDripListRepository from '../../domain/draftDripListAggregate/IDraftDripListRepository';
 
 export default class DraftDripListRepository
   implements IDraftDripListRepository
@@ -12,15 +12,12 @@ export default class DraftDripListRepository
     this._repository = dataSource.getRepository(DraftDripList);
   }
 
-  public getById(
-    draftDripListId: UUID,
-    includeVotingRounds = true,
-  ): Promise<DraftDripList | null> {
+  public getById(draftDripListId: UUID): Promise<DraftDripList | null> {
     return this._repository.findOne({
       where: {
         _id: draftDripListId,
       },
-      relations: includeVotingRounds ? ['_votingRounds'] : [],
+      relations: ['_votingRounds._collaborators'],
     });
   }
 

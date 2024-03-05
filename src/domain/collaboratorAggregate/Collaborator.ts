@@ -1,26 +1,28 @@
 import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
-import { isAccountId, isEthAddress } from '../typeUtils';
-import type { AccountId, Address } from '../typeUtils';
+import { isAddressDriverId, isEthAddress } from '../typeUtils';
+import type { Address, AddressDriverId } from '../typeUtils';
 import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
-import type VotingRound from './VotingRound';
-import type IAggregateRoot from '../IAggregateRoot';
+import type VotingRound from '../votingRoundAggregate/VotingRound';
 
 @Entity({
   name: 'Collaborators',
 })
-export default class Collaborator extends BaseEntity implements IAggregateRoot {
-  @ManyToMany('VotingRound')
+export default class Collaborator extends BaseEntity {
+  @ManyToMany(
+    'VotingRound',
+    (votingRound: VotingRound) => votingRound._collaborators,
+  )
   @JoinTable({ name: 'CollaboratorVotingRounds' })
   public _votingRounds!: VotingRound[];
 
   @Column('varchar', {
-    length: DataSchemaConstants.ACCOUNT_ID_LENGTH,
+    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
     nullable: false,
     unique: true,
-    name: 'addressId',
+    name: 'addressDriverId',
   })
-  public _addressId!: AccountId;
+  public _addressId!: AddressDriverId;
 
   @Column('varchar', {
     length: DataSchemaConstants.ADDRESS_LENGTH,
@@ -34,8 +36,8 @@ export default class Collaborator extends BaseEntity implements IAggregateRoot {
     super();
   }
 
-  public static new(accountId: string, address: string) {
-    if (!isAccountId(accountId)) {
+  public static create(accountId: string, address: string) {
+    if (!isAddressDriverId(accountId)) {
       throw new Error('Invalid accountId');
     }
 

@@ -4,7 +4,7 @@ import logger from './logger';
 import DraftDripList from '../domain/draftDripListAggregate/DraftDripList';
 import Publisher from '../domain/draftDripListAggregate/Publisher';
 import VotingRound from '../domain/votingRoundAggregate/VotingRound';
-import Collaborator from '../domain/votingRoundAggregate/Collaborator';
+import Collaborator from '../domain/collaboratorAggregate/Collaborator';
 
 export async function initializeAppDataSource() {
   try {

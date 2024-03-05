@@ -18,7 +18,7 @@ export default class DraftDripList
   implements IAggregateRoot
 {
   @Column('varchar', {
-    length: DataSchemaConstants.ACCOUNT_ID_LENGTH,
+    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
     nullable: true,
     name: 'publishedDripListId',
   })
@@ -51,7 +51,9 @@ export default class DraftDripList
       return null;
     }
 
-    return this._votingRounds[this._votingRounds.length - 1] || null;
+    return this._votingRounds.reduce((a, b) =>
+      a._updatedAt.getTime() > b._updatedAt.getTime() ? a : b,
+    );
   }
 
   public static create(

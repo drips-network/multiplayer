@@ -30,14 +30,7 @@ export default class GetDraftDripListByIdUseCase
       id: draftDripList._id,
       name: draftDripList._name,
       description: draftDripList._description,
-      currentVotingRound: draftDripList.currentVotingRound
-        ? {
-            id: draftDripList.currentVotingRound._id,
-            startsAt: draftDripList.currentVotingRound._startsAt,
-            endsAt: draftDripList.currentVotingRound._endsAt,
-            status: draftDripList.currentVotingRound.status,
-          }
-        : null,
+      currentVotingRoundId: draftDripList.currentVotingRound?._id ?? null,
       publisher: {
         address: draftDripList._publisher._address,
         addressDriverId: draftDripList._publisher._addressId,
