@@ -1,14 +1,13 @@
-import type { UUID } from 'crypto';
 import type IVotingRoundRepository from '../votingRoundAggregate/IVotingRoundRepository';
-import { NotFoundError } from '../../application/errors';
 import {
   InvalidArgumentError,
   InvalidVotingRoundOperationError,
 } from '../errors';
-import { VotingRoundStatus } from '../votingRoundAggregate/VotingRound';
 import type ICollaboratorRepository from '../collaboratorAggregate/ICollaboratorRepository';
 import type { Address, AddressDriverId } from '../typeUtils';
 import Collaborator from '../collaboratorAggregate/Collaborator';
+import type VotingRound from '../votingRoundAggregate/VotingRound';
+import { VotingRoundStatus } from '../votingRoundAggregate/VotingRound';
 
 export default class VotingRoundService {
   private readonly _collaboratorRepository: ICollaboratorRepository;
@@ -23,19 +22,12 @@ export default class VotingRoundService {
   }
 
   public async setCollaborators(
-    votingRoundId: UUID,
+    votingRound: VotingRound,
     collaborators: {
       address: Address;
       addressDriverId: AddressDriverId;
     }[],
   ): Promise<void> {
-    const votingRound =
-      await this._votingRoundRepository.getById(votingRoundId);
-
-    if (!votingRound) {
-      throw new NotFoundError(`Voting round not found.`);
-    }
-
     if (votingRound.status !== VotingRoundStatus.Started) {
       throw new InvalidVotingRoundOperationError(
         `Collaborators can only be set for a voting round that is in the 'Started' status but the voting round is in the '${votingRound.status}' status.`,

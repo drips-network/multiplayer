@@ -9,7 +9,7 @@ export const createDraftDripListRequestValidators = [
     .isLength({ max: 200 })
     .escape(),
   body('publisherAddress').isString().isLength({ min: 42, max: 42 }).escape(),
-  body('publisherAddressId')
+  body('publisherAddressDriverId')
     .isString()
     .not()
     .isEmpty()

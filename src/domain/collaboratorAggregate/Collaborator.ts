@@ -1,9 +1,11 @@
-import { Column, Entity, JoinTable, ManyToMany } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 import { isAddressDriverId, isEthAddress } from '../typeUtils';
 import type { Address, AddressDriverId } from '../typeUtils';
 import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type VotingRound from '../votingRoundAggregate/VotingRound';
+import type Vote from '../votingRoundAggregate/Vote';
+import { InvalidArgumentError } from '../errors';
 
 @Entity({
   name: 'Collaborators',
@@ -32,17 +34,18 @@ export default class Collaborator extends BaseEntity {
   })
   public _address!: Address;
 
-  public constructor() {
-    super();
-  }
+  @OneToMany('Vote', (vote: Vote) => vote._collaborator, {
+    nullable: true,
+  })
+  public _votes: Vote[] | undefined;
 
   public static create(accountId: string, address: string) {
     if (!isAddressDriverId(accountId)) {
-      throw new Error('Invalid accountId');
+      throw new InvalidArgumentError('Invalid accountId.');
     }
 
     if (!isEthAddress(address)) {
-      throw new Error('Invalid address');
+      throw new InvalidArgumentError('Invalid address.');
     }
 
     const collaborator = new Collaborator();

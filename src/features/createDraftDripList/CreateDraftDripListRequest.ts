@@ -1,6 +1,6 @@
 export type CreateDraftDripListRequest = {
   name: string;
   description: string;
-  publisherAddressId: string;
+  publisherAddressDriverId: string;
   publisherAddress: string;
 };

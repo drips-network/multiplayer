@@ -16,7 +16,12 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
       where: {
         _id: votingRoundId,
       },
-      relations: ['_collaborators', '_draftDripList'],
+      relations: [
+        '_collaborators',
+        '_draftDripList',
+        '_votes',
+        '_votes._collaborator',
+      ],
     });
   }
 

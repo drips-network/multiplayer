@@ -28,14 +28,18 @@ export default class GetVotingRoundByIdUseCase
       endsAt: votingRound._endsAt,
       status: votingRound.status,
       draftDripListId: votingRound._draftDripList._id,
-      collaborators:
-        votingRound._collaborators?.map((collaborator) => ({
-          address: collaborator._address,
-          addressDriverId: collaborator._addressId,
-          vote: {
-            toBeImplemented: 'Vote',
-          },
-        })) || null,
+      votes: votingRound
+        .getCollaboratorsWithVotes()
+        .map((collaboratorsWithVotes) => ({
+          collaboratorAddress: collaboratorsWithVotes.collaborator._address,
+          latestVote:
+            collaboratorsWithVotes.latestVote?.voteAllocations.map(
+              (voteAllocation) => ({
+                receiverId: voteAllocation.receiverId as string,
+                percentage: voteAllocation.percentage,
+              }),
+            ) || null,
+        })),
     };
   }
 }

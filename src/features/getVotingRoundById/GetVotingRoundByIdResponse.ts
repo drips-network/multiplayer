@@ -6,13 +6,13 @@ export type GetVotingRoundByIdResponse = {
   endsAt: Date;
   draftDripListId: UUID;
   status: 'started' | 'completed' | 'deleted';
-  collaborators:
-    | {
-        address: string;
-        addressDriverId: string;
-        vote: {
-          toBeImplemented: 'Vote';
-        };
-      }[]
-    | null;
+  votes: {
+    collaboratorAddress: string;
+    latestVote:
+      | {
+          receiverId: string;
+          percentage: number;
+        }[]
+      | null;
+  }[];
 };

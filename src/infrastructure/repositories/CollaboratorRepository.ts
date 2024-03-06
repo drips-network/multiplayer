@@ -27,4 +27,12 @@ export default class CollaboratorRepository implements ICollaboratorRepository {
   public async createMany(collaborators: Collaborator[]): Promise<void> {
     await this._repository.save(collaborators);
   }
+
+  getByAddress(address: Address): Promise<Collaborator | null> {
+    return this._repository.findOne({
+      where: {
+        _address: address,
+      },
+    });
+  }
 }

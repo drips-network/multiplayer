@@ -21,10 +21,11 @@ export default class CreateDraftDripListUseCase
   public async execute(
     request: CreateDraftDripListRequest,
   ): Promise<CreateDraftDripListResponse> {
-    const { publisherAddressId, publisherAddress, name, description } = request;
+    const { publisherAddressDriverId, publisherAddress, name, description } =
+      request;
 
     this._logger.info(
-      `Creating a new draft drip list with name '${name}', description '${description}', publisher address '${publisherAddress}', and publisher address ID '${publisherAddressId}'...`,
+      `Creating a new draft drip list with name '${name}', description '${description}', publisher address '${publisherAddress}', and publisher address ID '${publisherAddressDriverId}'...`,
     );
 
     assertIsEthAddress(publisherAddress);
@@ -32,7 +33,7 @@ export default class CreateDraftDripListUseCase
     const draftDripList = DraftDripList.create(
       name,
       description,
-      Publisher.create(publisherAddressId, publisherAddress),
+      Publisher.create(publisherAddressDriverId, publisherAddress),
     );
 
     await this._repository.save(draftDripList);

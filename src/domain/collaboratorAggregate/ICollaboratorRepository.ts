@@ -9,4 +9,5 @@ export default interface ICollaboratorRepository {
     }[],
   ): Promise<Collaborator[]>;
   createMany(collaborators: Collaborator[]): Promise<void>;
+  getByAddress(address: Address): Promise<Collaborator | null>;
 }

@@ -34,6 +34,7 @@ export default class SetCollaboratorsEndpoint implements IEndpoint {
   ) {
     await this._setCollaboratorsUseCase.execute({
       votingRoundId: req.params.votingRoundId,
+      publisherAddress: req.body.publisherAddress,
       collaborators: req.body.collaborators,
     });
 

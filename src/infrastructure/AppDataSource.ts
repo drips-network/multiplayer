@@ -5,6 +5,7 @@ import DraftDripList from '../domain/draftDripListAggregate/DraftDripList';
 import Publisher from '../domain/draftDripListAggregate/Publisher';
 import VotingRound from '../domain/votingRoundAggregate/VotingRound';
 import Collaborator from '../domain/collaboratorAggregate/Collaborator';
+import Vote from '../domain/votingRoundAggregate/Vote';
 
 export async function initializeAppDataSource() {
   try {
@@ -17,7 +18,7 @@ export async function initializeAppDataSource() {
       username: dbUser,
       password: dbPassword,
       database: dbName,
-      entities: [DraftDripList, Publisher, VotingRound, Collaborator],
+      entities: [DraftDripList, Publisher, VotingRound, Collaborator, Vote],
       synchronize: true,
       logging: false,
       schema: network,

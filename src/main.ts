@@ -21,6 +21,8 @@ import VotingRoundService from './domain/services/VotingRoundService';
 import CollaboratorRepository from './infrastructure/repositories/CollaboratorRepository';
 import GetVotingRoundByIdEndpoint from './features/getVotingRoundById/GetVotingRoundByIdEndpoint';
 import GetVotingRoundByIdUseCase from './features/getVotingRoundById/GetVotingRoundByIdUseCase';
+import CastVoteEndpoint from './features/castVote/CastVoteEndpoint';
+import CastVoteUseCase from './features/castVote/CastVoteUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -30,8 +32,9 @@ export async function main(): Promise<void> {
 
   const draftDripListRepository = new DraftDripListRepository(AppDataSource);
   const votingRoundRepository = new VotingRoundRepository(AppDataSource);
+  const collaboratorRepository = new CollaboratorRepository(AppDataSource);
   const votingRoundService = new VotingRoundService(
-    new CollaboratorRepository(AppDataSource),
+    collaboratorRepository,
     votingRoundRepository,
   );
 
@@ -51,10 +54,17 @@ export async function main(): Promise<void> {
     new DeleteCurrentVotingRoundUseCase(logger, draftDripListRepository),
   );
   const setCollaboratorsEndpoint = new SetCollaboratorsEndpoint(
-    new SetCollaboratorsUseCase(logger, votingRoundService),
+    new SetCollaboratorsUseCase(
+      logger,
+      votingRoundService,
+      votingRoundRepository,
+    ),
   );
   const getVotingRoundById = new GetVotingRoundByIdEndpoint(
     new GetVotingRoundByIdUseCase(votingRoundRepository),
+  );
+  const castVoteEndpoint = new CastVoteEndpoint(
+    new CastVoteUseCase(logger, votingRoundRepository, collaboratorRepository),
   );
 
   await ApiServer.run(
@@ -66,6 +76,7 @@ export async function main(): Promise<void> {
       deleteCurrentVotingRoundEndpoint,
       setCollaboratorsEndpoint,
       getVotingRoundById,
+      castVoteEndpoint,
     ],
     appSettings.apiPort,
   );
