@@ -21,7 +21,10 @@ export default class CastVoteEndpoint implements IEndpoint {
     );
   }
 
-  public async handle(req: TypedRequestBody<CastVoteRequest>, res: Response) {
+  public async handle(
+    req: TypedRequestBody<CastVoteRequest>,
+    res: Response,
+  ): Promise<Response> {
     await this._castVoteUseCase.execute(req.body);
 
     return res.status(201).send();

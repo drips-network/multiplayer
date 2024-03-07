@@ -7,14 +7,16 @@ export default function getContractNameFromAccountId(
   | 'addressDriver'
   | 'immutableSplitsDriver' {
   if (Number.isNaN(Number(id))) {
-    throw new Error(`Could not get bits: ${id} is not a number.`);
+    throw new Error(
+      `Could not infer contract name from account ID '${id}'. The provided ID is not a number.`,
+    );
   }
 
   const accountIdAsBigInt = BigInt(id);
 
   if (accountIdAsBigInt < 0n || accountIdAsBigInt > 2n ** 256n - 1n) {
     throw new Error(
-      `Could not get bits: ${id} is not a valid positive number within the range of a uint256.`,
+      `Could not infer contract name from account ID '${id}'. The provided ID is not a valid positive number within the range of a uint256.`,
     );
   }
 

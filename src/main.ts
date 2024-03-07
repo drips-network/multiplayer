@@ -17,6 +17,10 @@ import GetVotingRoundByIdUseCase from './features/getVotingRoundById/GetVotingRo
 import CastVoteEndpoint from './features/castVote/CastVoteEndpoint';
 import CastVoteUseCase from './features/castVote/CastVoteUseCase';
 import PublisherRepository from './infrastructure/repositories/PublisherRepository';
+import GetVotingRoundsEndpoint from './features/getVotingRounds/GetVotingRoundsEndpoint';
+import GetVotingRoundsUseCase from './features/getVotingRounds/GetVotingRoundsUseCase';
+import PublishEndpoint from './features/publish/PublishEndpoint';
+import PublishUseCase from './features/publish/PublishUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -47,20 +51,26 @@ export async function main(): Promise<void> {
       votingRoundRepository,
     ),
   );
-  const getVotingRoundById = new GetVotingRoundByIdEndpoint(
+  const getVotingRoundByIdEndpoint = new GetVotingRoundByIdEndpoint(
     new GetVotingRoundByIdUseCase(votingRoundRepository),
   );
   const castVoteEndpoint = new CastVoteEndpoint(
     new CastVoteUseCase(logger, votingRoundRepository, collaboratorRepository),
   );
+  const getVotingRoundsEndpoint = new GetVotingRoundsEndpoint(
+    new GetVotingRoundsUseCase(votingRoundRepository),
+  );
+  const publishEndpoint = new PublishEndpoint(new PublishUseCase(logger));
 
   await ApiServer.run(
     [
       startVotingRoundEndpoint,
       softDeleteVotingRoundEndpoint,
       setCollaboratorsEndpoint,
-      getVotingRoundById,
+      getVotingRoundByIdEndpoint,
       castVoteEndpoint,
+      getVotingRoundsEndpoint,
+      publishEndpoint,
     ],
     appSettings.apiPort,
   );

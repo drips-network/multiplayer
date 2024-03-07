@@ -5,6 +5,8 @@ import type { GetVotingRoundByIdRequest } from './GetVotingRoundByIdRequest';
 import ApiServer from '../../ApiServer';
 import { getVotingRoundByIdRequestValidators } from './getVotingRoundByIdRequestValidators';
 import type GetVotingRoundByIdUseCase from './GetVotingRoundByIdUseCase';
+import type { TypedResponse } from '../../application/interfaces/ITypedResponse';
+import type { GetVotingRoundsResponse } from '../getVotingRounds/GetVotingRoundsResponse';
 
 export default class GetVotingRoundByIdEndpoint implements IEndpoint {
   private readonly _getVotingRoundByIdUseCase: GetVotingRoundByIdUseCase;
@@ -23,8 +25,8 @@ export default class GetVotingRoundByIdEndpoint implements IEndpoint {
 
   public async handle(
     req: TypedRequestParams<GetVotingRoundByIdRequest>,
-    res: Response,
-  ) {
+    res: TypedResponse<GetVotingRoundsResponse>,
+  ): Promise<Response> {
     const votingRound = await this._getVotingRoundByIdUseCase.execute(
       req.params,
     );

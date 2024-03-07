@@ -113,6 +113,24 @@ export function toVotingRoundDripListId(
   throw new Error('Invalid votingRoundDripListId.');
 }
 
+export function isVotingRoundDripListId(
+  id: string | UUID | DripListId,
+): id is VotingRoundDripListId {
+  if (isUUID(id) || isDripListId(id)) {
+    return true;
+  }
+
+  return false;
+}
+
+export function assertIsVotingRoundDripListId(
+  id: string | UUID | DripListId,
+): asserts id is VotingRoundDripListId {
+  if (!isVotingRoundDripListId(id)) {
+    throw new Error('Invalid Drip List ID.');
+  }
+}
+
 export function toAccountId(id: bigint | string): AccountId {
   const accountIdAsString = id.toString();
 

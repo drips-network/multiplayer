@@ -2,7 +2,7 @@ import type { UUID } from 'crypto';
 import type { DataSource, Repository } from 'typeorm';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import VotingRound from '../../domain/votingRoundAggregate/VotingRound';
-import type { VotingRoundDripListId } from '../../domain/typeUtils';
+import type { Address, VotingRoundDripListId } from '../../domain/typeUtils';
 import type Publisher from '../../domain/publisherAggregate/Publisher';
 
 export default class VotingRoundRepository implements IVotingRoundRepository {
@@ -40,6 +40,20 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
         '_votes._collaborator',
         '_publisher',
       ],
+    });
+  }
+
+  public async getByFilter(filter: {
+    dripListId?: VotingRoundDripListId;
+    publisherAddress?: Address;
+  }): Promise<VotingRound[]> {
+    return this._repository.find({
+      where: {
+        _dripListId: filter.dripListId,
+        _publisher: {
+          _address: filter.publisherAddress,
+        },
+      },
     });
   }
 

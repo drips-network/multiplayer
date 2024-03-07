@@ -26,7 +26,7 @@ export default class StartVotingRoundEndpoint implements IEndpoint {
   public async handle(
     req: TypedRequestBody<StartVotingRoundRequest>,
     res: TypedResponse<StartVotingRoundResponse>,
-  ): Promise<Response<StartVotingRoundResponse>> {
+  ): Promise<Response> {
     const startVotingRoundResult = await this._startVotingRoundUseCase.execute(
       req.body,
     );
