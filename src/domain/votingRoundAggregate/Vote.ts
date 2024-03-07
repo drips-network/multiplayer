@@ -3,7 +3,12 @@ import type VotingRound from './VotingRound';
 import type Collaborator from '../collaboratorAggregate/Collaborator';
 import { InvalidArgumentError } from '../errors';
 import BaseEntity from '../BaseEntity';
-import type { AddressDriverId } from '../typeUtils';
+import type { AccountId } from '../typeUtils';
+
+export type VoteAllocation = {
+  receiverId: string;
+  percentage: number;
+};
 
 @Entity({
   name: 'Votes',
@@ -32,18 +37,16 @@ export default class Vote extends BaseEntity {
   @Column('json', { nullable: true, name: 'voteAllocations' })
   public _voteAllocationsJson!: string;
   private _voteAllocations!: {
-    receiverId: AddressDriverId;
+    receiverId: AccountId;
     percentage: number;
   }[];
-  get voteAllocations(): { receiverId: AddressDriverId; percentage: number }[] {
+  get voteAllocations(): { receiverId: AccountId; percentage: number }[] {
     if (!this._voteAllocations && this._voteAllocationsJson) {
       this._voteAllocations = JSON.parse(this._voteAllocationsJson);
     }
     return this._voteAllocations;
   }
-  set voteAllocations(
-    value: { receiverId: AddressDriverId; percentage: number }[],
-  ) {
+  set voteAllocations(value: { receiverId: AccountId; percentage: number }[]) {
     this._voteAllocations = value;
     this._voteAllocationsJson = JSON.stringify(value);
   }
@@ -51,7 +54,7 @@ export default class Vote extends BaseEntity {
   public static create(
     votingRound: VotingRound,
     collaborator: Collaborator,
-    voteAllocations: { receiverId: AddressDriverId; percentage: number }[],
+    voteAllocations: { receiverId: AccountId; percentage: number }[],
   ): Vote {
     if (!votingRound) {
       throw new InvalidArgumentError('Invalid votingRound.');

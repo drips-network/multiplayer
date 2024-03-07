@@ -1,12 +1,12 @@
 import type { Application, Response } from 'express';
-import type { UUID } from 'crypto';
 import type { IEndpoint } from '../../application/interfaces/IEndpoint';
-import type StartVotingRoundUseCase from './StartVotingRoundUseCase';
 import type { TypedResponse } from '../../application/interfaces/ITypedResponse';
 import type { StartVotingRoundResponse } from './StartVotingRoundResponse';
-import type { TypedRequestParams } from '../../application/interfaces/ITypedRequestParams';
 import { startVotingRoundRequestRequestValidators } from './startVotingRoundRequestRequestValidators';
 import ApiServer from '../../ApiServer';
+import type StartVotingRoundUseCase from './StartVotingRoundUseCase';
+import type { StartVotingRoundRequest } from './StartVotingRoundRequest';
+import type TypedRequestBody from '../../application/interfaces/ITypedRequestBody';
 
 export default class StartVotingRoundEndpoint implements IEndpoint {
   private readonly _startVotingRoundUseCase: StartVotingRoundUseCase;
@@ -17,24 +17,23 @@ export default class StartVotingRoundEndpoint implements IEndpoint {
 
   configure(app: Application): void {
     app.post(
-      '/drafts/:id/votingRounds',
+      '/votingRounds',
       ...startVotingRoundRequestRequestValidators,
       ApiServer.useEndpoint(this),
     );
   }
 
   public async handle(
-    req: TypedRequestParams<{
-      id: UUID;
-    }>,
+    req: TypedRequestBody<StartVotingRoundRequest>,
     res: TypedResponse<StartVotingRoundResponse>,
   ): Promise<Response<StartVotingRoundResponse>> {
-    const startVotingRoundResult = await this._startVotingRoundUseCase.execute({
-      id: req.params.id,
-      startsAt: req.body.startsAt,
-      endsAt: req.body.endsAt,
-    });
+    const startVotingRoundResult = await this._startVotingRoundUseCase.execute(
+      req.body,
+    );
 
-    return res.status(201).json(startVotingRoundResult);
+    return res
+      .status(201)
+      .location(`/votingRounds/${startVotingRoundResult.newVotingRoundId}`)
+      .json(startVotingRoundResult);
   }
 }

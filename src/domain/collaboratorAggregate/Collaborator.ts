@@ -1,11 +1,15 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
-import { isAddressDriverId, isEthAddress } from '../typeUtils';
-import type { Address, AddressDriverId } from '../typeUtils';
 import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
-import type VotingRound from '../votingRoundAggregate/VotingRound';
 import type Vote from '../votingRoundAggregate/Vote';
 import { InvalidArgumentError } from '../errors';
+import type VotingRound from '../votingRoundAggregate/VotingRound';
+import {
+  isAddressDriverId,
+  type Address,
+  type AddressDriverId,
+  isEthAddress,
+} from '../typeUtils';
 
 @Entity({
   name: 'Collaborators',

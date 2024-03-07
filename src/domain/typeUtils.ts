@@ -1,3 +1,4 @@
+import type { UUID } from 'crypto';
 import getContractNameFromAccountId from './getContractNameFromAccountId';
 
 export type AddressDriverId = string & { __type: 'AddressDriverId' };
@@ -78,7 +79,7 @@ export function isProjectId(id: string): id is ProjectId {
   return true;
 }
 
-export type AccountId = string & { __type: 'AccountId' };
+export type AccountId = AddressDriverId | DripListId | ProjectId;
 
 export function isAccountId(id: string): id is AccountId {
   if (isProjectId(id) || isDripListId(id) || isAddressDriverId(id)) {
@@ -86,4 +87,42 @@ export function isAccountId(id: string): id is AccountId {
   }
 
   return false;
+}
+
+export type VotingRoundDripListId = string & {
+  __type: 'VotingRoundDripListId';
+};
+
+function isUUID(str: string): str is UUID {
+  const regex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return regex.test(str);
+}
+
+export function toVotingRoundDripListId(
+  id: string | UUID | DripListId,
+): VotingRoundDripListId {
+  if (isUUID(id)) {
+    return id as unknown as VotingRoundDripListId;
+  }
+
+  if (isDripListId(id)) {
+    return id as unknown as VotingRoundDripListId;
+  }
+
+  throw new Error('Invalid votingRoundDripListId.');
+}
+
+export function toAccountId(id: bigint | string): AccountId {
+  const accountIdAsString = id.toString();
+
+  if (
+    isProjectId(accountIdAsString) ||
+    isDripListId(accountIdAsString) ||
+    isAddressDriverId(accountIdAsString)
+  ) {
+    return accountIdAsString as AccountId;
+  }
+
+  throw new Error(`Invalid account ID: ${id}.`);
 }

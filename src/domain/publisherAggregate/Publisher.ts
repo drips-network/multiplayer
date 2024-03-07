@@ -1,4 +1,4 @@
-import { Column } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import {
   isAddressDriverId,
   type Address,
@@ -6,10 +6,14 @@ import {
   isEthAddress,
 } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
-import type { IValueObject } from '../IValueObject';
 import { InvalidArgumentError } from '../errors';
+import type VotingRound from '../votingRoundAggregate/VotingRound';
+import BaseEntity from '../BaseEntity';
 
-export default class Publisher implements IValueObject {
+@Entity({
+  name: 'Publishers',
+})
+export default class Publisher extends BaseEntity {
   @Column('varchar', {
     nullable: false,
     name: 'addressDriverId',
@@ -24,7 +28,16 @@ export default class Publisher implements IValueObject {
   })
   public _address!: Address;
 
-  public static create(addressDriverId: string, address: string) {
+  @OneToMany(
+    'VotingRound',
+    (votingRound: VotingRound) => votingRound._publisher,
+    {
+      nullable: true,
+    },
+  )
+  public _votingRounds: VotingRound[] | undefined;
+
+  public static create(address: string, addressDriverId: string) {
     if (!isAddressDriverId(addressDriverId)) {
       throw new InvalidArgumentError('Invalid addressDriverId.');
     }

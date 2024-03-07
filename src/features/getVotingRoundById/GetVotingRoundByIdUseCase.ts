@@ -19,7 +19,7 @@ export default class GetVotingRoundByIdUseCase
     const votingRound = await this._repository.getById(request.id);
 
     if (!votingRound) {
-      throw new NotFoundError(`VotingRound with id ${request.id} not found.`);
+      throw new NotFoundError(`VotingRound not found.`);
     }
 
     return {
@@ -27,7 +27,7 @@ export default class GetVotingRoundByIdUseCase
       startsAt: votingRound._startsAt,
       endsAt: votingRound._endsAt,
       status: votingRound.status,
-      draftDripListId: votingRound._draftDripList._id,
+      dripListId: votingRound._dripListId,
       votes: votingRound
         .getCollaboratorsWithVotes()
         .map((collaboratorsWithVotes) => ({
@@ -40,6 +40,7 @@ export default class GetVotingRoundByIdUseCase
               }),
             ) || null,
         })),
+      result: votingRound.calculateResult(),
     };
   }
 }

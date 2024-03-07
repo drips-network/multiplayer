@@ -2,18 +2,19 @@ import type { Logger } from 'winston';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { StartVotingRoundResponse } from './StartVotingRoundResponse';
 import type { StartVotingRoundRequest } from './StartVotingRoundRequest';
-import { NotFoundError } from '../../application/errors';
-import type IDraftDripListRepository from '../../domain/draftDripListAggregate/IDraftDripListRepository';
+import type VotingRoundService from '../../domain/services/VotingRoundService';
+import Publisher from '../../domain/publisherAggregate/Publisher';
+import { toVotingRoundDripListId } from '../../domain/typeUtils';
 
 export default class StartVotingRoundUseCase
   implements UseCase<StartVotingRoundRequest, StartVotingRoundResponse>
 {
   private readonly _logger: Logger;
-  private readonly _repository: IDraftDripListRepository;
+  private readonly _votingRoundService: VotingRoundService;
 
-  public constructor(logger: Logger, repository: IDraftDripListRepository) {
+  public constructor(logger: Logger, votingRoundService: VotingRoundService) {
     this._logger = logger;
-    this._repository = repository;
+    this._votingRoundService = votingRoundService;
   }
 
   public async execute(
@@ -21,30 +22,35 @@ export default class StartVotingRoundUseCase
   ): Promise<StartVotingRoundResponse> {
     // TODO: Verify the request is coming from the publisher by checking the signature token.
 
-    const { id, startsAt, endsAt } = request;
+    const {
+      dripListId,
+      startsAt,
+      endsAt,
+      name,
+      description,
+      publisherAddress,
+      publisherAddressDriverId,
+    } = request;
 
     this._logger.info(
-      `Starting a new voting round for the draft drip list with ID '${id}'.`,
+      `Starting a new voting round for the draft drip list with ID '${dripListId}'.`,
     );
 
-    const draftDripList = await this._repository.getById(id);
-
-    if (!draftDripList) {
-      throw new NotFoundError('DraftDripList not found.');
-    }
-
-    draftDripList.startVotingRound(startsAt, endsAt);
-
-    await this._repository.save(draftDripList);
-
-    const votingRoundId = draftDripList.currentVotingRound!._id;
+    const newVotingRoundId = await this._votingRoundService.start(
+      toVotingRoundDripListId(dripListId),
+      startsAt,
+      endsAt,
+      name,
+      description,
+      Publisher.create(publisherAddress, publisherAddressDriverId),
+    );
 
     this._logger.info(
-      `Started successfully a new voting round with ID '${votingRoundId}'.`,
+      `Started successfully a new voting round with ID '${newVotingRoundId}'.`,
     );
 
     return {
-      votingRoundId,
+      newVotingRoundId,
     };
   }
 }

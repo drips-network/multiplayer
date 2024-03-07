@@ -2,7 +2,11 @@ import type { Logger } from 'winston';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { SetCollaboratorsRequest } from './SetCollaboratorsRequest';
 import type VotingRoundService from '../../domain/services/VotingRoundService';
-import { toAddress, toAddressDriverId } from '../../domain/typeUtils';
+import {
+  assertIsEthAddress,
+  toAddress,
+  toAddressDriverId,
+} from '../../domain/typeUtils';
 import { NotFoundError } from '../../application/errors';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 
@@ -26,7 +30,7 @@ export default class SetCollaboratorsUseCase
   public async execute(request: SetCollaboratorsRequest): Promise<void> {
     // TODO: Verify the request is coming from the publisher by checking the signature token.
 
-    const { votingRoundId, collaborators } = request;
+    const { votingRoundId, collaborators, publisherAddress } = request;
 
     this._logger.info(
       `Setting collaborators for voting round with ID '${votingRoundId}'...`,
@@ -39,7 +43,10 @@ export default class SetCollaboratorsUseCase
       throw new NotFoundError(`Voting round not found.`);
     }
 
+    assertIsEthAddress(publisherAddress);
+
     await this._votingRoundService.setCollaborators(
+      publisherAddress,
       votingRound,
       collaborators.map((collaborator) => ({
         address: toAddress(collaborator.address),

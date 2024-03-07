@@ -7,13 +7,18 @@ import {
   OneToMany,
 } from 'typeorm';
 import BaseEntity from '../BaseEntity';
-import type DraftDripList from '../draftDripListAggregate/DraftDripList';
 import type Collaborator from '../collaboratorAggregate/Collaborator';
 import { InvalidArgumentError } from '../errors';
 import type IAggregateRoot from '../IAggregateRoot';
 import Vote from './Vote';
-import type { AddressDriverId } from '../typeUtils';
-import { toAddressDriverId } from '../typeUtils';
+import type {
+  AccountId,
+  AddressDriverId,
+  VotingRoundDripListId,
+} from '../typeUtils';
+import { toAccountId } from '../typeUtils';
+import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
+import type Publisher from '../publisherAggregate/Publisher';
 
 export enum VotingRoundStatus {
   Started = 'started',
@@ -31,20 +36,36 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   @Column('timestamptz', { nullable: false, name: 'endsAt' })
   public _endsAt!: Date;
 
-  @ManyToOne(
-    'DraftDripList',
-    (draftDripList: DraftDripList) => draftDripList._votingRounds,
-    { nullable: false, orphanedRowAction: 'soft-delete' },
-  )
-  @JoinColumn({
-    name: 'draftDripListId',
+  @Column('varchar', {
+    nullable: true,
+    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
+    name: 'dripListId',
   })
-  public _draftDripList!: DraftDripList;
+  public _dripListId!: VotingRoundDripListId;
+
+  @Column('varchar', { nullable: false, length: 50, name: 'name' })
+  public _name!: string;
+
+  @Column('varchar', { nullable: false, length: 200, name: 'description' })
+  public _description!: string;
+
+  @ManyToOne('Publisher', (publisher: Publisher) => publisher._votingRounds, {
+    nullable: false,
+    cascade: ['insert', 'update'],
+  })
+  @JoinColumn({
+    name: 'publisherId',
+  })
+  public _publisher!: Publisher;
 
   @ManyToMany(
     'Collaborator',
     (collaborator: Collaborator) => collaborator._votingRounds,
-    { nullable: true, orphanedRowAction: 'soft-delete', cascade: true },
+    {
+      nullable: true,
+      orphanedRowAction: 'soft-delete',
+      cascade: ['insert', 'update'],
+    },
   )
   public _collaborators: Collaborator[] | undefined;
 
@@ -77,7 +98,14 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return this._endsAt;
   }
 
-  public static create(startsAt: Date, endsAt: Date): VotingRound {
+  public static create(
+    startsAt: Date,
+    endsAt: Date,
+    dripListId: VotingRoundDripListId,
+    name: string,
+    description: string,
+    publisher: Publisher,
+  ): VotingRound {
     const startsAtTime = new Date(startsAt).getTime();
     const endsAtTime = new Date(endsAt).getTime();
 
@@ -93,10 +121,26 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       throw new InvalidArgumentError('End date must be in the future.');
     }
 
+    if (!name.length || name.length > 50) {
+      throw new InvalidArgumentError(
+        'Name must be between 1 and 50 characters long.',
+      );
+    }
+
+    if (!description.length || description.length > 200) {
+      throw new InvalidArgumentError(
+        'Description must be between 1 and 200 characters long.',
+      );
+    }
+
     const votingRound = new VotingRound();
 
     votingRound._startsAt = startsAt;
     votingRound._endsAt = endsAt;
+    votingRound._dripListId = dripListId;
+    votingRound._name = name;
+    votingRound._description = description;
+    votingRound._publisher = publisher;
 
     return votingRound;
   }
@@ -130,7 +174,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       this,
       collaborator,
       voteAllocations.map((va) => ({
-        receiverId: toAddressDriverId(va.receiverId),
+        receiverId: toAccountId(va.receiverId),
         percentage: va.percentage,
       })),
     );
@@ -176,5 +220,10 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     }
 
     return collaboratorVotes;
+  }
+
+  public calculateResult(): { receiverId: AccountId; percentage: number }[] {
+    console.error('🚨 calculateResult Not implemented');
+    return [];
   }
 }

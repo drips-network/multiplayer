@@ -1,11 +1,10 @@
 import { DataSource } from 'typeorm';
 import appSettings from '../appSettings';
 import logger from './logger';
-import DraftDripList from '../domain/draftDripListAggregate/DraftDripList';
-import Publisher from '../domain/draftDripListAggregate/Publisher';
 import VotingRound from '../domain/votingRoundAggregate/VotingRound';
 import Collaborator from '../domain/collaboratorAggregate/Collaborator';
 import Vote from '../domain/votingRoundAggregate/Vote';
+import Publisher from '../domain/publisherAggregate/Publisher';
 
 export async function initializeAppDataSource() {
   try {
@@ -18,7 +17,7 @@ export async function initializeAppDataSource() {
       username: dbUser,
       password: dbPassword,
       database: dbName,
-      entities: [DraftDripList, Publisher, VotingRound, Collaborator, Vote],
+      entities: [VotingRound, Collaborator, Vote, Publisher],
       synchronize: true,
       logging: false,
       schema: network,

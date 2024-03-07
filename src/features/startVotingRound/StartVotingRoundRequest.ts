@@ -1,7 +1,9 @@
-import type { UUID } from 'crypto';
-
 export type StartVotingRoundRequest = {
-  id: UUID;
+  dripListId: string;
   startsAt: Date;
   endsAt: Date;
+  name: string;
+  description: string;
+  publisherAddress: string;
+  publisherAddressDriverId: string;
 };

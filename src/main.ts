@@ -3,17 +3,10 @@ import 'reflect-metadata';
 import logger from './infrastructure/logger';
 import appSettings from './appSettings';
 import { initializeAppDataSource } from './infrastructure/AppDataSource';
-import CreateDraftDripListEndpoint from './features/createDraftDripList/CreateDraftDripListEndpoint';
-import CreateDraftDripListUseCase from './features/createDraftDripList/CreateDraftDripListUseCase';
-import DeleteDraftDripListEndpoint from './features/deleteDraftDripList/DeleteDraftDripListEndpoint';
-import DeleteDraftDripListUseCase from './features/deleteDraftDripList/DeleteDraftDripListUseCase';
-import GetDraftDripListByIdEndpoint from './features/getDraftDripListById/GetDraftDripListByIdEndpoint';
-import GetDraftDripListByIdUseCase from './features/getDraftDripListById/GetDraftDripListByIdUseCase';
 import StartVotingRoundEndpoint from './features/startVotingRound/StartVotingRoundEndpoint';
 import StartVotingRoundUseCase from './features/startVotingRound/StartVotingRoundUseCase';
-import DeleteCurrentVotingRoundEndpoint from './features/deleteCurrentVotingRound/DeleteCurrentVotingVotingRoundEndpoint';
-import DeleteCurrentVotingRoundUseCase from './features/deleteCurrentVotingRound/DeleteCurrentVotingVotingRoundUseCase';
-import DraftDripListRepository from './infrastructure/repositories/DraftDripListRepository';
+import SoftDeleteVotingRoundEndpoint from './features/softDeleteVotingRound/SoftDeleteVotingVotingRoundEndpoint';
+import SoftDeleteVotingRoundUseCase from './features/softDeleteVotingRound/SoftDeleteVotingVotingRoundUseCase';
 import VotingRoundRepository from './infrastructure/repositories/VotingRoundRepository';
 import SetCollaboratorsEndpoint from './features/setCollaborators/SetCollaboratorsEndpoint';
 import SetCollaboratorsUseCase from './features/setCollaborators/SetCollaboratorsUseCase';
@@ -23,6 +16,7 @@ import GetVotingRoundByIdEndpoint from './features/getVotingRoundById/GetVotingR
 import GetVotingRoundByIdUseCase from './features/getVotingRoundById/GetVotingRoundByIdUseCase';
 import CastVoteEndpoint from './features/castVote/CastVoteEndpoint';
 import CastVoteUseCase from './features/castVote/CastVoteUseCase';
+import PublisherRepository from './infrastructure/repositories/PublisherRepository';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -30,28 +24,21 @@ export async function main(): Promise<void> {
 
   const AppDataSource = await initializeAppDataSource();
 
-  const draftDripListRepository = new DraftDripListRepository(AppDataSource);
+  const publisherRepository = new PublisherRepository(AppDataSource);
   const votingRoundRepository = new VotingRoundRepository(AppDataSource);
   const collaboratorRepository = new CollaboratorRepository(AppDataSource);
+
   const votingRoundService = new VotingRoundService(
-    collaboratorRepository,
+    publisherRepository,
     votingRoundRepository,
+    collaboratorRepository,
   );
 
-  const createDraftDripListEndpoint = new CreateDraftDripListEndpoint(
-    new CreateDraftDripListUseCase(logger, draftDripListRepository),
-  );
-  const getDraftDripListByIdEndpoint = new GetDraftDripListByIdEndpoint(
-    new GetDraftDripListByIdUseCase(draftDripListRepository),
-  );
-  const deleteDraftDripListEndpoint = new DeleteDraftDripListEndpoint(
-    new DeleteDraftDripListUseCase(logger, draftDripListRepository),
-  );
   const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
-    new StartVotingRoundUseCase(logger, draftDripListRepository),
+    new StartVotingRoundUseCase(logger, votingRoundService),
   );
-  const deleteCurrentVotingRoundEndpoint = new DeleteCurrentVotingRoundEndpoint(
-    new DeleteCurrentVotingRoundUseCase(logger, draftDripListRepository),
+  const softDeleteVotingRoundEndpoint = new SoftDeleteVotingRoundEndpoint(
+    new SoftDeleteVotingRoundUseCase(logger, votingRoundRepository),
   );
   const setCollaboratorsEndpoint = new SetCollaboratorsEndpoint(
     new SetCollaboratorsUseCase(
@@ -69,11 +56,8 @@ export async function main(): Promise<void> {
 
   await ApiServer.run(
     [
-      createDraftDripListEndpoint,
-      getDraftDripListByIdEndpoint,
-      deleteDraftDripListEndpoint,
       startVotingRoundEndpoint,
-      deleteCurrentVotingRoundEndpoint,
+      softDeleteVotingRoundEndpoint,
       setCollaboratorsEndpoint,
       getVotingRoundById,
       castVoteEndpoint,
