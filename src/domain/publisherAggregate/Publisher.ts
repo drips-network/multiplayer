@@ -3,7 +3,7 @@ import {
   isAddressDriverId,
   type Address,
   type AddressDriverId,
-  isEthAddress,
+  isAddress,
 } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import { InvalidArgumentError } from '../errors';
@@ -19,7 +19,7 @@ export default class Publisher extends BaseEntity {
     name: 'addressDriverId',
     length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
   })
-  public _addressId!: AddressDriverId;
+  public _addressDriverId!: AddressDriverId;
 
   @Column('varchar', {
     nullable: false,
@@ -42,13 +42,13 @@ export default class Publisher extends BaseEntity {
       throw new InvalidArgumentError('Invalid addressDriverId.');
     }
 
-    if (!isEthAddress(address)) {
+    if (!isAddress(address)) {
       throw new InvalidArgumentError('Invalid address.');
     }
 
     const publisher = new Publisher();
 
-    publisher._addressId = addressDriverId;
+    publisher._addressDriverId = addressDriverId;
     publisher._address = address;
 
     return publisher;

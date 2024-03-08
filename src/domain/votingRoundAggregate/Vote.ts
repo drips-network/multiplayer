@@ -7,7 +7,7 @@ import type { AccountId } from '../typeUtils';
 
 export type VoteAllocation = {
   receiverId: string;
-  percentage: number;
+  weight: number;
 };
 
 @Entity({
@@ -38,15 +38,15 @@ export default class Vote extends BaseEntity {
   public _voteAllocationsJson!: string;
   private _voteAllocations!: {
     receiverId: AccountId;
-    percentage: number;
+    weight: number;
   }[];
-  get voteAllocations(): { receiverId: AccountId; percentage: number }[] {
+  get voteAllocations(): { receiverId: AccountId; weight: number }[] {
     if (!this._voteAllocations && this._voteAllocationsJson) {
       this._voteAllocations = JSON.parse(this._voteAllocationsJson);
     }
     return this._voteAllocations;
   }
-  set voteAllocations(value: { receiverId: AccountId; percentage: number }[]) {
+  set voteAllocations(value: { receiverId: AccountId; weight: number }[]) {
     this._voteAllocations = value;
     this._voteAllocationsJson = JSON.stringify(value);
   }
@@ -54,8 +54,9 @@ export default class Vote extends BaseEntity {
   public static create(
     votingRound: VotingRound,
     collaborator: Collaborator,
-    voteAllocations: { receiverId: AccountId; percentage: number }[],
+    voteAllocations: { receiverId: AccountId; weight: number }[],
   ): Vote {
+    console.log('💧💧💧💧💧💧 ~ Vote ~ votingRound:', votingRound);
     if (!votingRound) {
       throw new InvalidArgumentError('Invalid votingRound.');
     }
@@ -68,9 +69,9 @@ export default class Vote extends BaseEntity {
       throw new InvalidArgumentError('Invalid voteAllocations.');
     }
 
-    const sum = voteAllocations.reduce((a, b) => a + b.percentage, 0);
+    const sum = voteAllocations.reduce((a, b) => a + b.weight, 0);
     if (sum !== 100) {
-      throw new InvalidArgumentError('The sum of the percentages must be 100.');
+      throw new InvalidArgumentError('The sum of the weights must be 100.');
     }
 
     const vote = new Vote();

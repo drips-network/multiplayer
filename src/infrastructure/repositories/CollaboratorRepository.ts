@@ -19,7 +19,7 @@ export default class CollaboratorRepository implements ICollaboratorRepository {
     return this._repository.find({
       where: {
         _address: In(uniqueIdentifiers.map((i) => i.address)),
-        _addressId: In(uniqueIdentifiers.map((i) => i.addressDriverId)),
+        _addressDriverId: In(uniqueIdentifiers.map((i) => i.addressDriverId)),
       },
     });
   }
@@ -28,7 +28,7 @@ export default class CollaboratorRepository implements ICollaboratorRepository {
     await this._repository.save(collaborators);
   }
 
-  getByAddress(address: Address): Promise<Collaborator | null> {
+  public getByAddress(address: Address): Promise<Collaborator | null> {
     return this._repository.findOne({
       where: {
         _address: address,

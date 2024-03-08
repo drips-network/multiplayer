@@ -2,14 +2,8 @@ import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Vote from '../votingRoundAggregate/Vote';
-import { InvalidArgumentError } from '../errors';
 import type VotingRound from '../votingRoundAggregate/VotingRound';
-import {
-  isAddressDriverId,
-  type Address,
-  type AddressDriverId,
-  isEthAddress,
-} from '../typeUtils';
+import { type Address, type AddressDriverId } from '../typeUtils';
 
 @Entity({
   name: 'Collaborators',
@@ -28,7 +22,7 @@ export default class Collaborator extends BaseEntity {
     unique: true,
     name: 'addressDriverId',
   })
-  public _addressId!: AddressDriverId;
+  public _addressDriverId!: AddressDriverId;
 
   @Column('varchar', {
     length: DataSchemaConstants.ADDRESS_LENGTH,
@@ -43,18 +37,10 @@ export default class Collaborator extends BaseEntity {
   })
   public _votes: Vote[] | undefined;
 
-  public static create(accountId: string, address: string) {
-    if (!isAddressDriverId(accountId)) {
-      throw new InvalidArgumentError('Invalid accountId.');
-    }
-
-    if (!isEthAddress(address)) {
-      throw new InvalidArgumentError('Invalid address.');
-    }
-
+  public static create(addressDriverId: AddressDriverId, address: Address) {
     const collaborator = new Collaborator();
 
-    collaborator._addressId = accountId;
+    collaborator._addressDriverId = addressDriverId;
     collaborator._address = address;
 
     return collaborator;

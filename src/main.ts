@@ -8,8 +8,6 @@ import StartVotingRoundUseCase from './features/startVotingRound/StartVotingRoun
 import SoftDeleteVotingRoundEndpoint from './features/softDeleteVotingRound/SoftDeleteVotingVotingRoundEndpoint';
 import SoftDeleteVotingRoundUseCase from './features/softDeleteVotingRound/SoftDeleteVotingVotingRoundUseCase';
 import VotingRoundRepository from './infrastructure/repositories/VotingRoundRepository';
-import SetCollaboratorsEndpoint from './features/setCollaborators/SetCollaboratorsEndpoint';
-import SetCollaboratorsUseCase from './features/setCollaborators/SetCollaboratorsUseCase';
 import VotingRoundService from './domain/services/VotingRoundService';
 import CollaboratorRepository from './infrastructure/repositories/CollaboratorRepository';
 import GetVotingRoundByIdEndpoint from './features/getVotingRoundById/GetVotingRoundByIdEndpoint';
@@ -44,13 +42,6 @@ export async function main(): Promise<void> {
   const softDeleteVotingRoundEndpoint = new SoftDeleteVotingRoundEndpoint(
     new SoftDeleteVotingRoundUseCase(logger, votingRoundRepository),
   );
-  const setCollaboratorsEndpoint = new SetCollaboratorsEndpoint(
-    new SetCollaboratorsUseCase(
-      logger,
-      votingRoundService,
-      votingRoundRepository,
-    ),
-  );
   const getVotingRoundByIdEndpoint = new GetVotingRoundByIdEndpoint(
     new GetVotingRoundByIdUseCase(votingRoundRepository),
   );
@@ -66,7 +57,6 @@ export async function main(): Promise<void> {
     [
       startVotingRoundEndpoint,
       softDeleteVotingRoundEndpoint,
-      setCollaboratorsEndpoint,
       getVotingRoundByIdEndpoint,
       castVoteEndpoint,
       getVotingRoundsEndpoint,

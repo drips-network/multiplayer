@@ -10,12 +10,9 @@ import BaseEntity from '../BaseEntity';
 import type Collaborator from '../collaboratorAggregate/Collaborator';
 import { InvalidArgumentError } from '../errors';
 import type IAggregateRoot from '../IAggregateRoot';
+import type { VoteAllocation } from './Vote';
 import Vote from './Vote';
-import type {
-  AccountId,
-  AddressDriverId,
-  VotingRoundDripListId,
-} from '../typeUtils';
+import type { AccountId, AddressDriverId, DripListId } from '../typeUtils';
 import { toAccountId } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Publisher from '../publisherAggregate/Publisher';
@@ -30,24 +27,11 @@ export enum VotingRoundStatus {
   name: 'VotingRounds',
 })
 export default class VotingRound extends BaseEntity implements IAggregateRoot {
-  @Column('timestamptz', { nullable: false, name: 'startsAt' })
+  @Column('timestamptz', { nullable: true, name: 'startsAt' })
   public _startsAt!: Date;
 
-  @Column('timestamptz', { nullable: false, name: 'endsAt' })
+  @Column('timestamptz', { nullable: true, name: 'endsAt' })
   public _endsAt!: Date;
-
-  @Column('varchar', {
-    nullable: true,
-    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
-    name: 'dripListId',
-  })
-  public _dripListId!: VotingRoundDripListId;
-
-  @Column('varchar', { nullable: false, length: 50, name: 'name' })
-  public _name!: string;
-
-  @Column('varchar', { nullable: false, length: 200, name: 'description' })
-  public _description!: string;
 
   @ManyToOne('Publisher', (publisher: Publisher) => publisher._votingRounds, {
     nullable: false,
@@ -57,6 +41,19 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     name: 'publisherId',
   })
   public _publisher!: Publisher;
+
+  @Column('varchar', {
+    nullable: true,
+    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
+    name: 'dripListId',
+  })
+  public _dripListId: DripListId | undefined;
+
+  @Column('varchar', { nullable: true, length: 50, name: 'name' })
+  public _name: string | undefined;
+
+  @Column('varchar', { nullable: true, length: 200, name: 'description' })
+  public _description: string | undefined;
 
   @ManyToMany(
     'Collaborator',
@@ -87,24 +84,14 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return VotingRoundStatus.Started;
   }
 
-  public get completedAt(): Date | null {
-    if (this._deletedAt) {
-      return this._deletedAt;
-    }
-    if (this._endsAt.getTime() > new Date().getTime()) {
-      return null;
-    }
-
-    return this._endsAt;
-  }
-
   public static create(
     startsAt: Date,
     endsAt: Date,
-    dripListId: VotingRoundDripListId,
-    name: string,
-    description: string,
     publisher: Publisher,
+    dripListId: DripListId | undefined,
+    name: string | undefined,
+    description: string | undefined,
+    collaborators: Collaborator[],
   ): VotingRound {
     const startsAtTime = new Date(startsAt).getTime();
     const endsAtTime = new Date(endsAt).getTime();
@@ -121,52 +108,84 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       throw new InvalidArgumentError('End date must be in the future.');
     }
 
-    if (!name.length || name.length > 50) {
+    if (name?.length && name.length > 50) {
       throw new InvalidArgumentError(
         'Name must be between 1 and 50 characters long.',
       );
     }
 
-    if (!description.length || description.length > 200) {
+    if (description?.length && description.length > 200) {
       throw new InvalidArgumentError(
         'Description must be between 1 and 200 characters long.',
       );
+    }
+
+    if (name && !description) {
+      throw new InvalidArgumentError('Description must be provided.');
+    }
+
+    if (description && !name) {
+      throw new InvalidArgumentError('Name must be provided.');
+    }
+
+    if (name && description && dripListId) {
+      throw new InvalidArgumentError(
+        'You can provide either a Drip List id or a name and description, but not both.',
+      );
+    }
+
+    const seen = new Set();
+    for (const item of collaborators) {
+      const uniqueKey = `${item._address}-${item._addressDriverId}`;
+      if (seen.has(uniqueKey)) {
+        throw new InvalidArgumentError(
+          `Collaborators cannot contain duplicates.`,
+        );
+      }
+      seen.add(uniqueKey);
     }
 
     const votingRound = new VotingRound();
 
     votingRound._startsAt = startsAt;
     votingRound._endsAt = endsAt;
+    votingRound._publisher = publisher;
     votingRound._dripListId = dripListId;
     votingRound._name = name;
     votingRound._description = description;
-    votingRound._publisher = publisher;
+    votingRound._collaborators = collaborators;
 
     return votingRound;
   }
 
-  /**
-   * Do not use this method directly. Use `VotingRoundService.setCollaborators` instead.
-   */
-  public setCollaborators(collaborators: Collaborator[]): void {
-    if (!collaborators?.length) {
-      throw new InvalidArgumentError('Collaborators cannot be empty.');
-    }
-
-    this._collaborators = collaborators;
-  }
-
   public castVote(
     collaborator: Collaborator,
-    voteAllocations: { receiverId: string; percentage: number }[],
+    voteAllocations: VoteAllocation[],
   ): void {
     if (
       !this._collaborators?.find(
-        (c) => c._addressId === collaborator._addressId,
+        (c) => c._addressDriverId === collaborator._addressDriverId,
       )
     ) {
       throw new InvalidArgumentError(
         'Collaborator is not part of the voting round.',
+      );
+    }
+
+    if (voteAllocations.length > 200) {
+      throw new InvalidArgumentError(
+        'A maximum of 200 vote allocations can be added to a voting round.',
+      );
+    }
+
+    if (
+      voteAllocations.reduce(
+        (sum, voteAllocation) => sum + voteAllocation.weight,
+        0,
+      ) !== 100
+    ) {
+      throw new InvalidArgumentError(
+        'The sum of the weights must be 100 for each vote allocation.',
       );
     }
 
@@ -175,7 +194,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       collaborator,
       voteAllocations.map((va) => ({
         receiverId: toAccountId(va.receiverId),
-        percentage: va.percentage,
+        weight: va.weight,
       })),
     );
 
@@ -206,14 +225,14 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       const latestVoteMap = new Map<AddressDriverId, Vote>();
 
       this._votes.forEach((vote) => {
-        const collaboratorAddressId = vote._collaborator._addressId;
+        const collaboratorAddressId = vote._collaborator._addressDriverId;
         if (!latestVoteMap.has(collaboratorAddressId)) {
           latestVoteMap.set(collaboratorAddressId, vote);
         }
       });
 
       collaboratorVotes.forEach((cv) => {
-        const latestVote = latestVoteMap.get(cv.collaborator._addressId);
+        const latestVote = latestVoteMap.get(cv.collaborator._addressDriverId);
         // eslint-disable-next-line no-param-reassign
         cv.latestVote = latestVote || null;
       });
@@ -222,7 +241,11 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return collaboratorVotes;
   }
 
-  public calculateResult(): { receiverId: AccountId; percentage: number }[] {
+  public calculateResult(): { receiverId: AccountId; weight: number }[] | null {
+    if (!this._votes?.length) {
+      return null;
+    }
+
     console.error('🚨 calculateResult Not implemented');
     return [];
   }

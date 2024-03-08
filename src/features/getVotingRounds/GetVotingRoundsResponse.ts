@@ -4,5 +4,5 @@ export type GetVotingRoundsResponse = {
         id: string;
         status: string;
       }[]
-    | null;
+    | undefined;
 };

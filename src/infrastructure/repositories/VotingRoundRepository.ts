@@ -1,8 +1,10 @@
 import type { UUID } from 'crypto';
 import type { DataSource, Repository } from 'typeorm';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
-import VotingRound from '../../domain/votingRoundAggregate/VotingRound';
-import type { Address, VotingRoundDripListId } from '../../domain/typeUtils';
+import VotingRound, {
+  VotingRoundStatus,
+} from '../../domain/votingRoundAggregate/VotingRound';
+import type { Address, DripListId } from '../../domain/typeUtils';
 import type Publisher from '../../domain/publisherAggregate/Publisher';
 
 export default class VotingRoundRepository implements IVotingRoundRepository {
@@ -10,23 +12,6 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
 
   public constructor(dataSource: DataSource) {
     this._repository = dataSource.getRepository(VotingRound);
-  }
-
-  public async existsBy(
-    dripListId: VotingRoundDripListId,
-    publisher: Publisher,
-  ): Promise<boolean> {
-    const listVotingRounds = await this._repository.find({
-      where: {
-        _dripListId: dripListId,
-        _publisher: publisher,
-      },
-      relations: ['_publisher'],
-    });
-
-    return listVotingRounds.some(
-      (votingRound) => votingRound.status === 'started',
-    );
   }
 
   public async getById(votingRoundId: UUID): Promise<VotingRound | null> {
@@ -44,17 +29,35 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
   }
 
   public async getByFilter(filter: {
-    dripListId?: VotingRoundDripListId;
-    publisherAddress?: Address;
+    dripListId: DripListId | undefined;
+    publisherAddress: Address | undefined;
   }): Promise<VotingRound[]> {
     return this._repository.find({
       where: {
-        _dripListId: filter.dripListId,
+        _dripListId: filter.dripListId || undefined,
         _publisher: {
-          _address: filter.publisherAddress,
+          _address: filter.publisherAddress || undefined,
         },
       },
     });
+  }
+
+  public getActiveVotingRoundsByPublisher(
+    publisher: Publisher,
+  ): Promise<VotingRound[]> {
+    return (
+      this._repository
+        .find({
+          where: {
+            _publisher: publisher,
+          },
+        })
+        .then((votingRounds) =>
+          votingRounds.filter(
+            (votingRound) => votingRound.status === VotingRoundStatus.Started,
+          ),
+        ) || []
+    );
   }
 
   async softRemove(votingRound: VotingRound): Promise<void> {

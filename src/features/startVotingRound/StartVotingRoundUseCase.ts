@@ -4,7 +4,12 @@ import type { StartVotingRoundResponse } from './StartVotingRoundResponse';
 import type { StartVotingRoundRequest } from './StartVotingRoundRequest';
 import type VotingRoundService from '../../domain/services/VotingRoundService';
 import Publisher from '../../domain/publisherAggregate/Publisher';
-import { toVotingRoundDripListId } from '../../domain/typeUtils';
+import {
+  toAddress,
+  toAddressDriverId,
+  toDripListId,
+} from '../../domain/typeUtils';
+import Collaborator from '../../domain/collaboratorAggregate/Collaborator';
 
 export default class StartVotingRoundUseCase
   implements UseCase<StartVotingRoundRequest, StartVotingRoundResponse>
@@ -30,6 +35,7 @@ export default class StartVotingRoundUseCase
       description,
       publisherAddress,
       publisherAddressDriverId,
+      collaborators,
     } = request;
 
     this._logger.info(
@@ -37,12 +43,18 @@ export default class StartVotingRoundUseCase
     );
 
     const newVotingRoundId = await this._votingRoundService.start(
-      toVotingRoundDripListId(dripListId),
       startsAt,
       endsAt,
+      Publisher.create(publisherAddress, publisherAddressDriverId),
+      dripListId ? toDripListId(dripListId) : undefined,
       name,
       description,
-      Publisher.create(publisherAddress, publisherAddressDriverId),
+      collaborators.map((c) =>
+        Collaborator.create(
+          toAddressDriverId(c.addressDriverId),
+          toAddress(c.address),
+        ),
+      ),
     );
 
     this._logger.info(

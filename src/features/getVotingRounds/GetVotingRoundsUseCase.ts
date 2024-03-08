@@ -2,11 +2,8 @@ import type UseCase from '../../application/interfaces/IUseCase';
 import type { GetVotingRoundsRequest } from './GetVotingRoundsRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import type { GetVotingRoundsResponse } from './GetVotingRoundsResponse';
-import type { Address, VotingRoundDripListId } from '../../domain/typeUtils';
-import {
-  assertIsEthAddress,
-  assertIsVotingRoundDripListId,
-} from '../../domain/typeUtils';
+import type { Address, DripListId } from '../../domain/typeUtils';
+import { assertIsAddress, toDripListId } from '../../domain/typeUtils';
 
 export default class GetVotingRoundsUseCase
   implements UseCase<GetVotingRoundsRequest, GetVotingRoundsResponse>
@@ -23,16 +20,15 @@ export default class GetVotingRoundsUseCase
     let publisherAddress: Address | undefined;
 
     if (request.publisherAddress) {
-      assertIsEthAddress(request.publisherAddress);
+      assertIsAddress(request.publisherAddress);
 
       publisherAddress = request.publisherAddress;
     }
 
-    let dripListId: VotingRoundDripListId | undefined;
+    let dripListId: DripListId | undefined;
 
     if (request.dripListId) {
-      assertIsVotingRoundDripListId(request.dripListId);
-      dripListId = request.dripListId;
+      dripListId = toDripListId(request.dripListId);
     }
 
     const votingRounds = await this._repository.getByFilter({

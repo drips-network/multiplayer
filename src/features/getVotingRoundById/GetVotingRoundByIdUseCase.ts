@@ -28,6 +28,8 @@ export default class GetVotingRoundByIdUseCase
       endsAt: votingRound._endsAt,
       status: votingRound.status,
       dripListId: votingRound._dripListId,
+      name: votingRound._name,
+      description: votingRound._description,
       votes: votingRound
         .getCollaboratorsWithVotes()
         .map((collaboratorsWithVotes) => ({
@@ -36,9 +38,9 @@ export default class GetVotingRoundByIdUseCase
             collaboratorsWithVotes.latestVote?.voteAllocations.map(
               (voteAllocation) => ({
                 receiverId: voteAllocation.receiverId as string,
-                percentage: voteAllocation.percentage,
+                weight: voteAllocation.weight,
               }),
-            ) || null,
+            ) || undefined,
         })),
       result: votingRound.calculateResult(),
     };

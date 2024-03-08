@@ -4,7 +4,7 @@ import type { CastVoteRequest } from './CastVoteRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import { NotFoundError } from '../../application/errors';
 import type ICollaboratorRepository from '../../domain/collaboratorAggregate/ICollaboratorRepository';
-import { assertIsEthAddress } from '../../domain/typeUtils';
+import { assertIsAddress } from '../../domain/typeUtils';
 
 export default class CastVoteUseCase implements UseCase<CastVoteRequest> {
   private readonly _logger: Logger;
@@ -37,7 +37,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteRequest> {
       throw new NotFoundError(`Voting round not found.`);
     }
 
-    assertIsEthAddress(collaboratorAddress);
+    assertIsAddress(collaboratorAddress);
     const collaborator =
       await this._collaboratorRepository.getByAddress(collaboratorAddress);
 

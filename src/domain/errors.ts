@@ -11,3 +11,10 @@ export class InvalidArgumentError extends Error {
     this.name = 'InvalidArgumentError';
   }
 }
+
+export class DomainError extends Error {
+  public constructor(message: string = 'Domain error occurred') {
+    super(message);
+    this.name = 'DomainError';
+  }
+}

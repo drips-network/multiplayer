@@ -1,4 +1,3 @@
-import type { UUID } from 'crypto';
 import getContractNameFromAccountId from './getContractNameFromAccountId';
 
 export type AddressDriverId = string & { __type: 'AddressDriverId' };
@@ -46,21 +45,31 @@ export default function isDripListId(id: string): id is DripListId {
   return true;
 }
 
+export function toDripListId(id: bigint | string): DripListId {
+  const idAsString = id.toString();
+
+  if (isDripListId(idAsString)) {
+    return idAsString as DripListId;
+  }
+
+  throw new Error(`Invalid drip list ID: ${id}.`);
+}
+
 export type Address = string & { __type: 'Address' };
 
-export function isEthAddress(str: string): str is Address {
+export function isAddress(str: string): str is Address {
   const regex = /^(0x)?[0-9a-fA-F]{40}$/;
   return regex.test(str);
 }
 
-export function assertIsEthAddress(str: string): asserts str is Address {
-  if (!isEthAddress(str)) {
+export function assertIsAddress(str: string): asserts str is Address {
+  if (!isAddress(str)) {
     throw new Error('Invalid address.');
   }
 }
 
 export function toAddress(str: string): Address {
-  assertIsEthAddress(str);
+  assertIsAddress(str);
 
   return str as Address;
 }
@@ -87,48 +96,6 @@ export function isAccountId(id: string): id is AccountId {
   }
 
   return false;
-}
-
-export type VotingRoundDripListId = string & {
-  __type: 'VotingRoundDripListId';
-};
-
-function isUUID(str: string): str is UUID {
-  const regex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return regex.test(str);
-}
-
-export function toVotingRoundDripListId(
-  id: string | UUID | DripListId,
-): VotingRoundDripListId {
-  if (isUUID(id)) {
-    return id as unknown as VotingRoundDripListId;
-  }
-
-  if (isDripListId(id)) {
-    return id as unknown as VotingRoundDripListId;
-  }
-
-  throw new Error('Invalid votingRoundDripListId.');
-}
-
-export function isVotingRoundDripListId(
-  id: string | UUID | DripListId,
-): id is VotingRoundDripListId {
-  if (isUUID(id) || isDripListId(id)) {
-    return true;
-  }
-
-  return false;
-}
-
-export function assertIsVotingRoundDripListId(
-  id: string | UUID | DripListId,
-): asserts id is VotingRoundDripListId {
-  if (!isVotingRoundDripListId(id)) {
-    throw new Error('Invalid Drip List ID.');
-  }
 }
 
 export function toAccountId(id: bigint | string): AccountId {

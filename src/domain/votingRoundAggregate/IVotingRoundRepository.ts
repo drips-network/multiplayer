@@ -1,18 +1,17 @@
 import type { UUID } from 'crypto';
 import type VotingRound from './VotingRound';
-import type { Address, VotingRoundDripListId } from '../typeUtils';
+import type { Address, DripListId } from '../typeUtils';
 import type Publisher from '../publisherAggregate/Publisher';
 
 export default interface IVotingRoundRepository {
   getById(votingRoundId: UUID): Promise<VotingRound | null>;
   getByFilter(filter: {
-    dripListId?: VotingRoundDripListId;
-    publisherAddress?: Address;
+    dripListId: DripListId | undefined;
+    publisherAddress: Address | undefined;
   }): Promise<VotingRound[]>;
-  softRemove(draftDripList: VotingRound): Promise<void>;
-  existsBy(
-    dripListId: VotingRoundDripListId,
+  getActiveVotingRoundsByPublisher(
     publisher: Publisher,
-  ): Promise<boolean>;
+  ): Promise<VotingRound[]>;
+  softRemove(draftDripList: VotingRound): Promise<void>;
   save(votingRound: VotingRound): Promise<void>;
 }
