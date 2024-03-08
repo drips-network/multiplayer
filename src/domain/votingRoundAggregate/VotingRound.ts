@@ -5,6 +5,7 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import BaseEntity from '../BaseEntity';
 import type Collaborator from '../collaboratorAggregate/Collaborator';
@@ -16,6 +17,7 @@ import type { AddressDriverId, DripListId } from '../typeUtils';
 import { toAccountId } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Publisher from '../publisherAggregate/Publisher';
+import Link from '../linkedDripList/Link';
 
 export enum VotingRoundStatus {
   Started = 'started',
@@ -82,6 +84,17 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     }
 
     return VotingRoundStatus.Started;
+  }
+
+  @OneToOne('Link', (link: Link) => link._votingRound, {
+    nullable: true,
+    cascade: ['insert', 'update'],
+  })
+  @JoinColumn()
+  public _link: Link | undefined;
+
+  public get isCompleted(): boolean {
+    return Boolean(this.status === VotingRoundStatus.Completed);
   }
 
   public static create(
@@ -280,5 +293,33 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   private _average(numbers: number[]): number {
     const sum = numbers.reduce((a, b) => a + b, 0);
     return sum / numbers.length;
+  }
+
+  public link(): void {
+    if (!this._dripListId) {
+      throw new InvalidArgumentError('Drip List ID must be provided.');
+    }
+
+    if (this._link) {
+      throw new InvalidArgumentError(
+        'Cannot link a Voting Round that is already linked.',
+      );
+    }
+
+    // if (this.status !== VotingRoundStatus.Completed) {
+    //   throw new InvalidArgumentError(
+    //     `Cannot link a Voting Round that is not completed. Status: ${this.status}.`,
+    //   );
+    // }
+
+    if (!this._votes?.length) {
+      throw new InvalidArgumentError(
+        'Cannot link a Drip List to a Voting Round with no votes.',
+      );
+    }
+
+    const link = Link.create(this._dripListId, this);
+
+    this._link = link;
   }
 }

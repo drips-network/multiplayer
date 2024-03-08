@@ -19,6 +19,8 @@ import GetVotingRoundsEndpoint from './features/getVotingRounds/GetVotingRoundsE
 import GetVotingRoundsUseCase from './features/getVotingRounds/GetVotingRoundsUseCase';
 import PublishEndpoint from './features/publish/PublishEndpoint';
 import PublishUseCase from './features/publish/PublishUseCase';
+import LinkEndpoint from './features/link/LinkEndpoint';
+import LinkUseCase from './features/link/LinkUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -52,6 +54,9 @@ export async function main(): Promise<void> {
     new GetVotingRoundsUseCase(votingRoundRepository),
   );
   const publishEndpoint = new PublishEndpoint(new PublishUseCase(logger));
+  const linkEndpoint = new LinkEndpoint(
+    new LinkUseCase(logger, votingRoundRepository, publisherRepository),
+  );
 
   await ApiServer.run(
     [
@@ -61,6 +66,7 @@ export async function main(): Promise<void> {
       castVoteEndpoint,
       getVotingRoundsEndpoint,
       publishEndpoint,
+      linkEndpoint,
     ],
     appSettings.apiPort,
   );
