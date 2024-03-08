@@ -12,7 +12,7 @@ import { InvalidArgumentError } from '../errors';
 import type IAggregateRoot from '../IAggregateRoot';
 import type { VoteAllocation } from './Vote';
 import Vote from './Vote';
-import type { AccountId, AddressDriverId, DripListId } from '../typeUtils';
+import type { AddressDriverId, DripListId } from '../typeUtils';
 import { toAccountId } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Publisher from '../publisherAggregate/Publisher';
@@ -205,7 +205,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     this._votes.push(vote);
   }
 
-  public getCollaboratorsWithVotes(): {
+  public getLatestVotes(): {
     collaborator: Collaborator;
     latestVote: Vote | null;
   }[] {
@@ -241,12 +241,44 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return collaboratorVotes;
   }
 
-  public calculateResult(): { receiverId: AccountId; weight: number }[] | null {
-    if (!this._votes?.length) {
-      return null;
-    }
+  public calculateResult(): VoteAllocation[] {
+    const latestVotes = this.getLatestVotes() || [];
+    const allReceiverIds = new Set<string>();
+    latestVotes.forEach((vote) =>
+      vote.latestVote?.voteAllocations.forEach((va) =>
+        allReceiverIds.add(va.receiverId),
+      ),
+    );
 
-    console.error('🚨 calculateResult Not implemented');
-    return [];
+    const grouped: Record<string, number[]> = {};
+    allReceiverIds.forEach((receiverId) => {
+      grouped[receiverId] = new Array(latestVotes.length).fill(0);
+    });
+
+    latestVotes.forEach((vote, voterIndex) => {
+      vote.latestVote?.voteAllocations.forEach((va) => {
+        grouped[va.receiverId][voterIndex] = va.weight;
+      });
+    });
+
+    const merged: VoteAllocation[] = Object.entries(grouped).map(
+      ([receiverId, weights]) => ({
+        receiverId,
+        weight: this._average(weights),
+      }),
+    );
+
+    const totalWeight = merged.reduce((acc, { weight }) => acc + weight, 0);
+    const normalized = merged.map((item) => ({
+      receiverId: item.receiverId,
+      weight: (item.weight / totalWeight) * 100,
+    }));
+
+    return normalized;
+  }
+
+  private _average(numbers: number[]): number {
+    const sum = numbers.reduce((a, b) => a + b, 0);
+    return sum / numbers.length;
   }
 }

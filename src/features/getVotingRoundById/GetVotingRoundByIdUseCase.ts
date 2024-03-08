@@ -30,18 +30,16 @@ export default class GetVotingRoundByIdUseCase
       dripListId: votingRound._dripListId,
       name: votingRound._name,
       description: votingRound._description,
-      votes: votingRound
-        .getCollaboratorsWithVotes()
-        .map((collaboratorsWithVotes) => ({
-          collaboratorAddress: collaboratorsWithVotes.collaborator._address,
-          latestVote:
-            collaboratorsWithVotes.latestVote?.voteAllocations.map(
-              (voteAllocation) => ({
-                receiverId: voteAllocation.receiverId as string,
-                weight: voteAllocation.weight,
-              }),
-            ) || undefined,
-        })),
+      votes: votingRound.getLatestVotes().map((collaboratorsWithVotes) => ({
+        collaboratorAddress: collaboratorsWithVotes.collaborator._address,
+        latestVote:
+          collaboratorsWithVotes.latestVote?.voteAllocations.map(
+            (voteAllocation) => ({
+              receiverId: voteAllocation.receiverId as string,
+              weight: voteAllocation.weight,
+            }),
+          ) || undefined,
+      })),
       result: votingRound.calculateResult(),
     };
   }
