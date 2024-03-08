@@ -6,12 +6,12 @@ export const castVoteRequestValidators = [
     .isString()
     .isLength({ min: 42, max: 42 })
     .escape(),
-  body('voteAllocations').isArray().not().isEmpty().isLength({ max: 200 }),
-  body('voteAllocations.*.receiverId')
+  body('receivers').isArray().not().isEmpty().isLength({ max: 200 }),
+  body('receivers.*.accountId')
     .isString()
     .not()
     .isEmpty()
     .isLength({ max: 78 })
     .escape(),
-  body('voteAllocations.*.weight').isNumeric(),
+  body('receivers.*.weight').isNumeric(),
 ];

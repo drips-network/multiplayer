@@ -4,7 +4,8 @@ import type { CastVoteRequest } from './CastVoteRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import { NotFoundError } from '../../application/errors';
 import type ICollaboratorRepository from '../../domain/collaboratorAggregate/ICollaboratorRepository';
-import { assertIsAddress } from '../../domain/typeUtils';
+import { assertIsAccountId, assertIsAddress } from '../../domain/typeUtils';
+import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 
 export default class CastVoteUseCase implements UseCase<CastVoteRequest> {
   private readonly _logger: Logger;
@@ -24,7 +25,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteRequest> {
   public async execute(request: CastVoteRequest): Promise<void> {
     // TODO: Verify the request is coming from the collaborator by checking the signature token.
 
-    const { votingRoundId, collaboratorAddress, voteAllocations } = request;
+    const { votingRoundId, collaboratorAddress, receivers } = request;
 
     this._logger.info(
       `Casting a vote for voting round '${votingRoundId}' and collaborator '${collaboratorAddress}'...`,
@@ -45,7 +46,11 @@ export default class CastVoteUseCase implements UseCase<CastVoteRequest> {
       throw new NotFoundError(`Collaborator not found.`);
     }
 
-    votingRound.castVote(collaborator, voteAllocations);
+    receivers.forEach((r) => {
+      assertIsAccountId(r.accountId);
+    });
+
+    votingRound.castVote(collaborator, receivers as Receiver[]);
 
     await this._votingRoundRepository.save(votingRound);
 

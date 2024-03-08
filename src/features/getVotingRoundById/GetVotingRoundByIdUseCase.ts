@@ -33,14 +33,12 @@ export default class GetVotingRoundByIdUseCase
       votes: votingRound.getLatestVotes().map((collaboratorsWithVotes) => ({
         collaboratorAddress: collaboratorsWithVotes.collaborator._address,
         latestVote:
-          collaboratorsWithVotes.latestVote?.voteAllocations.map(
-            (voteAllocation) => ({
-              receiverId: voteAllocation.receiverId as string,
-              weight: voteAllocation.weight,
-            }),
-          ) || undefined,
+          collaboratorsWithVotes.latestVote?.receivers?.map((receiver) => ({
+            accountId: receiver.accountId as string,
+            weight: receiver.weight,
+          })) || undefined,
       })),
-      result: votingRound.calculateResult(),
+      result: votingRound.getResult(),
     };
   }
 }

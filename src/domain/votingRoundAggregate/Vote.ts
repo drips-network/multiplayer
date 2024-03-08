@@ -5,8 +5,8 @@ import { InvalidArgumentError } from '../errors';
 import BaseEntity from '../BaseEntity';
 import type { AccountId } from '../typeUtils';
 
-export type VoteAllocation = {
-  receiverId: string;
+export type Receiver = {
+  accountId: AccountId;
   weight: number;
 };
 
@@ -34,29 +34,25 @@ export default class Vote extends BaseEntity {
   })
   public _collaborator!: Collaborator;
 
-  @Column('json', { nullable: true, name: 'voteAllocations' })
-  public _voteAllocationsJson!: string;
-  private _voteAllocations!: {
-    receiverId: AccountId;
-    weight: number;
-  }[];
-  get voteAllocations(): { receiverId: AccountId; weight: number }[] {
-    if (!this._voteAllocations && this._voteAllocationsJson) {
-      this._voteAllocations = JSON.parse(this._voteAllocationsJson);
+  @Column('json', { nullable: true, name: 'receivers' })
+  public _receiversJson!: string;
+  private _receivers!: Receiver[];
+  get receivers(): Receiver[] {
+    if (!this._receivers && this._receiversJson) {
+      this._receivers = JSON.parse(this._receiversJson);
     }
-    return this._voteAllocations;
+    return this._receivers;
   }
-  set voteAllocations(value: { receiverId: AccountId; weight: number }[]) {
-    this._voteAllocations = value;
-    this._voteAllocationsJson = JSON.stringify(value);
+  set receivers(value: Receiver[]) {
+    this._receivers = value;
+    this._receiversJson = JSON.stringify(value);
   }
 
   public static create(
     votingRound: VotingRound,
     collaborator: Collaborator,
-    voteAllocations: { receiverId: AccountId; weight: number }[],
+    receivers: Receiver[],
   ): Vote {
-    console.log('💧💧💧💧💧💧 ~ Vote ~ votingRound:', votingRound);
     if (!votingRound) {
       throw new InvalidArgumentError('Invalid votingRound.');
     }
@@ -65,11 +61,11 @@ export default class Vote extends BaseEntity {
       throw new InvalidArgumentError('Invalid collaborator.');
     }
 
-    if (!voteAllocations || !voteAllocations.length) {
-      throw new InvalidArgumentError('Invalid voteAllocations.');
+    if (!receivers || !receivers.length) {
+      throw new InvalidArgumentError('Invalid receivers.');
     }
 
-    const sum = voteAllocations.reduce((a, b) => a + b.weight, 0);
+    const sum = receivers.reduce((a, b) => a + b.weight, 0);
     if (sum !== 100) {
       throw new InvalidArgumentError('The sum of the weights must be 100.');
     }
@@ -78,7 +74,7 @@ export default class Vote extends BaseEntity {
 
     vote._votingRound = votingRound;
     vote._collaborator = collaborator;
-    vote.voteAllocations = voteAllocations;
+    vote.receivers = receivers;
 
     return vote;
   }

@@ -11,10 +11,14 @@ import BaseEntity from '../BaseEntity';
 import type Collaborator from '../collaboratorAggregate/Collaborator';
 import { InvalidArgumentError } from '../errors';
 import type IAggregateRoot from '../IAggregateRoot';
-import type { VoteAllocation } from './Vote';
+import type { Receiver } from './Vote';
 import Vote from './Vote';
-import type { AddressDriverId, DripListId } from '../typeUtils';
-import { toAccountId } from '../typeUtils';
+import {
+  assertIsAccountId,
+  type AccountId,
+  type AddressDriverId,
+  type DripListId,
+} from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Publisher from '../publisherAggregate/Publisher';
 import Link from '../linkedDripList/Link';
@@ -171,10 +175,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return votingRound;
   }
 
-  public castVote(
-    collaborator: Collaborator,
-    voteAllocations: VoteAllocation[],
-  ): void {
+  public castVote(collaborator: Collaborator, receivers: Receiver[]): void {
     if (
       !this._collaborators?.find(
         (c) => c._addressDriverId === collaborator._addressDriverId,
@@ -185,31 +186,19 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       );
     }
 
-    if (voteAllocations.length > 200) {
+    if (receivers.length > 200) {
       throw new InvalidArgumentError(
         'A maximum of 200 vote allocations can be added to a voting round.',
       );
     }
 
-    if (
-      voteAllocations.reduce(
-        (sum, voteAllocation) => sum + voteAllocation.weight,
-        0,
-      ) !== 100
-    ) {
+    if (receivers.reduce((sum, receiver) => sum + receiver.weight, 0) !== 100) {
       throw new InvalidArgumentError(
         'The sum of the weights must be 100 for each vote allocation.',
       );
     }
 
-    const vote = Vote.create(
-      this,
-      collaborator,
-      voteAllocations.map((va) => ({
-        receiverId: toAccountId(va.receiverId),
-        weight: va.weight,
-      })),
-    );
+    const vote = Vote.create(this, collaborator, receivers);
 
     if (!this._votes) {
       this._votes = [];
@@ -226,9 +215,10 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       collaborator: Collaborator;
       latestVote: Vote | null;
     }[] =
-      this._collaborators?.map(
-        (collaborator) => ({ collaborator, latestVote: null }), // Initialize with null for no votes
-      ) || [];
+      this._collaborators?.map((collaborator) => ({
+        collaborator,
+        latestVote: null,
+      })) || [];
 
     if (this._votes?.length) {
       this._votes.sort(
@@ -254,45 +244,62 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return collaboratorVotes;
   }
 
-  public calculateResult(): VoteAllocation[] {
+  public getResult(): Receiver[] {
     const latestVotes = this.getLatestVotes() || [];
-    const allReceiverIds = new Set<string>();
+
+    // Approximating vote count by occurrences.
+    const voteCounts: Record<AccountId, number> = {};
+    const weightSum: Record<AccountId, number> = {};
+    const weightCount: Record<AccountId, number> = {};
+
     latestVotes.forEach((vote) =>
-      vote.latestVote?.voteAllocations.forEach((va) =>
-        allReceiverIds.add(va.receiverId),
-      ),
-    );
-
-    const grouped: Record<string, number[]> = {};
-    allReceiverIds.forEach((receiverId) => {
-      grouped[receiverId] = new Array(latestVotes.length).fill(0);
-    });
-
-    latestVotes.forEach((vote, voterIndex) => {
-      vote.latestVote?.voteAllocations.forEach((va) => {
-        grouped[va.receiverId][voterIndex] = va.weight;
-      });
-    });
-
-    const merged: VoteAllocation[] = Object.entries(grouped).map(
-      ([receiverId, weights]) => ({
-        receiverId,
-        weight: this._average(weights),
+      vote.latestVote?.receivers?.forEach(({ accountId, weight }) => {
+        voteCounts[accountId] = (voteCounts[accountId] || 0) + 1;
+        weightSum[accountId] = (weightSum[accountId] || 0) + weight;
+        weightCount[accountId] = (weightCount[accountId] || 0) + 1;
       }),
     );
 
-    const totalWeight = merged.reduce((acc, { weight }) => acc + weight, 0);
-    const normalized = merged.map((item) => ({
-      receiverId: item.receiverId,
-      weight: (item.weight / totalWeight) * 100,
-    }));
+    // Calculate the average weight for each accountId.
+    const grouped: Record<AccountId, { weight: number; voteCount: number }> =
+      {};
+    Object.keys(voteCounts).forEach((accountId) => {
+      assertIsAccountId(accountId);
+      grouped[accountId] = {
+        weight: weightSum[accountId] / weightCount[accountId], // Average weight
+        voteCount: voteCounts[accountId], // Total votes count
+      };
+    });
 
-    return normalized;
-  }
+    // Convert to array, exclude receivers with 0 weight, and sort by weight then by vote count.
+    let receivers = Object.entries(grouped)
+      .map(([accountId, { weight, voteCount }]) => ({
+        accountId: accountId as AccountId,
+        weight,
+        voteCount,
+      }))
+      .filter(({ weight }) => weight > 0) // Exclude receivers with 0 weight
+      .sort((a, b) => b.weight - a.weight || b.voteCount - a.voteCount);
 
-  private _average(numbers: number[]): number {
-    const sum = numbers.reduce((a, b) => a + b, 0);
-    return sum / numbers.length;
+    // If there are more than 200 receivers, handle ties correctly.
+    if (receivers.length > 200) {
+      const cutoffWeight = receivers[199].weight;
+      const cutoffVoteCount = receivers[199].voteCount;
+
+      const firstRemovableIndex = receivers.findIndex(
+        (r, index) =>
+          index > 199 &&
+          (r.weight < cutoffWeight || r.voteCount < cutoffVoteCount),
+      );
+
+      receivers =
+        firstRemovableIndex === -1
+          ? receivers.slice(0, 200)
+          : receivers.slice(0, firstRemovableIndex);
+    }
+
+    // Return receivers, adjusting as necessary.
+    return receivers.map(({ accountId, weight }) => ({ accountId, weight }));
   }
 
   public link(): void {
@@ -306,11 +313,11 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       );
     }
 
-    // if (this.status !== VotingRoundStatus.Completed) {
-    //   throw new InvalidArgumentError(
-    //     `Cannot link a Voting Round that is not completed. Status: ${this.status}.`,
-    //   );
-    // }
+    if (this.status !== VotingRoundStatus.Completed) {
+      throw new InvalidArgumentError(
+        `Cannot link a Voting Round that is not completed. Status: ${this.status}.`,
+      );
+    }
 
     if (!this._votes?.length) {
       throw new InvalidArgumentError(

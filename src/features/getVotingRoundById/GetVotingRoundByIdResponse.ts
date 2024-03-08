@@ -1,7 +1,7 @@
 import type { UUID } from 'crypto';
 
 type VoteAllocationDto = {
-  receiverId: string;
+  accountId: string;
   weight: number;
 };
 

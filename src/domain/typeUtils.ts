@@ -111,3 +111,9 @@ export function toAccountId(id: bigint | string): AccountId {
 
   throw new Error(`Invalid account ID: ${id}.`);
 }
+
+export function assertIsAccountId(id: string): asserts id is AccountId {
+  if (!isAccountId(id)) {
+    throw new Error('Invalid account ID.');
+  }
+}
