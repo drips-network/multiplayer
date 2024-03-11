@@ -3,6 +3,7 @@ import { NotFoundError } from '../../application/errors';
 import type { GetVotingRoundByIdRequest } from './GetVotingRoundByIdRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import type { GetVotingRoundByIdResponse } from './GetVotingRoundByIdResponse';
+import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 
 export default class GetVotingRoundByIdUseCase
   implements UseCase<GetVotingRoundByIdRequest, GetVotingRoundByIdResponse>
@@ -33,12 +34,36 @@ export default class GetVotingRoundByIdUseCase
       votes: votingRound.getLatestVotes().map((collaboratorsWithVotes) => ({
         collaboratorAddress: collaboratorsWithVotes.collaborator._address,
         latestVote:
-          collaboratorsWithVotes.latestVote?.receivers?.map((receiver) => ({
-            accountId: receiver.accountId as string,
-            weight: receiver.weight,
-          })) || undefined,
+          collaboratorsWithVotes.latestVote?.receivers?.map((receiver) =>
+            this._toDto(receiver),
+          ) || undefined,
       })),
-      result: votingRound.getResult(),
+      result: votingRound.getResult().map((receiver) => this._toDto(receiver)),
+    };
+  }
+
+  private _toDto(receiver: Receiver) {
+    if ('address' in receiver) {
+      return {
+        accountId: receiver.accountId,
+        address: receiver.address,
+        weight: receiver.weight,
+        type: receiver.type,
+      };
+    }
+    if ('url' in receiver) {
+      return {
+        accountId: receiver.accountId,
+        url: receiver.url,
+        weight: receiver.weight,
+        type: receiver.type,
+      };
+    }
+
+    return {
+      accountId: receiver.accountId as string,
+      weight: receiver.weight,
+      type: receiver.type,
     };
   }
 }

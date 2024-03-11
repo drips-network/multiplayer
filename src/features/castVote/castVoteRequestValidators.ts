@@ -7,6 +7,7 @@ export const castVoteRequestValidators = [
     .isLength({ min: 42, max: 42 })
     .escape(),
   body('receivers').isArray().not().isEmpty().isLength({ max: 200 }),
+  body('receivers.*.type').isIn(['address', 'project', 'dripList']).escape(),
   body('receivers.*.accountId')
     .isString()
     .not()

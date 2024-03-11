@@ -17,8 +17,6 @@ import CastVoteUseCase from './features/castVote/CastVoteUseCase';
 import PublisherRepository from './infrastructure/repositories/PublisherRepository';
 import GetVotingRoundsEndpoint from './features/getVotingRounds/GetVotingRoundsEndpoint';
 import GetVotingRoundsUseCase from './features/getVotingRounds/GetVotingRoundsUseCase';
-import PublishEndpoint from './features/publish/PublishEndpoint';
-import PublishUseCase from './features/publish/PublishUseCase';
 import LinkEndpoint from './features/link/LinkEndpoint';
 import LinkUseCase from './features/link/LinkUseCase';
 
@@ -53,7 +51,6 @@ export async function main(): Promise<void> {
   const getVotingRoundsEndpoint = new GetVotingRoundsEndpoint(
     new GetVotingRoundsUseCase(votingRoundRepository),
   );
-  const publishEndpoint = new PublishEndpoint(new PublishUseCase(logger));
   const linkEndpoint = new LinkEndpoint(
     new LinkUseCase(logger, votingRoundRepository, publisherRepository),
   );
@@ -65,7 +62,6 @@ export async function main(): Promise<void> {
       getVotingRoundByIdEndpoint,
       castVoteEndpoint,
       getVotingRoundsEndpoint,
-      publishEndpoint,
       linkEndpoint,
     ],
     appSettings.apiPort,

@@ -5,10 +5,27 @@ import { InvalidArgumentError } from '../errors';
 import BaseEntity from '../BaseEntity';
 import type { AccountId } from '../typeUtils';
 
-export type Receiver = {
+type AddressReceiver = {
+  address: string;
   accountId: AccountId;
   weight: number;
+  type: 'address';
 };
+
+type ProjectReceiver = {
+  url: string;
+  accountId: AccountId;
+  weight: number;
+  type: 'project';
+};
+
+type DripListReceiver = {
+  accountId: AccountId;
+  weight: number;
+  type: 'dripList';
+};
+
+export type Receiver = AddressReceiver | ProjectReceiver | DripListReceiver;
 
 @Entity({
   name: 'Votes',

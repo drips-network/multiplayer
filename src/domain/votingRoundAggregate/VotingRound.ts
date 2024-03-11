@@ -14,7 +14,7 @@ import type IAggregateRoot from '../IAggregateRoot';
 import type { Receiver } from './Vote';
 import Vote from './Vote';
 import {
-  assertIsAccountId,
+  isAddress,
   type AccountId,
   type AddressDriverId,
   type DripListId,
@@ -198,6 +198,24 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       );
     }
 
+    receivers.forEach((receiver) => {
+      if (receiver.type === 'address') {
+        if (!receiver.address || !isAddress(receiver.address)) {
+          throw new InvalidArgumentError(
+            'Address must be provided for address type receiver.',
+          );
+        }
+      }
+
+      if (receiver.type === 'project') {
+        if (!receiver.url) {
+          throw new InvalidArgumentError(
+            'URL must be provided for project type receiver.',
+          );
+        }
+      }
+    });
+
     const vote = Vote.create(this, collaborator, receivers);
 
     if (!this._votes) {
@@ -247,49 +265,53 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   public getResult(): Receiver[] {
     const latestVotes = this.getLatestVotes() || [];
 
-    // Approximating vote count by occurrences.
-    const voteCounts: Record<AccountId, number> = {};
-    const weightSum: Record<AccountId, number> = {};
-    const weightCount: Record<AccountId, number> = {};
+    // Initialize to keep track of detailed receiver information along with vote counts and weight sums.
+    const receiverDetails: Record<
+      AccountId,
+      Receiver & { voteCount: number; averageWeight: number }
+    > = {};
 
     latestVotes.forEach((vote) =>
-      vote.latestVote?.receivers?.forEach(({ accountId, weight }) => {
-        voteCounts[accountId] = (voteCounts[accountId] || 0) + 1;
-        weightSum[accountId] = (weightSum[accountId] || 0) + weight;
-        weightCount[accountId] = (weightCount[accountId] || 0) + 1;
+      vote.latestVote?.receivers?.forEach((receiver) => {
+        const { accountId, weight } = receiver;
+
+        if (!receiverDetails[accountId]) {
+          // Initialize with the first occurrence of the receiver, preserving original receiver details.
+          receiverDetails[accountId] = {
+            ...receiver,
+            voteCount: 0,
+            averageWeight: 0,
+          };
+        }
+
+        receiverDetails[accountId].voteCount += 1;
+        receiverDetails[accountId].averageWeight += weight;
       }),
     );
 
     // Calculate the average weight for each accountId.
-    const grouped: Record<AccountId, { weight: number; voteCount: number }> =
-      {};
-    Object.keys(voteCounts).forEach((accountId) => {
-      assertIsAccountId(accountId);
-      grouped[accountId] = {
-        weight: weightSum[accountId] / weightCount[accountId], // Average weight
-        voteCount: voteCounts[accountId], // Total votes count
-      };
+    Object.keys(receiverDetails).forEach((accountId) => {
+      const details = receiverDetails[accountId as AccountId];
+      details.averageWeight /= details.voteCount; // Finalize average weight calculation
     });
 
-    // Convert to array, exclude receivers with 0 weight, and sort by weight then by vote count.
-    let receivers = Object.entries(grouped)
-      .map(([accountId, { weight, voteCount }]) => ({
-        accountId: accountId as AccountId,
-        weight,
-        voteCount,
-      }))
-      .filter(({ weight }) => weight > 0) // Exclude receivers with 0 weight
-      .sort((a, b) => b.weight - a.weight || b.voteCount - a.voteCount);
+    // Convert to array, exclude receivers with 0 averageWeight, and sort by averageWeight then by voteCount.
+    let receivers = Object.values(receiverDetails)
+      .filter(({ averageWeight }) => averageWeight > 0) // Exclude receivers with 0 average weight
+      .sort(
+        (a, b) =>
+          b.averageWeight - a.averageWeight || b.voteCount - a.voteCount,
+      );
 
-    // If there are more than 200 receivers, handle ties correctly.
+    // Handle ties for more than 200 receivers.
     if (receivers.length > 200) {
-      const cutoffWeight = receivers[199].weight;
+      const cutoffWeight = receivers[199].averageWeight;
       const cutoffVoteCount = receivers[199].voteCount;
 
       const firstRemovableIndex = receivers.findIndex(
         (r, index) =>
           index > 199 &&
-          (r.weight < cutoffWeight || r.voteCount < cutoffVoteCount),
+          (r.averageWeight < cutoffWeight || r.voteCount < cutoffVoteCount),
       );
 
       receivers =
@@ -298,8 +320,13 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
           : receivers.slice(0, firstRemovableIndex);
     }
 
-    // Return receivers, adjusting as necessary.
-    return receivers.map(({ accountId, weight }) => ({ accountId, weight }));
+    // Return receivers with their original properties.
+    return receivers.map(
+      ({ averageWeight, voteCount: _voteCount, ...receiver }) => ({
+        ...receiver,
+        weight: averageWeight,
+      }),
+    );
   }
 
   public link(): void {

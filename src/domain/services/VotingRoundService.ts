@@ -37,9 +37,11 @@ export default class VotingRoundService {
         publisher,
       );
 
-    if (activeVotingRounds.length === 1) {
+    if (
+      activeVotingRounds.filter((r) => r._dripListId === dripListId).length > 0
+    ) {
       throw new InvalidVotingRoundOperationError(
-        'Publisher already has an active voting round.',
+        'Publisher already has an active voting round for this existing Drip List.',
       );
     }
 

@@ -46,11 +46,13 @@ export default class CastVoteUseCase implements UseCase<CastVoteRequest> {
       throw new NotFoundError(`Collaborator not found.`);
     }
 
-    receivers.forEach((r) => {
-      assertIsAccountId(r.accountId);
+    const receiverEntities: Receiver[] = receivers.map((receiver) => {
+      assertIsAccountId(receiver.accountId);
+
+      return receiver as Receiver;
     });
 
-    votingRound.castVote(collaborator, receivers as Receiver[]);
+    votingRound.castVote(collaborator, receiverEntities);
 
     await this._votingRoundRepository.save(votingRound);
 
