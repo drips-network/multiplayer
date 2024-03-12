@@ -10,7 +10,9 @@
     "lint": "prettier --check . && eslint src/**/*.ts",
     "dev:local": "NODE_ENV=local npx nodemon",
     "dev:goerli": "NODE_ENV=goerli npx nodemon",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "build": "tsc",
+    "start": "npm run build && node dist/main.js"
   },
   "keywords": [],
   "author": "",
