@@ -1,14 +1,12 @@
 import type { Logger } from 'winston';
+import { getAddress } from 'ethers';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { StartVotingRoundResponse } from './StartVotingRoundResponse';
 import type { StartVotingRoundRequest } from './StartVotingRoundRequest';
 import type VotingRoundService from '../../domain/services/VotingRoundService';
 import Publisher from '../../domain/publisherAggregate/Publisher';
-import {
-  toAddress,
-  toAddressDriverId,
-  toDripListId,
-} from '../../domain/typeUtils';
+import type { Address } from '../../domain/typeUtils';
+import { toAddressDriverId, toDripListId } from '../../domain/typeUtils';
 import Collaborator from '../../domain/collaboratorAggregate/Collaborator';
 
 export default class StartVotingRoundUseCase
@@ -52,7 +50,7 @@ export default class StartVotingRoundUseCase
       collaborators.map((c) =>
         Collaborator.create(
           toAddressDriverId(c.addressDriverId),
-          toAddress(c.address),
+          getAddress(c.address) as Address,
         ),
       ),
     );

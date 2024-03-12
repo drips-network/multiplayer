@@ -1,3 +1,4 @@
+import { isAddress } from 'ethers';
 import getContractNameFromAccountId from './getContractNameFromAccountId';
 
 export type AddressDriverId = string & { __type: 'AddressDriverId' };
@@ -57,21 +58,10 @@ export function toDripListId(id: bigint | string): DripListId {
 
 export type Address = string & { __type: 'Address' };
 
-export function isAddress(str: string): str is Address {
-  const regex = /^(0x)?[0-9a-fA-F]{40}$/;
-  return regex.test(str);
-}
-
 export function assertIsAddress(str: string): asserts str is Address {
   if (!isAddress(str)) {
     throw new Error('Invalid address.');
   }
-}
-
-export function toAddress(str: string): Address {
-  assertIsAddress(str);
-
-  return str as Address;
 }
 
 export type ProjectId = string & { __type: 'ProjectId' };

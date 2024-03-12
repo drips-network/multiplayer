@@ -1,9 +1,9 @@
 import { Column, Entity, OneToMany } from 'typeorm';
+import { isAddress } from 'ethers';
 import {
   isAddressDriverId,
   type Address,
   type AddressDriverId,
-  isAddress,
 } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import { InvalidArgumentError } from '../errors';
@@ -49,7 +49,7 @@ export default class Publisher extends BaseEntity {
     const publisher = new Publisher();
 
     publisher._addressDriverId = addressDriverId;
-    publisher._address = address;
+    publisher._address = address as Address;
 
     return publisher;
   }

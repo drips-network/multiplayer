@@ -7,6 +7,7 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm';
+import { isAddress } from 'ethers';
 import BaseEntity from '../BaseEntity';
 import type Collaborator from '../collaboratorAggregate/Collaborator';
 import { InvalidArgumentError } from '../errors';
@@ -14,7 +15,6 @@ import type IAggregateRoot from '../IAggregateRoot';
 import type { Receiver } from './Vote';
 import Vote from './Vote';
 import {
-  isAddress,
   type AccountId,
   type AddressDriverId,
   type DripListId,
@@ -200,7 +200,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     receivers.forEach((receiver) => {
       if (receiver.type === 'address') {
-        if (!receiver.address || !isAddress(receiver.address)) {
+        if (!isAddress(receiver.address)) {
           throw new InvalidArgumentError(
             'Address must be provided for address type receiver.',
           );
