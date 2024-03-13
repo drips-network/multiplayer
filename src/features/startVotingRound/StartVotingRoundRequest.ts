@@ -4,9 +4,5 @@ export type StartVotingRoundRequest = {
   name: string;
   description: string;
   publisherAddress: string;
-  publisherAddressDriverId: string;
-  collaborators: {
-    address: string;
-    addressDriverId: string;
-  }[];
+  collaborators: string[]; // Addresses.
 };

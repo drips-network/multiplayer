@@ -3,7 +3,7 @@ import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Vote from '../votingRoundAggregate/Vote';
 import type VotingRound from '../votingRoundAggregate/VotingRound';
-import { type Address, type AddressDriverId } from '../typeUtils';
+import { type Address } from '../typeUtils';
 
 @Entity({
   name: 'Collaborators',
@@ -15,14 +15,6 @@ export default class Collaborator extends BaseEntity {
   )
   @JoinTable({ name: 'CollaboratorVotingRounds' })
   public _votingRounds!: VotingRound[];
-
-  @Column('varchar', {
-    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
-    nullable: false,
-    unique: true,
-    name: 'addressDriverId',
-  })
-  public _addressDriverId!: AddressDriverId;
 
   @Column('varchar', {
     length: DataSchemaConstants.ADDRESS_LENGTH,
@@ -37,10 +29,9 @@ export default class Collaborator extends BaseEntity {
   })
   public _votes: Vote[] | undefined;
 
-  public static create(addressDriverId: AddressDriverId, address: Address) {
+  public static create(address: Address) {
     const collaborator = new Collaborator();
 
-    collaborator._addressDriverId = addressDriverId;
     collaborator._address = address;
 
     return collaborator;

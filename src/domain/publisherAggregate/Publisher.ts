@@ -1,10 +1,6 @@
 import { Column, Entity, OneToMany } from 'typeorm';
 import { isAddress } from 'ethers';
-import {
-  isAddressDriverId,
-  type Address,
-  type AddressDriverId,
-} from '../typeUtils';
+import { type Address } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import { InvalidArgumentError } from '../errors';
 import type VotingRound from '../votingRoundAggregate/VotingRound';
@@ -14,13 +10,6 @@ import BaseEntity from '../BaseEntity';
   name: 'Publishers',
 })
 export default class Publisher extends BaseEntity {
-  @Column('varchar', {
-    nullable: false,
-    name: 'addressDriverId',
-    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
-  })
-  public _addressDriverId!: AddressDriverId;
-
   @Column('varchar', {
     nullable: false,
     name: 'address',
@@ -37,18 +26,13 @@ export default class Publisher extends BaseEntity {
   )
   public _votingRounds: VotingRound[] | undefined;
 
-  public static create(address: string, addressDriverId: string) {
-    if (!isAddressDriverId(addressDriverId)) {
-      throw new InvalidArgumentError('Invalid addressDriverId.');
-    }
-
+  public static create(address: string) {
     if (!isAddress(address)) {
       throw new InvalidArgumentError('Invalid address.');
     }
 
     const publisher = new Publisher();
 
-    publisher._addressDriverId = addressDriverId;
     publisher._address = address as Address;
 
     return publisher;

@@ -25,16 +25,6 @@ export const startVotingRoundRequestRequestValidators = [
     .isLength({ max: 200 })
     .escape(),
   body('publisherAddress').isString().isLength({ min: 42, max: 42 }).escape(),
-  body('publisherAddressDriverId')
-    .isString()
-    .not()
-    .isEmpty()
-    .isLength({ max: 78 })
-    .escape(),
-  body('collaborators').isArray().isLength({ min: 1, max: 50 }),
-  body('collaborators.*.address').isString().isLength({ max: 42 }).escape(),
-  body('collaborators.*.addressDriverId')
-    .isString()
-    .isLength({ max: 78 })
-    .escape(),
+  body('collaborators').isArray().isLength({ min: 1 }),
+  body('collaborators.*').isString().isLength({ max: 42 }).escape(),
 ];

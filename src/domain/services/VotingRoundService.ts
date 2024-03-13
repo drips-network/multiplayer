@@ -44,23 +44,16 @@ export default class VotingRoundService {
       );
     }
 
-    const existingCollaborators = await this._collaboratorRepository.getMany(
-      collaborators.map((c) => ({
-        address: c._address,
-        addressDriverId: c._addressDriverId,
-      })),
-    );
+    const existingCollaborators =
+      await this._collaboratorRepository.getManyByAddresses(
+        collaborators.map((c) => c._address),
+      );
 
     const newCollaborators = collaborators
       .filter(
-        (c) =>
-          !existingCollaborators.some(
-            (e) =>
-              e._address === c._address &&
-              e._addressDriverId === c._addressDriverId,
-          ),
+        (c) => !existingCollaborators.some((e) => e._address === c._address),
       )
-      .map((c) => Collaborator.create(c._addressDriverId, c._address));
+      .map((c) => Collaborator.create(c._address));
 
     await this._collaboratorRepository.createMany(newCollaborators);
 

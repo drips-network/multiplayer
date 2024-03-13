@@ -14,11 +14,7 @@ import { InvalidArgumentError } from '../errors';
 import type IAggregateRoot from '../IAggregateRoot';
 import type { Receiver } from './Vote';
 import Vote from './Vote';
-import {
-  type AccountId,
-  type AddressDriverId,
-  type DripListId,
-} from '../typeUtils';
+import type { Address, AccountId, DripListId } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Publisher from '../publisherAggregate/Publisher';
 import Link from '../linkedDripList/Link';
@@ -154,13 +150,12 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     const seen = new Set();
     for (const item of collaborators) {
-      const uniqueKey = `${item._address}-${item._addressDriverId}`;
-      if (seen.has(uniqueKey)) {
+      if (seen.has(item._address)) {
         throw new InvalidArgumentError(
           `Collaborators cannot contain duplicates.`,
         );
       }
-      seen.add(uniqueKey);
+      seen.add(item._address);
     }
 
     const votingRound = new VotingRound();
@@ -178,9 +173,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
   public castVote(collaborator: Collaborator, receivers: Receiver[]): void {
     if (
-      !this._collaborators?.find(
-        (c) => c._addressDriverId === collaborator._addressDriverId,
-      )
+      !this._collaborators?.find((c) => c._address === collaborator._address)
     ) {
       throw new InvalidArgumentError(
         'Collaborator is not part of the voting round.',
@@ -244,17 +237,17 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
         (a, b) => b._updatedAt.getTime() - a._updatedAt.getTime(),
       );
 
-      const latestVoteMap = new Map<AddressDriverId, Vote>();
+      const latestVoteMap = new Map<Address, Vote>();
 
       this._votes.forEach((vote) => {
-        const collaboratorAddressId = vote._collaborator._addressDriverId;
+        const collaboratorAddressId = vote._collaborator._address;
         if (!latestVoteMap.has(collaboratorAddressId)) {
           latestVoteMap.set(collaboratorAddressId, vote);
         }
       });
 
       collaboratorVotes.forEach((cv) => {
-        const latestVote = latestVoteMap.get(cv.collaborator._addressDriverId);
+        const latestVote = latestVoteMap.get(cv.collaborator._address);
         // eslint-disable-next-line no-param-reassign
         cv.latestVote = latestVote || null;
       });
