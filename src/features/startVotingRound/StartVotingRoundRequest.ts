@@ -2,7 +2,7 @@ export type StartVotingRoundRequest = {
   endsAt: Date;
   dripListId: string;
   name: string;
-  description: string;
+  description: string | undefined;
   publisherAddress: string;
   collaborators: string[]; // Addresses.
 };

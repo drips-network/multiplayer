@@ -20,7 +20,7 @@ export const startVotingRoundRequestRequestValidators = [
     .isLength({ max: 50 })
     .escape(),
   body('description')
-    .if((value, { req }) => !req.body.dripListId)
+    .if((value, { req }) => req.body.description)
     .isString()
     .isLength({ max: 200 })
     .escape(),

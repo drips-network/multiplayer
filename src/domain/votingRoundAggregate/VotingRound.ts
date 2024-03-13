@@ -134,10 +134,6 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       );
     }
 
-    if (name && !description) {
-      throw new InvalidArgumentError('Description must be provided.');
-    }
-
     if (description && !name) {
       throw new InvalidArgumentError('Name must be provided.');
     }
