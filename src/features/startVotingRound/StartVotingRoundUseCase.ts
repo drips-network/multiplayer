@@ -27,7 +27,6 @@ export default class StartVotingRoundUseCase
 
     const {
       dripListId,
-      startsAt,
       endsAt,
       name,
       description,
@@ -41,7 +40,6 @@ export default class StartVotingRoundUseCase
     );
 
     const newVotingRoundId = await this._votingRoundService.start(
-      startsAt,
       endsAt,
       Publisher.create(publisherAddress, publisherAddressDriverId),
       dripListId ? toDripListId(dripListId) : undefined,

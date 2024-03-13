@@ -1,6 +1,6 @@
 import type { UUID } from 'crypto';
 import type IVotingRoundRepository from '../votingRoundAggregate/IVotingRoundRepository';
-import { DomainError, InvalidVotingRoundOperationError } from '../errors';
+import { InvalidVotingRoundOperationError } from '../errors';
 import type ICollaboratorRepository from '../collaboratorAggregate/ICollaboratorRepository';
 import type { DripListId } from '../typeUtils';
 import Collaborator from '../collaboratorAggregate/Collaborator';
@@ -24,7 +24,6 @@ export default class VotingRoundService {
   }
 
   public async start(
-    startsAt: Date,
     endsAt: Date,
     publisher: Publisher,
     dripListId: DripListId | undefined,
@@ -42,12 +41,6 @@ export default class VotingRoundService {
     ) {
       throw new InvalidVotingRoundOperationError(
         'Publisher already has an active voting round for this existing Drip List.',
-      );
-    }
-
-    if (activeVotingRounds.length > 1) {
-      throw new DomainError(
-        'Publisher has more than one active voting round. This should not be possible.',
       );
     }
 
@@ -76,7 +69,6 @@ export default class VotingRoundService {
     );
 
     const newVotingRound = VotingRound.create(
-      startsAt,
       endsAt,
       existingPublisher || publisher,
       dripListId,

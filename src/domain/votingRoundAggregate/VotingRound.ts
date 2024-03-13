@@ -102,7 +102,6 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   }
 
   public static create(
-    startsAt: Date,
     endsAt: Date,
     publisher: Publisher,
     dripListId: DripListId | undefined,
@@ -110,16 +109,18 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     description: string | undefined,
     collaborators: Collaborator[],
   ): VotingRound {
-    const startsAtTime = new Date(startsAt).getTime();
+    const startsAt = new Date(); // For now, all Voting Rounds start immediately.
+    const startsAtTime = startsAt.getTime();
     const endsAtTime = new Date(endsAt).getTime();
 
     if (startsAtTime > endsAtTime) {
       throw new InvalidArgumentError('Start date must be before end date.');
     }
 
-    if (startsAtTime < new Date().getTime()) {
-      throw new InvalidArgumentError('Start date must be in the future.');
-    }
+    // TODO: Uncomment this after adding scheduled voting round feature.
+    // if (startsAtTime < new Date().getTime()) {
+    //   throw new InvalidArgumentError('Start date must be in the future.');
+    // }
 
     if (endsAtTime < new Date().getTime()) {
       throw new InvalidArgumentError('End date must be in the future.');

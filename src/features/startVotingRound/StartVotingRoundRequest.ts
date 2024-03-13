@@ -1,5 +1,4 @@
 export type StartVotingRoundRequest = {
-  startsAt: Date;
   endsAt: Date;
   dripListId: string;
   name: string;
