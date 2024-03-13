@@ -2,6 +2,7 @@ import { body } from 'express-validator';
 
 export const startVotingRoundRequestRequestValidators = [
   body('endsAt').isISO8601().escape(),
+  body('signature').isString().not().isEmpty().escape(),
   body('dripListId')
     .if((value, { req }) => !req.body.name && !req.body.description)
     .isString()

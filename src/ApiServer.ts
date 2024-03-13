@@ -22,7 +22,7 @@ export default class ApiServer {
     ApiServer.mapEndpoints(app, endpoints);
 
     app.listen(port, () => {
-      logger.info(`🚀 Server running on http://localhost:${port}`);
+      logger.info(`🚀 Server running on 'http://localhost:${port}'.`);
     });
   }
 

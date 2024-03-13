@@ -1,5 +1,4 @@
-import type { UUID } from 'crypto';
-
 export type SoftDeleteVotingRoundRequest = {
-  id: UUID;
+  signature: string;
+  publisherAddress: string;
 };

@@ -1,5 +1,3 @@
-import type { UUID } from 'crypto';
-
 type AddressReceiverDto = {
   address: string;
   accountId: string;
@@ -26,7 +24,9 @@ type ReceiverDto =
   | DripListReceiverDto;
 
 export type CastVoteRequest = {
-  votingRoundId: UUID;
+  // votingRoundId: UUID // URL parameter.
   collaboratorAddress: string;
   receivers: ReceiverDto[];
+  signature: string;
+  date: Date;
 };

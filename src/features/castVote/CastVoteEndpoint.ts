@@ -33,9 +33,8 @@ export default class CastVoteEndpoint implements IEndpoint {
     res: Response,
   ): Promise<Response> {
     await this._castVoteUseCase.execute({
+      ...req.body,
       votingRoundId: req.params.votingRoundId,
-      collaboratorAddress: req.body.collaboratorAddress,
-      receivers: req.body.receivers,
     });
 
     return res.status(201).send();
