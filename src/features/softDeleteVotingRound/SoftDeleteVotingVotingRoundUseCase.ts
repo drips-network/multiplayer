@@ -49,7 +49,7 @@ export default class SoftDeleteVotingRoundUseCase
   ): void {
     assertIsAddress(publisherAddress);
 
-    const reconstructedMessage = `I '${publisherAddress}', delete voting round with ID '${votingRoundId}'.`;
+    const reconstructedMessage = `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}. The current time is ${new Date().toISOString()}.`;
 
     const originalSigner = verifyMessage(reconstructedMessage, signature);
 

@@ -88,7 +88,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
     date: Date,
     signature: string,
   ): void {
-    const reconstructedMessage = `On the ${new Date(date).toISOString()}, I '${collaboratorAddress}', participate in Voting Round with ID '${votingRoundId}' and vote for the following receivers: ${JSON.stringify(receivers)}`;
+    const reconstructedMessage = `Submit the vote for address ${collaboratorAddress}, for the voting round with ID ${votingRoundId}. The current time is ${new Date().toISOString()}. The receivers for this vote are: ${JSON.stringify(receivers)}`;
 
     const originalSigner = verifyMessage(reconstructedMessage, signature);
 

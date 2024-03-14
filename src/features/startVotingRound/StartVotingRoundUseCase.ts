@@ -71,10 +71,15 @@ export default class StartVotingRoundUseCase
     signature: string,
     dripListId: string | undefined,
   ): void {
-    let reconstructedMessage = `I '${publisherAddress}', create a new voting round with the following collaborators: ${JSON.stringify(collaborators)}`;
+    let reconstructedMessage: string;
 
+    // Existing Drip List.
     if (dripListId) {
-      reconstructedMessage += ` for the draft drip list with ID '${toDripListId(dripListId)}.'`;
+      reconstructedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}. The current time is ${new Date().toISOString()}. The voters for this round are: ${JSON.stringify(collaborators)}`;
+    }
+    // Draft Drip List.
+    else {
+      reconstructedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}. The current time is ${new Date().toISOString()}. The voters for this list are: ${JSON.stringify(collaborators)}`;
     }
 
     const originalSigner = verifyMessage(reconstructedMessage, signature);
