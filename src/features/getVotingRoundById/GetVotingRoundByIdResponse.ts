@@ -1,6 +1,6 @@
 import type { UUID } from 'crypto';
 
-type VoteAllocationDto = {
+type ReceiverDto = {
   accountId: string;
   weight: number;
 };
@@ -15,7 +15,7 @@ export type GetVotingRoundByIdResponse = {
   status: 'started' | 'completed' | 'deleted';
   votes: {
     collaboratorAddress: string;
-    latestVote: VoteAllocationDto[] | undefined;
+    latestVote: ReceiverDto[] | undefined;
   }[];
-  result: VoteAllocationDto[] | null;
+  result: ReceiverDto[] | null;
 };

@@ -40,6 +40,13 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
           _address: filter.publisherAddress || undefined,
         },
       },
+      relations: [
+        '_collaborators',
+        '_votes',
+        '_votes._collaborator',
+        '_publisher',
+        '_link',
+      ],
     });
   }
 
