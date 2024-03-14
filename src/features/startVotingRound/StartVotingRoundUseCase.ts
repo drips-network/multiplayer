@@ -32,6 +32,7 @@ export default class StartVotingRoundUseCase
       publisherAddress,
       collaborators,
       signature,
+      date,
     } = request;
 
     this._logger.info(
@@ -40,9 +41,10 @@ export default class StartVotingRoundUseCase
 
     assertIsAddress(publisherAddress);
 
-    await this._verifyPublisher(
+    this._verifyPublisher(
       publisherAddress,
       collaborators.map((c) => c as Address),
+      new Date(date),
       signature,
       dripListId,
     );
@@ -68,24 +70,35 @@ export default class StartVotingRoundUseCase
   private _verifyPublisher(
     publisherAddress: Address,
     collaborators: Address[],
+    currentTime: Date,
     signature: string,
     dripListId: string | undefined,
   ): void {
+    const sortedCollaborators = collaborators.sort(
+      (a, b) => Number(a) - Number(b),
+    );
+
     let reconstructedMessage: string;
 
     // Existing Drip List.
     if (dripListId) {
-      reconstructedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}. The current time is ${new Date().toISOString()}. The voters for this round are: ${JSON.stringify(collaborators)}`;
+      reconstructedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
     }
     // Draft Drip List.
     else {
-      reconstructedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}. The current time is ${new Date().toISOString()}. The voters for this list are: ${JSON.stringify(collaborators)}`;
+      reconstructedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
     }
 
     const originalSigner = verifyMessage(reconstructedMessage, signature);
 
     if (originalSigner.toLowerCase() !== publisherAddress.toLowerCase()) {
       throw new UnauthorizedError('Signature is not valid.');
+    }
+
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    if (currentTime < oneDayAgo || currentTime > now) {
+      throw new UnauthorizedError('Vote is outdated.');
     }
   }
 }

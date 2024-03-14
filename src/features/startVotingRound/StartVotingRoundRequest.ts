@@ -6,4 +6,5 @@ export type StartVotingRoundRequest = {
   publisherAddress: string;
   collaborators: string[]; // Addresses.
   signature: string;
+  date: Date;
 };

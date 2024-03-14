@@ -23,7 +23,7 @@ export default class SoftDeleteVotingRoundUseCase
   }
 
   public async execute(request: SoftDeleteVotingRoundCommand): Promise<void> {
-    const { id, signature, publisherAddress } = request;
+    const { id, signature, publisherAddress, date } = request;
 
     this._logger.info(`Deleting the current voting round with ID '${id}'...`);
 
@@ -33,7 +33,7 @@ export default class SoftDeleteVotingRoundUseCase
       throw new NotFoundError('Voting round not found.');
     }
 
-    this._verifyPublisher(publisherAddress, signature, id);
+    this._verifyPublisher(publisherAddress, signature, id, new Date(date));
 
     await this._repository.softRemove(votingRound);
 
@@ -46,15 +46,22 @@ export default class SoftDeleteVotingRoundUseCase
     publisherAddress: string,
     signature: string,
     votingRoundId: UUID,
+    currentTime: Date,
   ): void {
     assertIsAddress(publisherAddress);
 
-    const reconstructedMessage = `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}. The current time is ${new Date().toISOString()}.`;
+    const reconstructedMessage = `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}. The current time is ${currentTime.toISOString()}.`;
 
     const originalSigner = verifyMessage(reconstructedMessage, signature);
 
     if (originalSigner.toLowerCase() !== publisherAddress.toLowerCase()) {
       throw new UnauthorizedError('Signature is not valid.');
+    }
+
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    if (currentTime < oneDayAgo || currentTime > now) {
+      throw new UnauthorizedError('The date is not valid.');
     }
   }
 }

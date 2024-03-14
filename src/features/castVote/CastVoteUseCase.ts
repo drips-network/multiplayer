@@ -60,14 +60,14 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       collaboratorAddress,
       votingRoundId,
       receiverEntities,
-      date,
+      new Date(date),
       signature,
     );
 
     collaborator._votes
       ?.filter((v) => v._id === votingRoundId)
       .forEach((vote) => {
-        if (vote._updatedAt > date) {
+        if (vote._updatedAt > new Date(date)) {
           throw new UnauthorizedError('Vote already casted.');
         }
       });
@@ -85,10 +85,12 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
     collaboratorAddress: Address,
     votingRoundId: UUID,
     receivers: Receiver[],
-    date: Date,
+    currentTime: Date,
     signature: string,
   ): void {
-    const reconstructedMessage = `Submit the vote for address ${collaboratorAddress}, for the voting round with ID ${votingRoundId}. The current time is ${new Date().toISOString()}. The receivers for this vote are: ${JSON.stringify(receivers)}`;
+    const sortedReceivers = receivers.sort((a, b) => Number(a) - Number(b));
+
+    const reconstructedMessage = `Submit the vote for address ${collaboratorAddress}, for the voting round with ID ${votingRoundId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(sortedReceivers)}`;
 
     const originalSigner = verifyMessage(reconstructedMessage, signature);
 
@@ -97,8 +99,8 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
     }
 
     const now = new Date();
-    const twoMinutesAgo = new Date(now.getTime() - 2 * 60 * 1000);
-    if (date < twoMinutesAgo || date > now) {
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    if (currentTime < oneDayAgo || currentTime > now) {
       throw new UnauthorizedError('Vote is outdated.');
     }
   }
