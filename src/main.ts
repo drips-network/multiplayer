@@ -19,6 +19,10 @@ import GetVotingRoundsEndpoint from './features/getVotingRounds/GetVotingRoundsE
 import GetVotingRoundsUseCase from './features/getVotingRounds/GetVotingRoundsUseCase';
 import LinkEndpoint from './features/link/LinkEndpoint';
 import LinkUseCase from './features/link/LinkUseCase';
+import GetVotingRoundResultEndpoint from './features/getVotingRoundResult/GetVotingRoundResultEndpoint';
+import GetVotingRoundResultUseCase from './features/getVotingRoundResult/GetVotingRoundResultUseCase';
+import GetVotingRoundVotesEndpoint from './features/getVotingRoundVotes/GetVotingRoundVotesEndpoint';
+import GetVotesUseCase from './features/getVotingRoundVotes/GetVotingRoundVotesUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -54,6 +58,12 @@ export async function main(): Promise<void> {
   const linkEndpoint = new LinkEndpoint(
     new LinkUseCase(logger, votingRoundRepository, publisherRepository),
   );
+  const getVotingRoundVotesEndpoint = new GetVotingRoundVotesEndpoint(
+    new GetVotesUseCase(votingRoundRepository),
+  );
+  const getVotingRoundResultEndpoint = new GetVotingRoundResultEndpoint(
+    new GetVotingRoundResultUseCase(votingRoundRepository),
+  );
 
   await ApiServer.run(
     [
@@ -63,6 +73,8 @@ export async function main(): Promise<void> {
       castVoteEndpoint,
       getVotingRoundsEndpoint,
       linkEndpoint,
+      getVotingRoundVotesEndpoint,
+      getVotingRoundResultEndpoint,
     ],
     appSettings.apiPort,
   );

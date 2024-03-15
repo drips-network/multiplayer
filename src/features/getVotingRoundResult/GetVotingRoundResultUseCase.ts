@@ -1,12 +1,13 @@
 import type UseCase from '../../application/interfaces/IUseCase';
 import { NotFoundError } from '../../application/errors';
-import type { GetVotingRoundByIdRequest } from './GetVotingRoundByIdRequest';
+import type { GetVotingRoundResultRequest } from './GetVotingRoundResultRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
-import type { GetVotingRoundByIdResponse } from './GetVotingRoundByIdResponse';
+import type { GetVotingRoundResultResponse } from './GetVotingRoundResultResponse';
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
+import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
 
-export default class GetVotingRoundByIdUseCase
-  implements UseCase<GetVotingRoundByIdRequest, GetVotingRoundByIdResponse>
+export default class GetVotingRoundResultUseCase
+  implements UseCase<GetVotingRoundResultRequest, GetVotingRoundResultResponse>
 {
   private readonly _repository: IVotingRoundRepository;
 
@@ -15,27 +16,20 @@ export default class GetVotingRoundByIdUseCase
   }
 
   public async execute(
-    request: GetVotingRoundByIdRequest,
-  ): Promise<GetVotingRoundByIdResponse> {
-    const votingRound = await this._repository.getById(request.id);
+    request: GetVotingRoundResultRequest,
+  ): Promise<GetVotingRoundResultResponse> {
+    const votingRound = await this._repository.getById(request.votingRoundId);
 
     if (!votingRound) {
       throw new NotFoundError(`VotingRound not found.`);
     }
 
     return {
-      id: votingRound._id,
-      startsAt: votingRound._startsAt,
-      endsAt: votingRound._endsAt,
-      status: votingRound.status,
-      dripListId: votingRound._dripListId,
-      name: votingRound._name,
-      description: votingRound._description,
-      publisherAddress: votingRound._publisher._address,
+      result: votingRound.getResult().map((receiver) => this._toDto(receiver)),
     };
   }
 
-  private _toDto(receiver: Receiver) {
+  private _toDto(receiver: Receiver): ReceiverDto {
     if ('address' in receiver) {
       return {
         accountId: receiver.accountId,
@@ -54,7 +48,7 @@ export default class GetVotingRoundByIdUseCase
     }
 
     return {
-      accountId: receiver.accountId as string,
+      accountId: receiver.accountId,
       weight: receiver.weight,
       type: receiver.type,
     };

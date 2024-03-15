@@ -1,10 +1,5 @@
 import type { UUID } from 'crypto';
 
-type ReceiverDto = {
-  accountId: string;
-  weight: number;
-};
-
 export type GetVotingRoundsResponse = {
   votingRounds:
     | {
@@ -16,11 +11,6 @@ export type GetVotingRoundsResponse = {
         description: string | undefined;
         publisherAddress: string;
         status: 'started' | 'completed' | 'deleted';
-        votes: {
-          collaboratorAddress: string;
-          latestVote: ReceiverDto[] | undefined;
-        }[];
-        result: ReceiverDto[] | null;
       }[]
     | undefined;
 };
