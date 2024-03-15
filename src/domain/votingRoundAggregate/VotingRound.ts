@@ -57,6 +57,9 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   @Column('varchar', { nullable: true, length: 200, name: 'description' })
   public _description: string | undefined;
 
+  @Column('bool', { nullable: false, name: 'isPrivate' })
+  public _isPrivate!: boolean;
+
   @ManyToMany(
     'Collaborator',
     (collaborator: Collaborator) => collaborator._votingRounds,
@@ -104,6 +107,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     name: string | undefined,
     description: string | undefined,
     collaborators: Collaborator[],
+    isPrivate: boolean,
   ): VotingRound {
     const startsAt = new Date(); // For now, all Voting Rounds start immediately.
     const startsAtTime = startsAt.getTime();
@@ -163,6 +167,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     votingRound._name = name;
     votingRound._description = description;
     votingRound._collaborators = collaborators;
+    votingRound._isPrivate = isPrivate;
 
     return votingRound;
   }

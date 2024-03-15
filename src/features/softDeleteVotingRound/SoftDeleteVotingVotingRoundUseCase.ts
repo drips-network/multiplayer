@@ -2,10 +2,10 @@ import type { Logger } from 'winston';
 import type { UUID } from 'crypto';
 import { verifyMessage } from 'ethers';
 import type UseCase from '../../application/interfaces/IUseCase';
-import { NotFoundError, UnauthorizedError } from '../../application/errors';
+import { NotFoundError } from '../../application/errors';
 import type { SoftDeleteVotingRoundRequest } from './SoftDeleteVotingVotingRoundRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
-import { assertIsAddress } from '../../domain/typeUtils';
+import { DELETE_VOTING_ROUND_MESSAGE_TEMPLATE } from '../../application/auth';
 
 type SoftDeleteVotingRoundCommand = SoftDeleteVotingRoundRequest & {
   id: UUID;
@@ -33,35 +33,19 @@ export default class SoftDeleteVotingRoundUseCase
       throw new NotFoundError('Voting round not found.');
     }
 
-    this._verifyPublisher(publisherAddress, signature, id, new Date(date));
+    verifyMessage(
+      DELETE_VOTING_ROUND_MESSAGE_TEMPLATE(
+        new Date(date),
+        publisherAddress,
+        votingRound._id,
+      ),
+      signature,
+    );
 
     await this._repository.softRemove(votingRound);
 
     this._logger.info(
       `Deleted successfully the current voting round with ID '${id}'.`,
     );
-  }
-
-  private _verifyPublisher(
-    publisherAddress: string,
-    signature: string,
-    votingRoundId: UUID,
-    currentTime: Date,
-  ): void {
-    assertIsAddress(publisherAddress);
-
-    const reconstructedMessage = `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}. The current time is ${currentTime.toISOString()}.`;
-
-    const originalSigner = verifyMessage(reconstructedMessage, signature);
-
-    if (originalSigner.toLowerCase() !== publisherAddress.toLowerCase()) {
-      throw new UnauthorizedError('Signature is not valid.');
-    }
-
-    const now = new Date();
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    if (currentTime < oneDayAgo || currentTime > now) {
-      throw new UnauthorizedError('The date is not valid.');
-    }
   }
 }

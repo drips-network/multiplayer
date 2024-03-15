@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 export const startVotingRoundRequestRequestValidators = [
   body('endsAt').isISO8601().escape(),
   body('date').isISO8601().escape(),
+  body('isPrivate').isBoolean(),
   body('signature').isString().not().isEmpty().escape(),
   body('dripListId')
     .if((value, { req }) => !req.body.name && !req.body.description)

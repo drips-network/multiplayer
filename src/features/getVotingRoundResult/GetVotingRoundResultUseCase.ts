@@ -1,13 +1,20 @@
+import type { UUID } from 'crypto';
 import type UseCase from '../../application/interfaces/IUseCase';
-import { NotFoundError } from '../../application/errors';
-import type { GetVotingRoundResultRequest } from './GetVotingRoundResultRequest';
+import { NotFoundError, UnauthorizedError } from '../../application/errors';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import type { GetVotingRoundResultResponse } from './GetVotingRoundResultResponse';
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
+import { REVEAL_RESULT_MESSAGE, verifyMessage } from '../../application/auth';
+
+type GetVotingRoundResultCommand = {
+  votingRoundId: UUID;
+  signature: string | undefined;
+  date: string | undefined;
+};
 
 export default class GetVotingRoundResultUseCase
-  implements UseCase<GetVotingRoundResultRequest, GetVotingRoundResultResponse>
+  implements UseCase<GetVotingRoundResultCommand, GetVotingRoundResultResponse>
 {
   private readonly _repository: IVotingRoundRepository;
 
@@ -16,12 +23,29 @@ export default class GetVotingRoundResultUseCase
   }
 
   public async execute(
-    request: GetVotingRoundResultRequest,
+    request: GetVotingRoundResultCommand,
   ): Promise<GetVotingRoundResultResponse> {
-    const votingRound = await this._repository.getById(request.votingRoundId);
+    const { votingRoundId, date, signature } = request;
+
+    const votingRound = await this._repository.getById(votingRoundId);
 
     if (!votingRound) {
       throw new NotFoundError(`VotingRound not found.`);
+    }
+
+    if (votingRound._isPrivate) {
+      if (!signature || !date) {
+        throw new UnauthorizedError(
+          `Authentication is required for private voting rounds.`,
+        );
+      } else {
+        verifyMessage(
+          REVEAL_RESULT_MESSAGE(votingRoundId, new Date(date)),
+          signature,
+          votingRound._publisher._address,
+          new Date(date),
+        );
+      }
     }
 
     return {

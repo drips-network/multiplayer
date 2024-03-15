@@ -6,6 +6,7 @@ import VotingRound, {
 } from '../../domain/votingRoundAggregate/VotingRound';
 import type { Address, DripListId } from '../../domain/typeUtils';
 import type Publisher from '../../domain/publisherAggregate/Publisher';
+import shouldNeverHappen from '../../application/shouldNeverHappen';
 
 export default class VotingRoundRepository implements IVotingRoundRepository {
   private readonly _repository: Repository<VotingRound>;
@@ -17,7 +18,7 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
   public async getById(votingRoundId: UUID): Promise<VotingRound | null> {
     return this._repository.findOne({
       where: {
-        _id: votingRoundId,
+        _id: votingRoundId ?? shouldNeverHappen(),
       },
       relations: [
         '_collaborators',

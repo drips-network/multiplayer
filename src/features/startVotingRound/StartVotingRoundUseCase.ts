@@ -8,7 +8,10 @@ import Publisher from '../../domain/publisherAggregate/Publisher';
 import type { Address } from '../../domain/typeUtils';
 import { assertIsAddress, toDripListId } from '../../domain/typeUtils';
 import Collaborator from '../../domain/collaboratorAggregate/Collaborator';
-import { UnauthorizedError } from '../../application/errors';
+import {
+  CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE,
+  START_VOTING_ROUND_MESSAGE_TEMPLATE,
+} from '../../application/auth';
 
 export default class StartVotingRoundUseCase
   implements UseCase<StartVotingRoundRequest, StartVotingRoundResponse>
@@ -33,6 +36,7 @@ export default class StartVotingRoundUseCase
       collaborators,
       signature,
       date,
+      isPrivate,
     } = request;
 
     this._logger.info(
@@ -41,7 +45,7 @@ export default class StartVotingRoundUseCase
 
     assertIsAddress(publisherAddress);
 
-    this._verifyPublisher(
+    this._verifyMessage(
       publisherAddress,
       collaborators.map((c) => c as Address),
       new Date(date),
@@ -56,6 +60,7 @@ export default class StartVotingRoundUseCase
       name,
       description,
       collaborators.map((c) => Collaborator.create(getAddress(c) as Address)),
+      isPrivate,
     );
 
     this._logger.info(
@@ -67,38 +72,33 @@ export default class StartVotingRoundUseCase
     };
   }
 
-  private _verifyPublisher(
+  private _verifyMessage(
     publisherAddress: Address,
     collaborators: Address[],
     currentTime: Date,
     signature: string,
     dripListId: string | undefined,
   ): void {
-    const sortedCollaborators = collaborators.sort(
-      (a, b) => Number(a) - Number(b),
-    );
-
     let reconstructedMessage: string;
 
     // Existing Drip List.
     if (dripListId) {
-      reconstructedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
+      reconstructedMessage = START_VOTING_ROUND_MESSAGE_TEMPLATE(
+        currentTime,
+        publisherAddress,
+        dripListId,
+        collaborators,
+      );
     }
     // Draft Drip List.
     else {
-      reconstructedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
+      reconstructedMessage = CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
+        currentTime,
+        publisherAddress,
+        collaborators,
+      );
     }
 
-    const originalSigner = verifyMessage(reconstructedMessage, signature);
-
-    if (originalSigner.toLowerCase() !== publisherAddress.toLowerCase()) {
-      throw new UnauthorizedError('Signature is not valid.');
-    }
-
-    const now = new Date();
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    if (currentTime < oneDayAgo || currentTime > now) {
-      throw new UnauthorizedError('Vote is outdated.');
-    }
+    verifyMessage(reconstructedMessage, signature);
   }
 }

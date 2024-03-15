@@ -7,4 +7,5 @@ export type StartVotingRoundRequest = {
   collaborators: string[]; // Addresses.
   signature: string;
   date: Date;
+  isPrivate: boolean;
 };

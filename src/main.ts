@@ -22,7 +22,7 @@ import LinkUseCase from './features/link/LinkUseCase';
 import GetVotingRoundResultEndpoint from './features/getVotingRoundResult/GetVotingRoundResultEndpoint';
 import GetVotingRoundResultUseCase from './features/getVotingRoundResult/GetVotingRoundResultUseCase';
 import GetVotingRoundVotesEndpoint from './features/getVotingRoundVotes/GetVotingRoundVotesEndpoint';
-import GetVotesUseCase from './features/getVotingRoundVotes/GetVotingRoundVotesUseCase';
+import GetVotingRoundVotesUseCase from './features/getVotingRoundVotes/GetVotingRoundVotesUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -59,7 +59,7 @@ export async function main(): Promise<void> {
     new LinkUseCase(logger, votingRoundRepository, publisherRepository),
   );
   const getVotingRoundVotesEndpoint = new GetVotingRoundVotesEndpoint(
-    new GetVotesUseCase(votingRoundRepository),
+    new GetVotingRoundVotesUseCase(votingRoundRepository),
   );
   const getVotingRoundResultEndpoint = new GetVotingRoundResultEndpoint(
     new GetVotingRoundResultUseCase(votingRoundRepository),

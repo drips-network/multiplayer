@@ -4,7 +4,7 @@ import { validationResult } from 'express-validator';
 import type { IEndpoint } from './application/interfaces/IEndpoint';
 import appSettings from './appSettings';
 import logger from './infrastructure/logger';
-import { NotFoundError } from './application/errors';
+import { NotFoundError, UnauthorizedError } from './application/errors';
 import {
   InvalidArgumentError,
   InvalidVotingRoundOperationError,
@@ -57,6 +57,12 @@ export default class ApiServer {
         if (error instanceof NotFoundError) {
           logger.info(`${error.message}`);
           return res.status(404).json({ error: error.message });
+        }
+
+        // 401 Unauthorized
+        if (error instanceof UnauthorizedError) {
+          logger.info(`${error.message}`);
+          return res.status(401).json({ error: error.message });
         }
 
         logger.error(`${error.message}\n${error.stack}`);
