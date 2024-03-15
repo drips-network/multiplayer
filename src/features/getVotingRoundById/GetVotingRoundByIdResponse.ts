@@ -12,6 +12,7 @@ export type GetVotingRoundByIdResponse = {
   dripListId: string | undefined;
   name: string | undefined;
   description: string | undefined;
+  publisherAddress: string;
   status: 'started' | 'completed' | 'deleted';
   votes: {
     collaboratorAddress: string;

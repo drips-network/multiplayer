@@ -31,6 +31,7 @@ export default class GetVotingRoundByIdUseCase
       dripListId: votingRound._dripListId,
       name: votingRound._name,
       description: votingRound._description,
+      publisherAddress: votingRound._publisher._address,
       votes: votingRound.getLatestVotes().map((collaboratorsWithVotes) => ({
         collaboratorAddress: collaboratorsWithVotes.collaborator._address,
         latestVote:
