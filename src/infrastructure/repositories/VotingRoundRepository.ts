@@ -34,13 +34,20 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
     dripListId: DripListId | undefined;
     publisherAddress: Address | undefined;
   }): Promise<VotingRound[]> {
+    const where: any = {};
+
+    if (filter.dripListId) {
+      where._dripListId = filter.dripListId;
+    }
+
+    if (filter.publisherAddress) {
+      where._publisher = {
+        _address: filter.publisherAddress,
+      };
+    }
+
     return this._repository.find({
-      where: {
-        _dripListId: filter.dripListId || undefined,
-        _publisher: {
-          _address: filter.publisherAddress || undefined,
-        },
-      },
+      where,
       relations: [
         '_collaborators',
         '_votes',

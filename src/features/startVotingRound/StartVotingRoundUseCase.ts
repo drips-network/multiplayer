@@ -1,5 +1,5 @@
 import type { Logger } from 'winston';
-import { getAddress, verifyMessage } from 'ethers';
+import { getAddress } from 'ethers';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { StartVotingRoundResponse } from './StartVotingRoundResponse';
 import type { StartVotingRoundRequest } from './StartVotingRoundRequest';
@@ -11,6 +11,7 @@ import Collaborator from '../../domain/collaboratorAggregate/Collaborator';
 import {
   CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE,
   START_VOTING_ROUND_MESSAGE_TEMPLATE,
+  verifyMessage,
 } from '../../application/auth';
 
 export default class StartVotingRoundUseCase
@@ -99,6 +100,11 @@ export default class StartVotingRoundUseCase
       );
     }
 
-    verifyMessage(reconstructedMessage, signature);
+    verifyMessage(
+      reconstructedMessage,
+      signature,
+      publisherAddress,
+      currentTime,
+    );
   }
 }
