@@ -5,7 +5,7 @@ import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVoti
 import type { GetVotingRoundResultResponse } from './GetVotingRoundResultResponse';
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
-import { REVEAL_RESULT_MESSAGE, verifyMessage } from '../../application/auth';
+import Auth from '../../application/Auth';
 
 type GetVotingRoundResultCommand = {
   votingRoundId: UUID;
@@ -39,8 +39,8 @@ export default class GetVotingRoundResultUseCase
           `Authentication is required for private voting rounds.`,
         );
       } else {
-        verifyMessage(
-          REVEAL_RESULT_MESSAGE(votingRoundId, new Date(date)),
+        Auth.verifyMessage(
+          Auth.REVEAL_RESULT_MESSAGE(votingRoundId, new Date(date)),
           signature,
           votingRound._publisher._address,
           new Date(date),

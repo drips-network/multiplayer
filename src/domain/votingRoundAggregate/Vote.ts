@@ -1,9 +1,10 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import type VotingRound from './VotingRound';
 import type Collaborator from '../collaboratorAggregate/Collaborator';
 import { InvalidArgumentError } from '../errors';
 import BaseEntity from '../BaseEntity';
 import type { AccountId } from '../typeUtils';
+import { TOTAL_VOTE_WEIGHT } from '../constants';
+import type VotingRound from './VotingRound';
 
 type AddressReceiver = {
   address: string;
@@ -83,8 +84,10 @@ export default class Vote extends BaseEntity {
     }
 
     const sum = receivers.reduce((a, b) => a + b.weight, 0);
-    if (sum !== 100) {
-      throw new InvalidArgumentError('The sum of the weights must be 100.');
+    if (sum !== TOTAL_VOTE_WEIGHT) {
+      throw new InvalidArgumentError(
+        `The sum of the weights must be ${TOTAL_VOTE_WEIGHT}.`,
+      );
     }
 
     const vote = new Vote();

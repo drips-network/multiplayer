@@ -53,7 +53,7 @@ export function toDripListId(id: bigint | string): DripListId {
     return idAsString as DripListId;
   }
 
-  throw new Error(`Invalid drip list ID: ${id}.`);
+  throw new Error(`Invalid Drip List ID: ${id}.`);
 }
 
 export type Address = string & { __type: 'Address' };

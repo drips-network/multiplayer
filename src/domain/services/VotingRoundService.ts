@@ -30,7 +30,7 @@ export default class VotingRoundService {
     name: string | undefined,
     description: string | undefined,
     collaborators: Collaborator[],
-    isPrivate: boolean,
+    privateVotes: boolean,
   ): Promise<UUID> {
     const activeVotingRounds =
       await this._votingRoundRepository.getActiveVotingRoundsByPublisher(
@@ -69,7 +69,7 @@ export default class VotingRoundService {
       name,
       description,
       [...existingCollaborators, ...newCollaborators],
-      isPrivate,
+      privateVotes,
     );
 
     await this._votingRoundRepository.save(newVotingRound);

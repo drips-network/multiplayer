@@ -46,7 +46,7 @@ export default class GetVotingRoundsUseCase
         name: votingRound._name,
         description: votingRound._description,
         publisherAddress: votingRound._publisher._address,
-        isPrivate: votingRound._isPrivate,
+        privateVotes: votingRound._isPrivate,
       })),
     };
   }

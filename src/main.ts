@@ -1,3 +1,4 @@
+import { GraphQLClient } from 'graphql-request';
 import ApiServer from './ApiServer';
 import 'reflect-metadata';
 import logger from './infrastructure/logger';
@@ -23,6 +24,7 @@ import GetVotingRoundResultEndpoint from './features/getVotingRoundResult/GetVot
 import GetVotingRoundResultUseCase from './features/getVotingRoundResult/GetVotingRoundResultUseCase';
 import GetVotingRoundVotesEndpoint from './features/getVotingRoundVotes/GetVotingRoundVotesEndpoint';
 import GetVotingRoundVotesUseCase from './features/getVotingRoundVotes/GetVotingRoundVotesUseCase';
+import Auth from './application/Auth';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -38,6 +40,16 @@ export async function main(): Promise<void> {
     publisherRepository,
     votingRoundRepository,
     collaboratorRepository,
+  );
+
+  const auth = new Auth(
+    logger,
+    new GraphQLClient(appSettings.graphQlUrl, {
+      headers: {
+        authorization: `Bearer ${appSettings.graphQlToken}`,
+      },
+    }),
+    votingRoundRepository,
   );
 
   const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
@@ -56,7 +68,7 @@ export async function main(): Promise<void> {
     new GetVotingRoundsUseCase(votingRoundRepository),
   );
   const linkEndpoint = new LinkEndpoint(
-    new LinkUseCase(logger, votingRoundRepository, publisherRepository),
+    new LinkUseCase(logger, votingRoundRepository, publisherRepository, auth),
   );
   const getVotingRoundVotesEndpoint = new GetVotingRoundVotesEndpoint(
     new GetVotingRoundVotesUseCase(votingRoundRepository),

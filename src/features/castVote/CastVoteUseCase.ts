@@ -8,7 +8,7 @@ import { NotFoundError, UnauthorizedError } from '../../application/errors';
 import type ICollaboratorRepository from '../../domain/collaboratorAggregate/ICollaboratorRepository';
 import { assertIsAccountId, assertIsAddress } from '../../domain/typeUtils';
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
-import { VOTE_MESSAGE_TEMPLATE } from '../../application/auth';
+import Auth from '../../application/Auth';
 
 type CastVoteCommand = CastVoteRequest & { votingRoundId: UUID };
 
@@ -39,7 +39,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       await this._votingRoundRepository.getById(votingRoundId);
 
     if (!votingRound) {
-      throw new NotFoundError(`Voting round not found.`);
+      throw new NotFoundError(`voting round not found.`);
     }
 
     assertIsAddress(collaboratorAddress);
@@ -57,7 +57,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
     });
 
     verifyMessage(
-      VOTE_MESSAGE_TEMPLATE(
+      Auth.VOTE_MESSAGE_TEMPLATE(
         new Date(date),
         collaboratorAddress,
         votingRoundId,

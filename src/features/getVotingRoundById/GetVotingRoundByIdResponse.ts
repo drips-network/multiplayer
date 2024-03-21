@@ -9,5 +9,5 @@ export type GetVotingRoundByIdResponse = {
   description: string | undefined;
   publisherAddress: string;
   status: 'started' | 'completed' | 'deleted';
-  isPrivate: boolean;
+  privateVotes: boolean;
 };

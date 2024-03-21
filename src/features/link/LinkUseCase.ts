@@ -1,41 +1,55 @@
 import type { Logger } from 'winston';
+import type { UUID } from 'crypto';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { LinkRequest } from './LinkRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import { BadRequestError, NotFoundError } from '../../application/errors';
-import { assertIsAddress } from '../../domain/typeUtils';
+import { assertIsAddress, toDripListId } from '../../domain/typeUtils';
 import type IPublisherRepository from '../../domain/publisherAggregate/IPublisherRepository';
+import type Auth from '../../application/Auth';
 
-export default class LinkUseCase implements UseCase<LinkRequest> {
+type LinkCommand = LinkRequest & {
+  votingRoundId: UUID;
+};
+
+export default class LinkUseCase implements UseCase<LinkCommand> {
+  private readonly _auth: Auth;
   private readonly _logger: Logger;
-  private readonly _votingRoundRepository: IVotingRoundRepository;
   private readonly _publisherRepository: IPublisherRepository;
+  private readonly _votingRoundRepository: IVotingRoundRepository;
 
   public constructor(
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
     collaboratorRepository: IPublisherRepository,
+    auth: Auth,
   ) {
+    this._auth = auth;
     this._logger = logger;
     this._votingRoundRepository = votingRoundRepository;
     this._publisherRepository = collaboratorRepository;
   }
 
-  public async execute(request: LinkRequest): Promise<void> {
-    // TODO: Verify the request is coming from the collaborator by checking the signature token.
-
-    const { votingRoundId, publisherAddress } = request;
+  public async execute(request: LinkCommand): Promise<void> {
+    const { votingRoundId, publisherAddress, dripListId } = request;
 
     this._logger.info(`Linking voting round '${votingRoundId}'...`);
+
+    assertIsAddress(publisherAddress);
+
+    this._auth.verifyDripListOwnership(
+      toDripListId(dripListId),
+      publisherAddress,
+      votingRoundId,
+    );
 
     const votingRound =
       await this._votingRoundRepository.getById(votingRoundId);
 
     if (!votingRound) {
-      throw new NotFoundError(`Voting round not found.`);
+      throw new NotFoundError(`voting round not found.`);
     }
 
-    assertIsAddress(publisherAddress);
     const publisher =
       await this._publisherRepository.getByAddress(publisherAddress);
 
@@ -54,7 +68,7 @@ export default class LinkUseCase implements UseCase<LinkRequest> {
     await this._votingRoundRepository.save(votingRound);
 
     this._logger.info(
-      `Voting round '${votingRoundId}' linked to DripList '${votingRound._dripListId}'.`,
+      `voting round '${votingRoundId}' linked to DripList '${votingRound._dripListId}'.`,
     );
   }
 }

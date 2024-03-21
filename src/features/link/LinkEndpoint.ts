@@ -34,7 +34,7 @@ export default class LinkEndpoint implements IEndpoint {
   ): Promise<Response> {
     await this._linkUseCase.execute({
       votingRoundId: req.params.votingRoundId,
-      publisherAddress: req.body.publisherAddress,
+      ...req.body,
     });
 
     return res.status(200).send();

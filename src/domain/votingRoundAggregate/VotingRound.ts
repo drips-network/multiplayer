@@ -13,11 +13,12 @@ import type Collaborator from '../collaboratorAggregate/Collaborator';
 import { InvalidArgumentError } from '../errors';
 import type IAggregateRoot from '../IAggregateRoot';
 import type { Receiver } from './Vote';
-import Vote from './Vote';
 import type { Address, AccountId, DripListId } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Publisher from '../publisherAggregate/Publisher';
 import Link from '../linkedDripList/Link';
+import { TOTAL_VOTE_WEIGHT } from '../constants';
+import Vote from './Vote';
 
 export enum VotingRoundStatus {
   Started = 'started',
@@ -57,7 +58,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   @Column('varchar', { nullable: true, length: 200, name: 'description' })
   public _description: string | undefined;
 
-  @Column('bool', { nullable: false, name: 'isPrivate' })
+  @Column('bool', { nullable: false, name: 'privateVotes' })
   public _isPrivate!: boolean;
 
   @ManyToMany(
@@ -107,7 +108,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     name: string | undefined,
     description: string | undefined,
     collaborators: Collaborator[],
-    isPrivate: boolean,
+    privateVotes: boolean,
   ): VotingRound {
     const startsAt = new Date(); // For now, all Voting Rounds start immediately.
     const startsAtTime = startsAt.getTime();
@@ -167,7 +168,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     votingRound._name = name;
     votingRound._description = description;
     votingRound._collaborators = collaborators;
-    votingRound._isPrivate = isPrivate;
+    votingRound._isPrivate = privateVotes;
 
     return votingRound;
   }
@@ -187,9 +188,12 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       );
     }
 
-    if (receivers.reduce((sum, receiver) => sum + receiver.weight, 0) !== 100) {
+    if (
+      receivers.reduce((sum, receiver) => sum + receiver.weight, 0) !==
+      TOTAL_VOTE_WEIGHT
+    ) {
       throw new InvalidArgumentError(
-        'The sum of the weights must be 100 for each vote allocation.',
+        `The sum of the weights must be ${TOTAL_VOTE_WEIGHT} for each vote allocation.`,
       );
     }
 
@@ -331,19 +335,19 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     if (this._link) {
       throw new InvalidArgumentError(
-        'Cannot link a Voting Round that is already linked.',
+        'Cannot link a voting round that is already linked.',
       );
     }
 
     if (this.status !== VotingRoundStatus.Completed) {
       throw new InvalidArgumentError(
-        `Cannot link a Voting Round that is not completed. Status: ${this.status}.`,
+        `Cannot link a voting round that is not completed. Status: ${this.status}.`,
       );
     }
 
     if (!this._votes?.length) {
       throw new InvalidArgumentError(
-        'Cannot link a Drip List to a Voting Round with no votes.',
+        'Cannot link a Drip List to a voting round with no votes.',
       );
     }
 

@@ -5,7 +5,7 @@ import type UseCase from '../../application/interfaces/IUseCase';
 import { NotFoundError } from '../../application/errors';
 import type { SoftDeleteVotingRoundRequest } from './SoftDeleteVotingVotingRoundRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
-import { DELETE_VOTING_ROUND_MESSAGE_TEMPLATE } from '../../application/auth';
+import Auth from '../../application/Auth';
 
 type SoftDeleteVotingRoundCommand = SoftDeleteVotingRoundRequest & {
   id: UUID;
@@ -30,11 +30,11 @@ export default class SoftDeleteVotingRoundUseCase
     const votingRound = await this._repository.getById(id);
 
     if (!votingRound) {
-      throw new NotFoundError('Voting round not found.');
+      throw new NotFoundError('voting round not found.');
     }
 
     verifyMessage(
-      DELETE_VOTING_ROUND_MESSAGE_TEMPLATE(
+      Auth.DELETE_VOTING_ROUND_MESSAGE_TEMPLATE(
         new Date(date),
         publisherAddress,
         votingRound._id,

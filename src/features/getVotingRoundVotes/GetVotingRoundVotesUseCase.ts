@@ -6,7 +6,7 @@ import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVoti
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
 import type { GetVotingRoundVotesResponse } from './GetVotingRoundVotesResponse';
-import { REVEAL_VOTES_MESSAGE } from '../../application/auth';
+import Auth from '../../application/Auth';
 
 type GetVotingRoundVotesCommand = {
   votingRoundId: UUID;
@@ -41,7 +41,7 @@ export default class GetVotingRoundVotesUseCase
         );
       } else {
         verifyMessage(
-          REVEAL_VOTES_MESSAGE(votingRoundId, new Date(date)),
+          Auth.REVEAL_VOTES_MESSAGE(votingRoundId, new Date(date)),
           signature,
         );
       }

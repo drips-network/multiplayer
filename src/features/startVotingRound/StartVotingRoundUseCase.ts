@@ -8,11 +8,7 @@ import Publisher from '../../domain/publisherAggregate/Publisher';
 import type { Address } from '../../domain/typeUtils';
 import { assertIsAddress, toDripListId } from '../../domain/typeUtils';
 import Collaborator from '../../domain/collaboratorAggregate/Collaborator';
-import {
-  CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE,
-  START_VOTING_ROUND_MESSAGE_TEMPLATE,
-  verifyMessage,
-} from '../../application/auth';
+import Auth from '../../application/Auth';
 
 export default class StartVotingRoundUseCase
   implements UseCase<StartVotingRoundRequest, StartVotingRoundResponse>
@@ -37,11 +33,11 @@ export default class StartVotingRoundUseCase
       collaborators,
       signature,
       date,
-      isPrivate,
+      privateVotes,
     } = request;
 
     this._logger.info(
-      `Starting a new voting round for the draft drip list with ID '${dripListId}'.`,
+      `Starting a new voting round for the draft Drip List with ID '${dripListId}'.`,
     );
 
     assertIsAddress(publisherAddress);
@@ -61,7 +57,7 @@ export default class StartVotingRoundUseCase
       name,
       description,
       collaborators.map((c) => Collaborator.create(getAddress(c) as Address)),
-      isPrivate,
+      privateVotes,
     );
 
     this._logger.info(
@@ -84,7 +80,7 @@ export default class StartVotingRoundUseCase
 
     // Existing Drip List.
     if (dripListId) {
-      reconstructedMessage = START_VOTING_ROUND_MESSAGE_TEMPLATE(
+      reconstructedMessage = Auth.START_VOTING_ROUND_MESSAGE_TEMPLATE(
         currentTime,
         publisherAddress,
         dripListId,
@@ -93,14 +89,14 @@ export default class StartVotingRoundUseCase
     }
     // Draft Drip List.
     else {
-      reconstructedMessage = CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
+      reconstructedMessage = Auth.CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
         currentTime,
         publisherAddress,
         collaborators,
       );
     }
 
-    verifyMessage(
+    Auth.verifyMessage(
       reconstructedMessage,
       signature,
       publisherAddress,
