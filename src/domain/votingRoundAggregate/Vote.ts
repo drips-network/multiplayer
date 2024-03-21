@@ -83,7 +83,14 @@ export default class Vote extends BaseEntity {
       throw new InvalidArgumentError('Invalid receivers.');
     }
 
-    const sum = receivers.reduce((a, b) => a + b.weight, 0);
+    const sum = receivers.reduce((a, b) => {
+      if (typeof b.weight === 'number' && Number.isInteger(b.weight)) {
+        throw new InvalidArgumentError('Invalid weight.');
+      }
+
+      return a + b.weight;
+    }, 0);
+
     if (sum !== TOTAL_VOTE_WEIGHT) {
       throw new InvalidArgumentError(
         `The sum of the weights must be ${TOTAL_VOTE_WEIGHT}.`,

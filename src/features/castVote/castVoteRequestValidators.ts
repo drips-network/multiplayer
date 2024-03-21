@@ -16,5 +16,7 @@ export const castVoteRequestValidators = [
     .isEmpty()
     .isLength({ max: 78 })
     .escape(),
-  body('receivers.*.weight').isNumeric(),
+  body('receivers.*.weight')
+    .custom((value) => typeof value === 'number' && Number.isInteger(value))
+    .escape(),
 ];
