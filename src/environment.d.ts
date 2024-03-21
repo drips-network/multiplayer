@@ -12,6 +12,7 @@ declare global {
       LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error';
       GRAPHQL_URL: string;
       GRAPHQL_TOKEN: string;
+      INFURA_API_KEY: string;
     }
   }
 }

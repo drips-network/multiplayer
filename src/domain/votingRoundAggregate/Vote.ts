@@ -6,21 +6,21 @@ import type { AccountId } from '../typeUtils';
 import { TOTAL_VOTE_WEIGHT } from '../constants';
 import type VotingRound from './VotingRound';
 
-type AddressReceiver = {
+export type AddressReceiver = {
   address: string;
   accountId: AccountId;
   weight: number;
   type: 'address';
 };
 
-type ProjectReceiver = {
+export type ProjectReceiver = {
   url: string;
   accountId: AccountId;
   weight: number;
   type: 'project';
 };
 
-type DripListReceiver = {
+export type DripListReceiver = {
   accountId: AccountId;
   weight: number;
   type: 'dripList';

@@ -1,4 +1,5 @@
 import { GraphQLClient } from 'graphql-request';
+import { JsonRpcProvider } from 'ethers';
 import ApiServer from './ApiServer';
 import 'reflect-metadata';
 import logger from './infrastructure/logger';
@@ -25,6 +26,10 @@ import GetVotingRoundResultUseCase from './features/getVotingRoundResult/GetVoti
 import GetVotingRoundVotesEndpoint from './features/getVotingRoundVotes/GetVotingRoundVotesEndpoint';
 import GetVotingRoundVotesUseCase from './features/getVotingRoundVotes/GetVotingRoundVotesUseCase';
 import Auth from './application/Auth';
+import {
+  AddressDriver__factory,
+  RepoDriver__factory,
+} from './generated/contracts';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -61,8 +66,23 @@ export async function main(): Promise<void> {
   const getVotingRoundByIdEndpoint = new GetVotingRoundByIdEndpoint(
     new GetVotingRoundByIdUseCase(votingRoundRepository),
   );
+
+  const provider = new JsonRpcProvider(appSettings.rpcUrl);
+
   const castVoteEndpoint = new CastVoteEndpoint(
-    new CastVoteUseCase(logger, votingRoundRepository, collaboratorRepository),
+    new CastVoteUseCase(
+      logger,
+      votingRoundRepository,
+      collaboratorRepository,
+      RepoDriver__factory.connect(
+        '0x770023d55D09A9C110694827F1a6B32D5c2b373E', // Hardcoded mainnet address. We only need access to `calcAccountId` functions. We use mainnet for this.
+        provider,
+      ),
+      AddressDriver__factory.connect(
+        '0x1455d9bD6B98f95dd8FEB2b3D60ed825fcef0610', // Hardcoded mainnet address. We only need access to `calcAccountId` functions. We use mainnet for this.
+        provider,
+      ),
+    ),
   );
   const getVotingRoundsEndpoint = new GetVotingRoundsEndpoint(
     new GetVotingRoundsUseCase(votingRoundRepository),

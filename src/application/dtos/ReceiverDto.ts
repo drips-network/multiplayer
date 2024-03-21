@@ -1,13 +1,11 @@
 type AddressReceiverDto = {
   address: string;
-  accountId: string;
   weight: number;
   type: 'address';
 };
 
 type ProjectReceiverDto = {
   url: string;
-  accountId: string;
   weight: number;
   type: 'project';
 };

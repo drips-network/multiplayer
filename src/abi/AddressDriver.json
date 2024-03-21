@@ -1,0 +1,13 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "addr", "type": "address" }
+    ],
+    "name": "calcAccountId",
+    "outputs": [
+      { "internalType": "uint256", "name": "accountId", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

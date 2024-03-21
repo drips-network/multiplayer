@@ -29,6 +29,7 @@ const appSettings = {
     return process.env.GRAPHQL_URL || shouldNeverHappen('Missing GraphQL URL.');
   })(),
   graphQlToken: process.env.GRAPHQL_TOKEN,
+  rpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`, // We only need access to `calcAccountId` functions. We use mainnet for this.
 };
 
 export default appSettings;

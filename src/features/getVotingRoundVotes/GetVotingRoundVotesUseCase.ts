@@ -61,7 +61,6 @@ export default class GetVotingRoundVotesUseCase
   private _toDto(receiver: Receiver): ReceiverDto {
     if ('address' in receiver) {
       return {
-        accountId: receiver.accountId,
         address: receiver.address,
         weight: receiver.weight,
         type: receiver.type,
@@ -69,7 +68,6 @@ export default class GetVotingRoundVotesUseCase
     }
     if ('url' in receiver) {
       return {
-        accountId: receiver.accountId,
         url: receiver.url,
         weight: receiver.weight,
         type: receiver.type,
