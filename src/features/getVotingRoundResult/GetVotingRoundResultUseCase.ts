@@ -6,8 +6,10 @@ import type { GetVotingRoundResultResponse } from './GetVotingRoundResultRespons
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
 import Auth from '../../application/Auth';
+import { assertIsAddress } from '../../domain/typeUtils';
 
 type GetVotingRoundResultCommand = {
+  publisherAddress: string;
   votingRoundId: UUID;
   signature: string | undefined;
   date: string | undefined;
@@ -25,13 +27,15 @@ export default class GetVotingRoundResultUseCase
   public async execute(
     request: GetVotingRoundResultCommand,
   ): Promise<GetVotingRoundResultResponse> {
-    const { votingRoundId, date, signature } = request;
+    const { votingRoundId, date, signature, publisherAddress } = request;
 
     const votingRound = await this._repository.getById(votingRoundId);
 
     if (!votingRound) {
       throw new NotFoundError(`VotingRound not found.`);
     }
+
+    assertIsAddress(publisherAddress);
 
     if (votingRound._isPrivate) {
       if (!signature || !date) {
@@ -40,7 +44,11 @@ export default class GetVotingRoundResultUseCase
         );
       } else {
         Auth.verifyMessage(
-          Auth.REVEAL_RESULT_MESSAGE(votingRoundId, new Date(date)),
+          Auth.REVEAL_RESULT_MESSAGE(
+            publisherAddress,
+            votingRoundId,
+            new Date(date),
+          ),
           signature,
           votingRound._publisher._address,
           new Date(date),

@@ -1,6 +1,5 @@
 import type { Logger } from 'winston';
 import type { UUID } from 'crypto';
-import { verifyMessage } from 'ethers';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { CastVoteRequest } from './CastVoteRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
@@ -90,7 +89,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       }),
     );
 
-    verifyMessage(
+    Auth.verifyMessage(
       Auth.VOTE_MESSAGE_TEMPLATE(
         new Date(date),
         collaboratorAddress,
@@ -98,6 +97,8 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
         receiverEntities.map((r) => r.accountId),
       ),
       signature,
+      collaboratorAddress,
+      new Date(date),
     );
 
     collaborator._votes

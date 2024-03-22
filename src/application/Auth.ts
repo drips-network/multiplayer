@@ -44,16 +44,18 @@ export default class Auth {
   }
 
   public static REVEAL_VOTES_MESSAGE = (
+    publisherAddress: Address,
     votingRoundId: UUID,
     currentTime: Date,
   ) =>
-    `Reveal the votes for voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime}.`;
+    `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime}.`;
 
   public static REVEAL_RESULT_MESSAGE = (
+    publisherAddress: Address,
     votingRoundId: UUID,
     currentTime: Date,
   ) =>
-    `Reveal the result for voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime}.`;
+    `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime}.`;
 
   public static VOTE_MESSAGE_TEMPLATE = (
     currentTime: Date,
@@ -68,14 +70,14 @@ export default class Auth {
 
   public static DELETE_VOTING_ROUND_MESSAGE_TEMPLATE = (
     currentTime: Date,
-    publisherAddress: string,
+    publisherAddress: Address,
     votingRoundId: string,
   ) =>
     `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
 
   public static START_VOTING_ROUND_MESSAGE_TEMPLATE = (
     currentTime: Date,
-    publisherAddress: string,
+    publisherAddress: Address,
     dripListId: string,
     collaborators: string[],
   ) => {
@@ -88,7 +90,7 @@ export default class Auth {
 
   public static CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE = (
     currentTime: Date,
-    publisherAddress: string,
+    publisherAddress: Address,
     collaborators: string[],
   ) => {
     const sortedCollaborators = collaborators.sort(
