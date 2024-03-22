@@ -1,10 +1,11 @@
 import dotenv from 'dotenv';
 import shouldNeverHappen from './application/shouldNeverHappen';
+import { networks } from './application/networks';
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const appSettings = {
-  apiPort: parseInt(process.env.PORT || '5001', 10),
+  port: parseInt(process.env.PORT || '5001', 10),
   nodeEnv: process.env.NODE_ENV,
   network: process.env.NETWORK,
   dbHost: process.env.DB_HOST,
@@ -29,7 +30,14 @@ const appSettings = {
     return process.env.GRAPHQL_URL || shouldNeverHappen('Missing GraphQL URL.');
   })(),
   graphQlToken: process.env.GRAPHQL_TOKEN,
-  rpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`, // We only need access to `calcAccountId` functions. We use mainnet for this.
+  rpcUrl: process.env.RPC_URL,
+  chainId: networks[process.env.NETWORK as keyof typeof networks],
+  addressDriverAddress:
+    process.env.ADDRESS_DRIVER_ADDRESS ||
+    shouldNeverHappen(`Missing 'AddressDriver' address.`),
+  repoDriverAddress:
+    process.env.REPO_DRIVER_ADDRESS ||
+    shouldNeverHappen(`Missing RepoDriver address.`),
 };
 
 export default appSettings;

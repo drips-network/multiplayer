@@ -13,7 +13,7 @@ import {
 export default class ApiServer {
   public static async run(
     endpoints: IEndpoint[],
-    port: number = appSettings.apiPort,
+    port: number = appSettings.port,
   ): Promise<void> {
     const app = express();
 

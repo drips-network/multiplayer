@@ -7,6 +7,7 @@ import type { Address, DripListId } from '../domain/typeUtils';
 import { BadRequestError, UnauthorizedError } from './errors';
 import type { DripList } from '../domain/DripList';
 import type IVotingRoundRepository from '../domain/votingRoundAggregate/IVotingRoundRepository';
+import appSettings from '../appSettings';
 
 export default class Auth {
   private readonly _logger: Logger;
@@ -46,13 +47,13 @@ export default class Auth {
     votingRoundId: UUID,
     currentTime: Date,
   ) =>
-    `Reveal the votes for voting round with ID ${votingRoundId}. The current time is ${currentTime}.`;
+    `Reveal the votes for voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime}.`;
 
   public static REVEAL_RESULT_MESSAGE = (
     votingRoundId: UUID,
     currentTime: Date,
   ) =>
-    `Reveal the result for voting round with ID ${votingRoundId}. The current time is ${currentTime}.`;
+    `Reveal the result for voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime}.`;
 
   public static VOTE_MESSAGE_TEMPLATE = (
     currentTime: Date,
@@ -62,7 +63,7 @@ export default class Auth {
   ) => {
     const sortedReceivers = receivers.sort((a, b) => Number(a) - Number(b));
 
-    return `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(sortedReceivers)}`;
+    return `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(sortedReceivers)}`;
   };
 
   public static DELETE_VOTING_ROUND_MESSAGE_TEMPLATE = (
@@ -70,7 +71,7 @@ export default class Auth {
     publisherAddress: string,
     votingRoundId: string,
   ) =>
-    `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}. The current time is ${currentTime.toISOString()}.`;
+    `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
 
   public static START_VOTING_ROUND_MESSAGE_TEMPLATE = (
     currentTime: Date,
@@ -82,7 +83,7 @@ export default class Auth {
       (a, b) => Number(a) - Number(b),
     );
 
-    return `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
+    return `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
   };
 
   public static CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE = (
@@ -94,7 +95,7 @@ export default class Auth {
       (a, b) => Number(a) - Number(b),
     );
 
-    return `Create a new collaborative Drip List owned by ${publisherAddress}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
+    return `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
   };
 
   public async verifyDripListOwnership(

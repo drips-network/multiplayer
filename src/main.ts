@@ -80,14 +80,8 @@ export async function main(): Promise<void> {
       logger,
       votingRoundRepository,
       collaboratorRepository,
-      RepoDriver__factory.connect(
-        '0x770023d55D09A9C110694827F1a6B32D5c2b373E', // Hardcoded mainnet address. We only need access to `calcAccountId` functions. We use mainnet for this.
-        provider,
-      ),
-      AddressDriver__factory.connect(
-        '0x1455d9bD6B98f95dd8FEB2b3D60ed825fcef0610', // Hardcoded mainnet address. We only need access to `calcAccountId` functions. We use mainnet for this.
-        provider,
-      ),
+      RepoDriver__factory.connect(appSettings.addressDriverAddress, provider),
+      AddressDriver__factory.connect(appSettings.repoDriverAddress, provider),
     ),
   );
   const getVotingRoundsEndpoint = new GetVotingRoundsEndpoint(
@@ -115,7 +109,7 @@ export async function main(): Promise<void> {
       getVotingRoundResultEndpoint,
       isVoterEndpoint,
     ],
-    appSettings.apiPort,
+    appSettings.port,
   );
 }
 

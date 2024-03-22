@@ -3,7 +3,7 @@ declare global {
     interface ProcessEnv {
       NODE_ENV: 'local' | 'goerli' | 'mainnet';
       PORT: string;
-      NETWORK: 'goerli' | 'mainnet';
+      NETWORK: 'sepolia' | 'mainnet';
       DB_HOST: string;
       DB_PORT: string;
       DB_USER: string;
@@ -12,7 +12,9 @@ declare global {
       LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error';
       GRAPHQL_URL: string;
       GRAPHQL_TOKEN: string;
-      INFURA_API_KEY: string;
+      RPC_URL: string;
+      ADDRESS_DRIVER_ADDRESS: string;
+      REPO_DRIVER_ADDRESS: string;
     }
   }
 }
