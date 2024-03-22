@@ -30,6 +30,8 @@ import {
   AddressDriver__factory,
   RepoDriver__factory,
 } from './generated/contracts';
+import IsVoterEndpoint from './features/isVoter/IsVoterEndpoint';
+import IsVoterUseCase from './features/isVoter/IsVoterUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -65,6 +67,10 @@ export async function main(): Promise<void> {
   );
   const getVotingRoundByIdEndpoint = new GetVotingRoundByIdEndpoint(
     new GetVotingRoundByIdUseCase(votingRoundRepository),
+  );
+
+  const isVoterEndpoint = new IsVoterEndpoint(
+    new IsVoterUseCase(votingRoundRepository),
   );
 
   const provider = new JsonRpcProvider(appSettings.rpcUrl);
@@ -107,6 +113,7 @@ export async function main(): Promise<void> {
       linkEndpoint,
       getVotingRoundVotesEndpoint,
       getVotingRoundResultEndpoint,
+      isVoterEndpoint,
     ],
     appSettings.apiPort,
   );
