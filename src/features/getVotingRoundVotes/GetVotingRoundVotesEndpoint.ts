@@ -7,7 +7,6 @@ import type GetVotingRoundVotesUseCase from './GetVotingRoundVotesUseCase';
 import type { TypedResponse } from '../../application/interfaces/ITypedResponse';
 import type { GetVotingRoundVotesResponse } from './GetVotingRoundVotesResponse';
 import type { TypedRequest } from '../../application/interfaces/ITypedRequest';
-import type { GetVotingRoundVotesRequest } from './GetVotingRoundVotesRequest';
 
 export default class GetVotingRoundVotesEndpoint implements IEndpoint {
   private readonly _getVotesUseCase: GetVotingRoundVotesUseCase;
@@ -33,15 +32,13 @@ export default class GetVotingRoundVotesEndpoint implements IEndpoint {
         votingRoundId: UUID;
         signature: string | undefined;
         date: string | undefined;
-      },
-      GetVotingRoundVotesRequest
+      }
     >,
     res: TypedResponse<GetVotingRoundVotesResponse>,
   ): Promise<Response> {
     const votingRoundVotes = await this._getVotesUseCase.execute({
       ...req.query,
       ...req.params,
-      ...req.body,
     });
 
     return res.status(200).send(votingRoundVotes);

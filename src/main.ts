@@ -80,8 +80,11 @@ export async function main(): Promise<void> {
       logger,
       votingRoundRepository,
       collaboratorRepository,
-      RepoDriver__factory.connect(appSettings.addressDriverAddress, provider),
-      AddressDriver__factory.connect(appSettings.repoDriverAddress, provider),
+      RepoDriver__factory.connect(appSettings.repoDriverAddress, provider),
+      AddressDriver__factory.connect(
+        appSettings.addressDriverAddress,
+        provider,
+      ),
     ),
   );
   const getVotingRoundsEndpoint = new GetVotingRoundsEndpoint(

@@ -1,5 +1,6 @@
 import type { Logger } from 'winston';
 import type { UUID } from 'crypto';
+import { hexlify, toUtf8Bytes } from 'ethers';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { CastVoteRequest } from './CastVoteRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
@@ -79,7 +80,10 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
           return {
             ...receiverDto,
             accountId: (
-              await this._repoDriver.calcAccountId(0, `${projectName}`)
+              await this._repoDriver.calcAccountId(
+                0,
+                hexlify(toUtf8Bytes(`${projectName}`)),
+              )
             ).toString() as ProjectId,
           } satisfies ProjectReceiver;
         }

@@ -6,11 +6,9 @@ import type { GetVotingRoundResultResponse } from './GetVotingRoundResultRespons
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
 import Auth from '../../application/Auth';
-import { assertIsAddress } from '../../domain/typeUtils';
 import { VotingRoundStatus } from '../../domain/votingRoundAggregate/VotingRound';
 
 type GetVotingRoundResultCommand = {
-  publisherAddress: string;
   votingRoundId: UUID;
   signature: string | undefined;
   date: string | undefined;
@@ -28,7 +26,7 @@ export default class GetVotingRoundResultUseCase
   public async execute(
     request: GetVotingRoundResultCommand,
   ): Promise<GetVotingRoundResultResponse> {
-    const { votingRoundId, date, signature, publisherAddress } = request;
+    const { votingRoundId, date, signature } = request;
 
     const votingRound = await this._repository.getById(votingRoundId);
 
@@ -36,20 +34,18 @@ export default class GetVotingRoundResultUseCase
       throw new NotFoundError(`VotingRound not found.`);
     }
 
-    assertIsAddress(publisherAddress);
-
     if (
       votingRound._isPrivate &&
       votingRound.status !== VotingRoundStatus.Completed
     ) {
-      if (!signature || !date || !publisherAddress) {
+      if (!signature || !date) {
         throw new UnauthorizedError(
           `Authentication is required for private voting rounds.`,
         );
       } else {
         Auth.verifyMessage(
           Auth.REVEAL_RESULT_MESSAGE(
-            publisherAddress,
+            votingRound._publisher._address,
             votingRoundId,
             new Date(date),
           ),
