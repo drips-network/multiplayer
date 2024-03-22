@@ -189,7 +189,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     }
 
     if (
-      receivers.reduce((sum, receiver) => sum + receiver.weight, 0) !==
+      receivers.reduce((sum, receiver) => sum + Number(receiver.weight), 0) !==
       TOTAL_VOTE_WEIGHT
     ) {
       throw new InvalidArgumentError(

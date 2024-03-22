@@ -88,7 +88,7 @@ export default class Vote extends BaseEntity {
         throw new InvalidArgumentError('Invalid weight.');
       }
 
-      return a + b.weight;
+      return a + Number(b.weight);
     }, 0);
 
     if (sum !== TOTAL_VOTE_WEIGHT) {
