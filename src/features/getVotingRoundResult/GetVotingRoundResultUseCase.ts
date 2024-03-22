@@ -7,6 +7,7 @@ import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
 import Auth from '../../application/Auth';
 import { assertIsAddress } from '../../domain/typeUtils';
+import { VotingRoundStatus } from '../../domain/votingRoundAggregate/VotingRound';
 
 type GetVotingRoundResultCommand = {
   publisherAddress: string;
@@ -37,8 +38,11 @@ export default class GetVotingRoundResultUseCase
 
     assertIsAddress(publisherAddress);
 
-    if (votingRound._isPrivate) {
-      if (!signature || !date) {
+    if (
+      votingRound._isPrivate &&
+      votingRound.status !== VotingRoundStatus.Completed
+    ) {
+      if (!signature || !date || !publisherAddress) {
         throw new UnauthorizedError(
           `Authentication is required for private voting rounds.`,
         );
