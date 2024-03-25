@@ -93,16 +93,23 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       }),
     );
 
+    this._logger.info(
+      `Receivers for voting round '${votingRoundId}' and collaborator '${collaboratorAddress}' are: ${
+        (JSON.stringify(receiverEntities), null, 2)
+      }`,
+    );
+
     Auth.verifyMessage(
       Auth.VOTE_MESSAGE_TEMPLATE(
         new Date(date),
         collaboratorAddress,
         votingRoundId,
-        receiverEntities.map((r) => r.accountId),
+        receiverEntities,
       ),
       signature,
       collaboratorAddress,
       new Date(date),
+      this._logger,
     );
 
     collaborator._votes

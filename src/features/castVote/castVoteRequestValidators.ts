@@ -10,13 +10,7 @@ export const castVoteRequestValidators = [
     .escape(),
   body('receivers').isArray().not().isEmpty().isLength({ max: 200 }),
   body('receivers.*.type').isIn(['address', 'project', 'dripList']).escape(),
-  body('receivers.*.accountId')
-    .isString()
-    .not()
-    .isEmpty()
-    .isLength({ max: 78 })
-    .escape(),
-  body('receivers.*.weight')
-    .custom((value) => typeof value === 'number' && Number.isInteger(value))
-    .escape(),
+  body('receivers.*.weight').custom(
+    (value) => typeof value === 'number' && Number.isInteger(value),
+  ),
 ];

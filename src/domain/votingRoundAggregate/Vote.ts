@@ -84,7 +84,13 @@ export default class Vote extends BaseEntity {
     }
 
     const sum = receivers.reduce((a, b) => {
-      if (typeof b.weight === 'number' && Number.isInteger(b.weight)) {
+      if (
+        !(
+          typeof b.weight === 'number' &&
+          Number.isInteger(b.weight) &&
+          b.weight > 0
+        )
+      ) {
         throw new InvalidArgumentError('Invalid weight.');
       }
 
