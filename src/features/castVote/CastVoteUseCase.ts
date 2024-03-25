@@ -94,9 +94,11 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
     );
 
     this._logger.info(
-      `Receivers for voting round '${votingRoundId}' and collaborator '${collaboratorAddress}' are: ${
-        (JSON.stringify(receiverEntities), null, 2)
-      }`,
+      `Receivers for voting round '${votingRoundId}' and collaborator '${collaboratorAddress}' are: ${JSON.stringify(
+        receiverEntities,
+        null,
+        2,
+      )}`,
     );
 
     Auth.verifyMessage(

@@ -3,8 +3,8 @@ import type { UUID } from 'crypto';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { LinkRequest } from './LinkRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
-import { BadRequestError, NotFoundError } from '../../application/errors';
-import { assertIsAddress, toDripListId } from '../../domain/typeUtils';
+import { NotFoundError } from '../../application/errors';
+import { toDripListId } from '../../domain/typeUtils';
 import type IPublisherRepository from '../../domain/publisherAggregate/IPublisherRepository';
 import type Auth from '../../application/Auth';
 
@@ -31,17 +31,9 @@ export default class LinkUseCase implements UseCase<LinkCommand> {
   }
 
   public async execute(request: LinkCommand): Promise<void> {
-    const { votingRoundId, publisherAddress, dripListId } = request;
+    const { votingRoundId, dripListId } = request;
 
     this._logger.info(`Linking voting round '${votingRoundId}'...`);
-
-    assertIsAddress(publisherAddress);
-
-    this._auth.verifyDripListOwnership(
-      toDripListId(dripListId),
-      publisherAddress,
-      votingRoundId,
-    );
 
     const votingRound =
       await this._votingRoundRepository.getById(votingRoundId);
@@ -50,18 +42,7 @@ export default class LinkUseCase implements UseCase<LinkCommand> {
       throw new NotFoundError(`voting round not found.`);
     }
 
-    const publisher =
-      await this._publisherRepository.getByAddress(publisherAddress);
-
-    if (!publisher) {
-      throw new NotFoundError(`Collaborator not found.`);
-    }
-
-    if (votingRound._publisher._address !== publisherAddress) {
-      throw new BadRequestError(
-        'The publisher is not the owner of the voting round.',
-      );
-    }
+    this._auth.verifyDripListOwnership(votingRound, toDripListId(dripListId));
 
     votingRound.link();
 

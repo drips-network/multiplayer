@@ -14,6 +14,7 @@ import type {
   ProjectReceiver,
 } from '../domain/votingRoundAggregate/Vote';
 import shouldNeverHappen from './shouldNeverHappen';
+import type VotingRound from '../domain/votingRoundAggregate/VotingRound';
 
 export default class Auth {
   private readonly _logger: Logger;
@@ -141,17 +142,12 @@ export default class Auth {
   };
 
   public async verifyDripListOwnership(
+    votingRound: VotingRound,
     dripListId: DripListId,
-    publisherAddress: Address,
-    votingRoundId: UUID,
   ): Promise<void> {
-    const storedDripListId = (
-      await this._votingRoundRepository.getById(votingRoundId)
-    )?._dripListId;
-
-    if (storedDripListId && storedDripListId !== dripListId) {
+    if (votingRound._dripListId && votingRound._dripListId !== dripListId) {
       this._logger.error(
-        `Drip List ID '${dripListId}' does not match the stored Drip List ID '${storedDripListId}'.`,
+        `Drip List ID '${dripListId}' does not match the stored Drip List ID '${votingRound?._dripListId}'.`,
       );
 
       throw new BadRequestError(
@@ -170,9 +166,9 @@ export default class Auth {
       { dripListId },
     );
 
-    if (dripList.owner.address !== publisherAddress) {
+    if (dripList.owner.address !== votingRound._publisher._address) {
       this._logger.error(
-        `Unauthorized access to Drip List '${dripListId}' with real owner '${dripList.owner.address}' by '${publisherAddress}'.`,
+        `Unauthorized access to Drip List '${dripListId}' with real owner '${dripList.owner.address}' by '${votingRound._publisher._address}'.`,
       );
 
       throw new UnauthorizedError(
@@ -180,9 +176,9 @@ export default class Auth {
       );
     }
 
-    if (dripList.latestVotingRoundId !== votingRoundId) {
+    if (dripList.latestVotingRoundId !== votingRound._id) {
       this._logger.error(
-        `Latest voting round '${dripList.latestVotingRoundId}' for Drip List '${dripListId}' does not match the voting round '${votingRoundId}'.`,
+        `Latest voting round '${dripList.latestVotingRoundId}' for Drip List '${dripListId}' does not match the voting round '${votingRound._id}'.`,
       );
 
       throw new BadRequestError(
