@@ -3,7 +3,7 @@ import { NotFoundError } from '../../application/errors';
 import type { GetVotingRoundByIdRequest } from './GetVotingRoundByIdRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import type { GetVotingRoundByIdResponse } from './GetVotingRoundByIdResponse';
-import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
+import { toDto } from '../../application/dtos/ReceiverDto';
 
 export default class GetVotingRoundByIdUseCase
   implements UseCase<GetVotingRoundByIdRequest, GetVotingRoundByIdResponse>
@@ -32,32 +32,12 @@ export default class GetVotingRoundByIdUseCase
       name: votingRound._name,
       description: votingRound._description,
       publisherAddress: votingRound._publisher._address,
-      privateVotes: votingRound._isPrivate,
-    };
-  }
-
-  private _toDto(receiver: Receiver) {
-    if ('address' in receiver) {
-      return {
-        accountId: receiver.accountId,
-        address: receiver.address,
-        weight: receiver.weight,
-        type: receiver.type,
-      };
-    }
-    if ('url' in receiver) {
-      return {
-        accountId: receiver.accountId,
-        url: receiver.url,
-        weight: receiver.weight,
-        type: receiver.type,
-      };
-    }
-
-    return {
-      accountId: receiver.accountId as string,
-      weight: receiver.weight,
-      type: receiver.type,
+      privateVotes: votingRound._privateVotes,
+      linkedAt: votingRound.linkedAt,
+      result:
+        votingRound._privateVotes || !votingRound._votes?.length
+          ? null
+          : votingRound.getResult().map((receiver) => toDto(receiver)),
     };
   }
 }

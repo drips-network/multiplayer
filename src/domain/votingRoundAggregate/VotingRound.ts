@@ -24,6 +24,7 @@ export enum VotingRoundStatus {
   Started = 'started',
   Completed = 'completed',
   Deleted = 'deleted',
+  Linked = 'linked',
 }
 
 @Entity({
@@ -59,7 +60,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   public _description: string | undefined;
 
   @Column('bool', { nullable: false, name: 'privateVotes' })
-  public _isPrivate!: boolean;
+  public _privateVotes!: boolean;
 
   @ManyToMany(
     'Collaborator',
@@ -83,6 +84,10 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       return VotingRoundStatus.Deleted;
     }
 
+    if (this._endsAt.getTime() < new Date().getTime() && this.linkedAt) {
+      return VotingRoundStatus.Linked;
+    }
+
     if (this._endsAt.getTime() < new Date().getTime()) {
       return VotingRoundStatus.Completed;
     }
@@ -97,8 +102,8 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   @JoinColumn()
   public _link: Link | undefined;
 
-  public get isCompleted(): boolean {
-    return Boolean(this.status === VotingRoundStatus.Completed);
+  get linkedAt(): Date | undefined {
+    return this._link?._updatedAt;
   }
 
   public static create(
@@ -168,7 +173,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     votingRound._name = name;
     votingRound._description = description;
     votingRound._collaborators = collaborators;
-    votingRound._isPrivate = privateVotes;
+    votingRound._privateVotes = privateVotes;
 
     return votingRound;
   }

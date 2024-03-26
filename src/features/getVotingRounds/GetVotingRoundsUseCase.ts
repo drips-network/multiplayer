@@ -4,6 +4,7 @@ import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVoti
 import type { GetVotingRoundsResponse } from './GetVotingRoundsResponse';
 import type { Address, DripListId } from '../../domain/typeUtils';
 import { assertIsAddress, toDripListId } from '../../domain/typeUtils';
+import { toDto } from '../../application/dtos/ReceiverDto';
 
 export default class GetVotingRoundsUseCase
   implements UseCase<GetVotingRoundsRequest, GetVotingRoundsResponse>
@@ -46,7 +47,12 @@ export default class GetVotingRoundsUseCase
         name: votingRound._name,
         description: votingRound._description,
         publisherAddress: votingRound._publisher._address,
-        privateVotes: votingRound._isPrivate,
+        privateVotes: votingRound._privateVotes,
+        linkedAt: votingRound.linkedAt,
+        result:
+          votingRound._privateVotes || !votingRound._votes?.length
+            ? null
+            : votingRound.getResult().map((receiver) => toDto(receiver)),
       })),
     };
   }

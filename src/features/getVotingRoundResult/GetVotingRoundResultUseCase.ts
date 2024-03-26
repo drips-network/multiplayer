@@ -3,8 +3,7 @@ import type UseCase from '../../application/interfaces/IUseCase';
 import { NotFoundError, UnauthorizedError } from '../../application/errors';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import type { GetVotingRoundResultResponse } from './GetVotingRoundResultResponse';
-import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
-import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
+import { toDto } from '../../application/dtos/ReceiverDto';
 import Auth from '../../application/Auth';
 import { VotingRoundStatus } from '../../domain/votingRoundAggregate/VotingRound';
 
@@ -35,7 +34,7 @@ export default class GetVotingRoundResultUseCase
     }
 
     if (
-      votingRound._isPrivate &&
+      votingRound._privateVotes &&
       votingRound.status !== VotingRoundStatus.Completed
     ) {
       if (!signature || !date) {
@@ -57,30 +56,7 @@ export default class GetVotingRoundResultUseCase
     }
 
     return {
-      result: votingRound.getResult().map((receiver) => this._toDto(receiver)),
-    };
-  }
-
-  private _toDto(receiver: Receiver): ReceiverDto {
-    if ('address' in receiver) {
-      return {
-        address: receiver.address,
-        weight: receiver.weight,
-        type: receiver.type,
-      };
-    }
-    if ('url' in receiver) {
-      return {
-        url: receiver.url,
-        weight: receiver.weight,
-        type: receiver.type,
-      };
-    }
-
-    return {
-      accountId: receiver.accountId,
-      weight: receiver.weight,
-      type: receiver.type,
+      result: votingRound.getResult().map((receiver) => toDto(receiver)),
     };
   }
 }
