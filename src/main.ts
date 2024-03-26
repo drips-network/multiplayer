@@ -91,7 +91,7 @@ export async function main(): Promise<void> {
     new GetVotingRoundsUseCase(votingRoundRepository),
   );
   const linkEndpoint = new LinkEndpoint(
-    new LinkUseCase(logger, votingRoundRepository, publisherRepository, auth),
+    new LinkUseCase(logger, votingRoundRepository, auth),
   );
   const getVotingRoundVotesEndpoint = new GetVotingRoundVotesEndpoint(
     new GetVotingRoundVotesUseCase(votingRoundRepository),
@@ -121,5 +121,5 @@ export async function main(): Promise<void> {
 })();
 
 process.on('uncaughtException', (error: Error) => {
-  logger.error(`Uncaught Exception: ${error.message}`);
+  logger.error(`Uncaught Exception: ${error.message} ${error.stack}`);
 });

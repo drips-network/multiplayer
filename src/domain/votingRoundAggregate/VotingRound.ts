@@ -328,9 +328,34 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     );
   }
 
-  public link(): void {
+  public linkToNewDripList(dripListId: DripListId): void {
+    if (this._link) {
+      throw new InvalidArgumentError(
+        'Cannot link a voting round that is already linked.',
+      );
+    }
+
+    if (this.status !== VotingRoundStatus.Completed) {
+      throw new InvalidArgumentError(
+        `Cannot link a voting round that is not completed. Status: ${this.status}.`,
+      );
+    }
+
+    if (!this._votes?.length) {
+      throw new InvalidArgumentError(
+        'Cannot link a Drip List to a voting round with no votes.',
+      );
+    }
+
+    const link = Link.create(dripListId, this);
+
+    this._link = link;
+    this._dripListId = dripListId;
+  }
+
+  public linkToExistingDripList(): void {
     if (!this._dripListId) {
-      throw new InvalidArgumentError('Drip List ID must be provided.');
+      throw new InvalidArgumentError('There is no Drip List to link to.');
     }
 
     if (this._link) {

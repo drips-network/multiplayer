@@ -3,10 +3,10 @@ import type { UUID } from 'crypto';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { LinkRequest } from './LinkRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
-import { NotFoundError } from '../../application/errors';
+import { BadRequestError, NotFoundError } from '../../application/errors';
 import { toDripListId } from '../../domain/typeUtils';
-import type IPublisherRepository from '../../domain/publisherAggregate/IPublisherRepository';
 import type Auth from '../../application/Auth';
+import shouldNeverHappen from '../../application/shouldNeverHappen';
 
 type LinkCommand = LinkRequest & {
   votingRoundId: UUID;
@@ -15,19 +15,16 @@ type LinkCommand = LinkRequest & {
 export default class LinkUseCase implements UseCase<LinkCommand> {
   private readonly _auth: Auth;
   private readonly _logger: Logger;
-  private readonly _publisherRepository: IPublisherRepository;
   private readonly _votingRoundRepository: IVotingRoundRepository;
 
   public constructor(
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
-    collaboratorRepository: IPublisherRepository,
     auth: Auth,
   ) {
     this._auth = auth;
     this._logger = logger;
     this._votingRoundRepository = votingRoundRepository;
-    this._publisherRepository = collaboratorRepository;
   }
 
   public async execute(request: LinkCommand): Promise<void> {
@@ -42,9 +39,33 @@ export default class LinkUseCase implements UseCase<LinkCommand> {
       throw new NotFoundError(`voting round not found.`);
     }
 
-    this._auth.verifyDripListOwnership(votingRound, toDripListId(dripListId));
+    if (votingRound._dripListId && dripListId) {
+      throw new BadRequestError(
+        `Voting round already connected to a DripList. Do not provide a Drip List ID for an existing Drip List.`,
+      );
+    }
 
-    votingRound.link();
+    if (!votingRound._dripListId && !dripListId) {
+      throw new BadRequestError(`Missing Drip List ID.`);
+    }
+
+    if (votingRound._dripListId) {
+      await this._auth.verifyDripListOwnership(
+        votingRound,
+        votingRound._dripListId,
+      );
+
+      votingRound.linkToExistingDripList();
+    } else if (dripListId) {
+      await this._auth.verifyDripListOwnership(
+        votingRound,
+        toDripListId(dripListId),
+      );
+
+      votingRound.linkToNewDripList(toDripListId(dripListId));
+    } else {
+      shouldNeverHappen();
+    }
 
     await this._votingRoundRepository.save(votingRound);
 

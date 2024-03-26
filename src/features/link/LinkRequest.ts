@@ -1,3 +1,3 @@
 export type LinkRequest = {
-  dripListId: string;
+  dripListId: string | undefined;
 };

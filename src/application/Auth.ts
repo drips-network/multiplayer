@@ -155,16 +155,25 @@ export default class Auth {
       );
     }
 
-    const dripList = await this._client.request<DripList>(
+    const { dripList } = await this._client.request<{ dripList: DripList }>(
       gql`
         query DripList($dripListId: ID!) {
           dripList(id: $dripListId) {
             latestVotingRoundId
+            owner {
+              address
+            }
           }
         }
       `,
       { dripListId },
     );
+
+    if (!dripList) {
+      this._logger.error(`Drip List '${dripListId}' not found.`);
+
+      throw new BadRequestError('Drip List not found.');
+    }
 
     if (dripList.owner.address !== votingRound._publisher._address) {
       this._logger.error(
