@@ -38,6 +38,16 @@ export default class GetVotingRoundByIdUseCase
         votingRound._privateVotes || !votingRound._votes?.length
           ? null
           : votingRound.getResult().map((receiver) => toDto(receiver)),
+      votes: votingRound._privateVotes
+        ? null
+        : votingRound.getLatestVotes().map((collaboratorsWithVotes) => ({
+            collaboratorAddress: collaboratorsWithVotes.collaborator._address,
+            votedAt: collaboratorsWithVotes.latestVote?._updatedAt || null,
+            latestVote:
+              collaboratorsWithVotes.latestVote?.receivers?.map((receiver) =>
+                toDto(receiver),
+              ) || null,
+          })),
     };
   }
 }

@@ -13,4 +13,11 @@ export type GetVotingRoundByIdResponse = {
   privateVotes: boolean;
   linkedAt: Date | undefined;
   result: ReceiverDto[] | null; // `null` if the voting round is private or noon has voted yet.
+  votes:
+    | {
+        collaboratorAddress: string;
+        votedAt: Date | null;
+        latestVote: ReceiverDto[] | null;
+      }[]
+    | null; // `null` if the voting round is private or noon has voted yet.
 };
