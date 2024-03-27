@@ -24,6 +24,7 @@ export default class VotingRoundService {
   }
 
   public async start(
+    startsAt: Date,
     endsAt: Date,
     publisher: Publisher,
     dripListId: DripListId | undefined,
@@ -31,6 +32,8 @@ export default class VotingRoundService {
     description: string | undefined,
     collaborators: Collaborator[],
     privateVotes: boolean,
+    nominationStartsAt: Date | undefined = undefined,
+    nominationEndsAt: Date | undefined = undefined,
   ): Promise<UUID> {
     const activeVotingRounds =
       await this._votingRoundRepository.getActiveVotingRoundsByPublisher(
@@ -63,6 +66,7 @@ export default class VotingRoundService {
     );
 
     const newVotingRound = VotingRound.create(
+      startsAt,
       endsAt,
       existingPublisher || publisher,
       dripListId,
@@ -70,6 +74,8 @@ export default class VotingRoundService {
       description,
       [...existingCollaborators, ...newCollaborators],
       privateVotes,
+      nominationStartsAt,
+      nominationEndsAt,
     );
 
     await this._votingRoundRepository.save(newVotingRound);

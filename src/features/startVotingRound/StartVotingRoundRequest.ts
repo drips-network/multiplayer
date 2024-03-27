@@ -1,4 +1,5 @@
 export type StartVotingRoundRequest = {
+  startsAt: Date;
   endsAt: Date;
   dripListId: string;
   name: string;
@@ -8,4 +9,6 @@ export type StartVotingRoundRequest = {
   signature: string;
   date: Date;
   privateVotes: boolean;
+  nominationStartsAt: Date | undefined;
+  nominationEndsAt: Date | undefined;
 };

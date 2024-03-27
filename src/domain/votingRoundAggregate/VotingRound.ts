@@ -10,7 +10,10 @@ import {
 import { isAddress } from 'ethers';
 import BaseEntity from '../BaseEntity';
 import type Collaborator from '../collaboratorAggregate/Collaborator';
-import { InvalidArgumentError } from '../errors';
+import {
+  InvalidArgumentError,
+  InvalidVotingRoundOperationError,
+} from '../errors';
 import type IAggregateRoot from '../IAggregateRoot';
 import type { Receiver } from './Vote';
 import type { Address, AccountId, DripListId } from '../typeUtils';
@@ -19,6 +22,8 @@ import type Publisher from '../publisherAggregate/Publisher';
 import Link from '../linkedDripList/Link';
 import { TOTAL_VOTE_WEIGHT } from '../constants';
 import Vote from './Vote';
+import type Nomination from './Nomination';
+import { NominationStatus } from './Nomination';
 
 export enum VotingRoundStatus {
   Started = 'started',
@@ -36,6 +41,12 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
   @Column('timestamptz', { nullable: true, name: 'endsAt' })
   public _endsAt!: Date;
+
+  @Column('timestamptz', { nullable: true, name: 'nominationStartsAt' })
+  public _nominationStartsAt!: Date;
+
+  @Column('timestamptz', { nullable: true, name: 'nominationEndsAt' })
+  public _nominationEndsAt!: Date;
 
   @ManyToOne('Publisher', (publisher: Publisher) => publisher._votingRounds, {
     nullable: false,
@@ -79,6 +90,16 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   })
   public _votes: Vote[] | undefined;
 
+  @OneToMany(
+    'Nominations',
+    (nomination: Nomination) => nomination._votingRound,
+    {
+      nullable: true,
+      cascade: true,
+    },
+  )
+  public _nominations: Nomination[] | undefined;
+
   public get status(): VotingRoundStatus {
     if (this._deletedAt) {
       return VotingRoundStatus.Deleted;
@@ -106,7 +127,25 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return this._link?._updatedAt;
   }
 
+  get acceptsNominations(): boolean {
+    return Boolean(this._nominationStartsAt && this._nominationEndsAt);
+  }
+
+  get isOpenForNominations(): boolean {
+    return (
+      this._nominationStartsAt &&
+      this._nominationEndsAt &&
+      new Date().getTime() >= this._nominationStartsAt.getTime() &&
+      new Date().getTime() <= this._nominationEndsAt.getTime()
+    );
+  }
+
+  get hasVotingPeriodStarted(): boolean {
+    return new Date().getTime() >= this._startsAt.getTime();
+  }
+
   public static create(
+    startsAt: Date,
     endsAt: Date,
     publisher: Publisher,
     dripListId: DripListId | undefined,
@@ -114,8 +153,9 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     description: string | undefined,
     collaborators: Collaborator[],
     privateVotes: boolean,
+    nominationStartsAt: Date | undefined,
+    nominationEndsAt: Date | undefined,
   ): VotingRound {
-    const startsAt = new Date(); // For now, all Voting Rounds start immediately.
     const startsAtTime = startsAt.getTime();
     const endsAtTime = new Date(endsAt).getTime();
 
@@ -123,13 +163,52 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       throw new InvalidArgumentError('Start date must be before end date.');
     }
 
-    // TODO: Uncomment this after adding scheduled voting round feature.
-    // if (startsAtTime < new Date().getTime()) {
-    //   throw new InvalidArgumentError('Start date must be in the future.');
-    // }
+    if (startsAtTime < new Date().getTime()) {
+      throw new InvalidArgumentError('Start date must be in the future.');
+    }
 
     if (endsAtTime < new Date().getTime()) {
       throw new InvalidArgumentError('End date must be in the future.');
+    }
+
+    if (
+      (nominationStartsAt && !nominationEndsAt) ||
+      (!nominationStartsAt && nominationEndsAt)
+    ) {
+      throw new InvalidArgumentError(
+        'Both nomination start and end dates must be provided.',
+      );
+    }
+
+    if (
+      nominationStartsAt &&
+      nominationStartsAt.getTime() < new Date().getTime()
+    ) {
+      throw new InvalidArgumentError(
+        'Nomination start date must be in the future.',
+      );
+    }
+
+    if (nominationEndsAt && nominationEndsAt.getTime() < new Date().getTime()) {
+      throw new InvalidArgumentError(
+        'Nomination end date must be in the future.',
+      );
+    }
+
+    if (
+      nominationStartsAt &&
+      nominationEndsAt &&
+      nominationStartsAt.getTime() > nominationEndsAt.getTime()
+    ) {
+      throw new InvalidArgumentError(
+        'Nomination start date must be before nomination end date.',
+      );
+    }
+
+    if (nominationEndsAt && nominationEndsAt.getTime() > startsAtTime) {
+      throw new InvalidArgumentError(
+        'Nomination end date must be before the voting round start date.',
+      );
     }
 
     if (name?.length && name.length > 50) {
@@ -384,5 +463,85 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     const link = Link.create(this._dripListId, this);
 
     this._link = link;
+  }
+
+  public nominate(nomination: Nomination): void {
+    if (!this.acceptsNominations) {
+      throw new InvalidVotingRoundOperationError(
+        'This voting round does not accept nominations.',
+      );
+    }
+
+    if (!this.isOpenForNominations) {
+      throw new InvalidVotingRoundOperationError(
+        'Nomination period is closed.',
+      );
+    }
+
+    if (!this._nominations) {
+      this._nominations = [];
+    }
+
+    if (this._nominations.some((n) => n._accountId === nomination._accountId)) {
+      throw new InvalidArgumentError('Receiver has already been nominated.');
+    }
+
+    this._nominations.push(nomination);
+  }
+
+  public acceptMany(nominations: Nomination[]): void {
+    if (!this._nominations || !this._nominations.length) {
+      throw new InvalidArgumentError(
+        'There are no nominations to accept for this voting round.',
+      );
+    }
+
+    if (this.hasVotingPeriodStarted) {
+      throw new InvalidVotingRoundOperationError(
+        'Cannot accept nominations after the voting period has started.',
+      );
+    }
+
+    nominations.forEach((nomination) => {
+      const index = this._nominations?.findIndex(
+        (n) => n._accountId === nomination._accountId,
+      );
+
+      if (!index || index === -1) {
+        throw new InvalidArgumentError(
+          'Receiver has not been nominated for this voting round.',
+        );
+      }
+
+      this._nominations![index]._status = NominationStatus.Accepted;
+    });
+  }
+
+  public rejectMany(nominations: Nomination[]): void {
+    if (!this._nominations || !this._nominations.length) {
+      throw new InvalidArgumentError(
+        'There are no nominations to reject for this voting round.',
+      );
+    }
+
+    if (this.hasVotingPeriodStarted) {
+      throw new InvalidVotingRoundOperationError(
+        'Cannot reject nominations after the voting period has started.',
+      );
+    }
+
+    nominations.forEach((nomination) => {
+      const index = this._nominations?.findIndex(
+        (n) => n._accountId === nomination._accountId,
+      );
+
+      if (!index || index === -1) {
+        throw new InvalidArgumentError(
+          'Receiver has not been nominated for this voting round.',
+        );
+      }
+
+      this._nominations![index]._status = NominationStatus.Rejected;
+    });
   }
 }

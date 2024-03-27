@@ -107,7 +107,7 @@ export default class Vote extends BaseEntity {
 
     vote._votingRound = votingRound;
     vote._collaborator = collaborator;
-    vote.receivers = receivers;
+    vote.receivers = receivers; // Not `_receivers` because we want to use the setter.
 
     return vote;
   }

@@ -25,8 +25,9 @@ export default class StartVotingRoundUseCase
     request: StartVotingRoundRequest,
   ): Promise<StartVotingRoundResponse> {
     const {
-      dripListId,
+      startsAt,
       endsAt,
+      dripListId,
       name,
       description,
       publisherAddress,
@@ -51,6 +52,7 @@ export default class StartVotingRoundUseCase
     );
 
     const newVotingRoundId = await this._votingRoundService.start(
+      startsAt,
       endsAt,
       Publisher.create(publisherAddress),
       dripListId ? toDripListId(dripListId) : undefined,
