@@ -1,29 +1,20 @@
 import type { Logger } from 'winston';
 import type { UUID } from 'crypto';
-import { hexlify, toUtf8Bytes } from 'ethers';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { CastVoteRequest } from './CastVoteRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import { NotFoundError, UnauthorizedError } from '../../application/errors';
 import type ICollaboratorRepository from '../../domain/collaboratorAggregate/ICollaboratorRepository';
-import type { AddressDriverId, ProjectId } from '../../domain/typeUtils';
-import { assertIsAccountId, assertIsAddress } from '../../domain/typeUtils';
-import type {
-  AddressReceiver,
-  DripListReceiver,
-  ProjectReceiver,
-  Receiver,
-} from '../../domain/votingRoundAggregate/Vote';
+import { assertIsAddress } from '../../domain/typeUtils';
+import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 import Auth from '../../application/Auth';
-import type { AddressDriver, RepoDriver } from '../../generated/contracts';
-import { parseGitHubUrl } from '../../application/utils';
+import type IReceiverService from '../../application/interfaces/IReceiverService';
 
 type CastVoteCommand = CastVoteRequest & { votingRoundId: UUID };
 
 export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
   private readonly _logger: Logger;
-  private readonly _repoDriver: RepoDriver;
-  private readonly _addressDriver: AddressDriver;
+  private readonly _receiverService: IReceiverService;
   private readonly _votingRoundRepository: IVotingRoundRepository;
   private readonly _collaboratorRepository: ICollaboratorRepository;
 
@@ -31,12 +22,10 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
     collaboratorRepository: ICollaboratorRepository,
-    repoDriver: RepoDriver,
-    addressDriver: AddressDriver,
+    receiverService: IReceiverService,
   ) {
     this._logger = logger;
-    this._repoDriver = repoDriver;
-    this._addressDriver = addressDriver;
+    this._receiverService = receiverService;
     this._votingRoundRepository = votingRoundRepository;
     this._collaboratorRepository = collaboratorRepository;
   }
@@ -65,32 +54,9 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
     }
 
     const receiverEntities: Receiver[] = await Promise.all(
-      receivers.map(async (receiverDto) => {
-        if ('address' in receiverDto) {
-          return {
-            ...receiverDto,
-            accountId: (
-              await this._addressDriver.calcAccountId(receiverDto.address)
-            ).toString() as AddressDriverId,
-          } satisfies AddressReceiver;
-        }
-        if ('url' in receiverDto) {
-          const { username, repoName } = parseGitHubUrl(receiverDto.url);
-          const projectName = `${username}/${repoName}`;
-          return {
-            ...receiverDto,
-            accountId: (
-              await this._repoDriver.calcAccountId(
-                0,
-                hexlify(toUtf8Bytes(`${projectName}`)),
-              )
-            ).toString() as ProjectId,
-          } satisfies ProjectReceiver;
-        }
-
-        assertIsAccountId(receiverDto.accountId);
-        return { ...receiverDto } as DripListReceiver;
-      }),
+      receivers.map(async (receiverDto) =>
+        this._receiverService.mapToReceiver(receiverDto),
+      ),
     );
 
     this._logger.info(

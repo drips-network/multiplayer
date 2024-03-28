@@ -32,6 +32,9 @@ import {
 } from './generated/contracts';
 import IsVoterEndpoint from './features/isVoter/IsVoterEndpoint';
 import IsVoterUseCase from './features/isVoter/IsVoterUseCase';
+import ReceiverService from './infrastructure/ReceiverService';
+import NominateEndpoint from './features/nominate/NominateEndpoint';
+import NominateUseCase from './features/nominate/NominateUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -75,29 +78,38 @@ export async function main(): Promise<void> {
 
   const provider = new JsonRpcProvider(appSettings.rpcUrl);
 
+  const receiverService = new ReceiverService(
+    RepoDriver__factory.connect(appSettings.repoDriverAddress, provider),
+    AddressDriver__factory.connect(appSettings.addressDriverAddress, provider),
+  );
+
   const castVoteEndpoint = new CastVoteEndpoint(
     new CastVoteUseCase(
       logger,
       votingRoundRepository,
       collaboratorRepository,
-      RepoDriver__factory.connect(appSettings.repoDriverAddress, provider),
-      AddressDriver__factory.connect(
-        appSettings.addressDriverAddress,
-        provider,
-      ),
+      receiverService,
     ),
   );
+
   const getVotingRoundsEndpoint = new GetVotingRoundsEndpoint(
     new GetVotingRoundsUseCase(votingRoundRepository),
   );
+
   const linkEndpoint = new LinkEndpoint(
     new LinkUseCase(logger, votingRoundRepository, auth),
   );
+
   const getVotingRoundVotesEndpoint = new GetVotingRoundVotesEndpoint(
     new GetVotingRoundVotesUseCase(votingRoundRepository),
   );
+
   const getVotingRoundResultEndpoint = new GetVotingRoundResultEndpoint(
     new GetVotingRoundResultUseCase(votingRoundRepository),
+  );
+
+  const nominateEndpoint = new NominateEndpoint(
+    new NominateUseCase(logger, votingRoundRepository, receiverService),
   );
 
   await ApiServer.run(
@@ -111,6 +123,7 @@ export async function main(): Promise<void> {
       getVotingRoundVotesEndpoint,
       getVotingRoundResultEndpoint,
       isVoterEndpoint,
+      nominateEndpoint,
     ],
     appSettings.port,
   );

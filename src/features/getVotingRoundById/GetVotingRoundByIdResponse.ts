@@ -20,4 +20,9 @@ export type GetVotingRoundByIdResponse = {
         latestVote: ReceiverDto[] | null;
       }[]
     | null; // `null` if the voting round is private or noon has voted yet.
+  nominationStartsAt: Date | undefined;
+  nominationEndsAt: Date | undefined;
+  hasVotingPeriodStarted: boolean;
+  acceptsNominations: boolean;
+  isOpenForNominations: boolean;
 };

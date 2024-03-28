@@ -1,18 +1,18 @@
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 
-type AddressReceiverDto = {
+export type AddressReceiverDto = {
   address: string;
   weight: number;
   type: 'address';
 };
 
-type ProjectReceiverDto = {
+export type ProjectReceiverDto = {
   url: string;
   weight: number;
   type: 'project';
 };
 
-type DripListReceiverDto = {
+export type DripListReceiverDto = {
   accountId: string;
   weight: number;
   type: 'dripList';

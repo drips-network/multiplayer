@@ -35,6 +35,8 @@ export default class StartVotingRoundUseCase
       signature,
       date,
       privateVotes,
+      nominationEndsAt,
+      nominationStartsAt,
     } = request;
 
     this._logger.info(
@@ -60,6 +62,8 @@ export default class StartVotingRoundUseCase
       description,
       collaborators.map((c) => Collaborator.create(getAddress(c) as Address)),
       privateVotes,
+      nominationStartsAt,
+      nominationEndsAt,
     );
 
     this._logger.info(

@@ -63,6 +63,11 @@ export default class GetVotingRoundsUseCase
                   toDto(receiver),
                 ) || null,
             })),
+        nominationEndsAt: votingRound._nominationEndsAt,
+        nominationStartsAt: votingRound._nominationStartsAt,
+        hasVotingPeriodStarted: votingRound.hasVotingPeriodStarted,
+        acceptsNominations: votingRound.acceptsNominations,
+        isOpenForNominations: votingRound.isOpenForNominations,
       })),
     };
   }

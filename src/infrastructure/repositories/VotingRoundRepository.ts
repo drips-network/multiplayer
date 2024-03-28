@@ -26,6 +26,7 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
         '_votes._collaborator',
         '_publisher',
         '_link',
+        '_nominations',
       ],
     });
   }
@@ -54,6 +55,7 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
         '_votes._collaborator',
         '_publisher',
         '_link',
+        '_nominations',
       ],
     });
   }

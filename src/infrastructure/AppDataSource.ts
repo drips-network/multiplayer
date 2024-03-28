@@ -6,6 +6,7 @@ import Collaborator from '../domain/collaboratorAggregate/Collaborator';
 import Vote from '../domain/votingRoundAggregate/Vote';
 import Publisher from '../domain/publisherAggregate/Publisher';
 import Link from '../domain/linkedDripList/Link';
+import Nomination from '../domain/votingRoundAggregate/Nomination';
 
 export async function initializeAppDataSource() {
   try {
@@ -18,7 +19,7 @@ export async function initializeAppDataSource() {
       username: dbUser,
       password: dbPassword,
       database: dbName,
-      entities: [VotingRound, Collaborator, Vote, Publisher, Link],
+      entities: [VotingRound, Collaborator, Vote, Publisher, Link, Nomination],
       synchronize: true,
       logging: false,
       schema: network,

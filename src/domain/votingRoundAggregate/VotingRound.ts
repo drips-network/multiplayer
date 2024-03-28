@@ -36,17 +36,17 @@ export enum VotingRoundStatus {
   name: 'VotingRounds',
 })
 export default class VotingRound extends BaseEntity implements IAggregateRoot {
-  @Column('timestamptz', { nullable: true, name: 'startsAt' })
+  @Column('timestamptz', { nullable: false, name: 'startsAt' })
   public _startsAt!: Date;
 
-  @Column('timestamptz', { nullable: true, name: 'endsAt' })
+  @Column('timestamptz', { nullable: false, name: 'endsAt' })
   public _endsAt!: Date;
 
   @Column('timestamptz', { nullable: true, name: 'nominationStartsAt' })
-  public _nominationStartsAt!: Date;
+  public _nominationStartsAt: Date | undefined;
 
   @Column('timestamptz', { nullable: true, name: 'nominationEndsAt' })
-  public _nominationEndsAt!: Date;
+  public _nominationEndsAt: Date | undefined;
 
   @ManyToOne('Publisher', (publisher: Publisher) => publisher._votingRounds, {
     nullable: false,
@@ -132,11 +132,10 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   }
 
   get isOpenForNominations(): boolean {
-    return (
+    return Boolean(
       this._nominationStartsAt &&
-      this._nominationEndsAt &&
-      new Date().getTime() >= this._nominationStartsAt.getTime() &&
-      new Date().getTime() <= this._nominationEndsAt.getTime()
+        this._nominationEndsAt &&
+        new Date().getTime() <= this._nominationEndsAt.getTime(),
     );
   }
 
@@ -156,7 +155,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     nominationStartsAt: Date | undefined,
     nominationEndsAt: Date | undefined,
   ): VotingRound {
-    const startsAtTime = startsAt.getTime();
+    const startsAtTime = new Date(startsAt).getTime();
     const endsAtTime = new Date(endsAt).getTime();
 
     if (startsAtTime > endsAtTime) {
@@ -182,14 +181,17 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     if (
       nominationStartsAt &&
-      nominationStartsAt.getTime() < new Date().getTime()
+      new Date(nominationEndsAt!).getTime() < new Date().getTime()
     ) {
       throw new InvalidArgumentError(
         'Nomination start date must be in the future.',
       );
     }
 
-    if (nominationEndsAt && nominationEndsAt.getTime() < new Date().getTime()) {
+    if (
+      nominationEndsAt &&
+      new Date(nominationEndsAt).getTime() < new Date().getTime()
+    ) {
       throw new InvalidArgumentError(
         'Nomination end date must be in the future.',
       );
@@ -198,14 +200,18 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     if (
       nominationStartsAt &&
       nominationEndsAt &&
-      nominationStartsAt.getTime() > nominationEndsAt.getTime()
+      new Date(nominationStartsAt).getTime() >
+        new Date(nominationEndsAt).getTime()
     ) {
       throw new InvalidArgumentError(
         'Nomination start date must be before nomination end date.',
       );
     }
 
-    if (nominationEndsAt && nominationEndsAt.getTime() > startsAtTime) {
+    if (
+      nominationEndsAt &&
+      new Date(nominationEndsAt).getTime() > startsAtTime
+    ) {
       throw new InvalidArgumentError(
         'Nomination end date must be before the voting round start date.',
       );
@@ -253,6 +259,8 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     votingRound._description = description;
     votingRound._collaborators = collaborators;
     votingRound._privateVotes = privateVotes;
+    votingRound._nominationStartsAt = nominationStartsAt;
+    votingRound._nominationEndsAt = nominationEndsAt;
 
     return votingRound;
   }
@@ -482,7 +490,11 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       this._nominations = [];
     }
 
-    if (this._nominations.some((n) => n._accountId === nomination._accountId)) {
+    if (
+      this._nominations.some(
+        (n) => n.receiver.accountId === nomination.receiver.accountId,
+      )
+    ) {
       throw new InvalidArgumentError('Receiver has already been nominated.');
     }
 
@@ -504,7 +516,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     nominations.forEach((nomination) => {
       const index = this._nominations?.findIndex(
-        (n) => n._accountId === nomination._accountId,
+        (n) => n.receiver.accountId === nomination.receiver.accountId,
       );
 
       if (!index || index === -1) {
@@ -532,7 +544,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     nominations.forEach((nomination) => {
       const index = this._nominations?.findIndex(
-        (n) => n._accountId === nomination._accountId,
+        (n) => n.receiver.accountId === nomination.receiver.accountId,
       );
 
       if (!index || index === -1) {

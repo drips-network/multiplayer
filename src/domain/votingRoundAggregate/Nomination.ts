@@ -1,9 +1,20 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import BaseEntity from '../BaseEntity';
 import type VotingRound from './VotingRound';
-import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
-import type { AccountId } from '../typeUtils';
-import type { Receiver } from './Vote';
+import type {
+  AddressReceiver,
+  DripListReceiver,
+  ProjectReceiver,
+} from './Vote';
+
+export type AddressNominationReceiver = Omit<AddressReceiver, 'weight'>;
+export type ProjectNominationReceiver = Omit<ProjectReceiver, 'weight'>;
+export type DripListNominationReceiver = Omit<DripListReceiver, 'weight'>;
+
+export type NominationReceiver =
+  | AddressNominationReceiver
+  | ProjectNominationReceiver
+  | DripListNominationReceiver;
 
 export enum NominationStatus {
   Pending = 'pending',
@@ -23,13 +34,6 @@ export default class Nomination extends BaseEntity {
   })
   public _votingRound!: VotingRound;
 
-  @Column('varchar', {
-    nullable: false,
-    length: DataSchemaConstants.ACCOUNT_ID_MAX_LENGTH,
-    name: 'accountId',
-  })
-  public _accountId!: AccountId;
-
   @Column('enum', {
     nullable: false,
     name: 'status',
@@ -39,21 +43,21 @@ export default class Nomination extends BaseEntity {
 
   @Column('json', { nullable: true, name: 'receiver' })
   public _receiverJson!: string;
-  private _receiver!: Receiver;
-  get receiver(): Receiver {
+  private _receiver!: NominationReceiver;
+  get receiver(): NominationReceiver {
     if (!this._receiver && this._receiverJson) {
       this._receiver = JSON.parse(this._receiverJson);
     }
     return this._receiver;
   }
-  set receiver(value: Receiver) {
+  set receiver(value: NominationReceiver) {
     this._receiver = value;
     this._receiverJson = JSON.stringify(value);
   }
 
   public static create(
     votingRound: VotingRound,
-    receiver: Receiver,
+    receiver: NominationReceiver,
     status: NominationStatus = NominationStatus.Pending,
   ): Nomination {
     const nomination = new Nomination();
