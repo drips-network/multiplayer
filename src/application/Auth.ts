@@ -54,25 +54,36 @@ export default class Auth {
         `Signature '${signature}' is not valid for signer '${signerAddress}'. Original signer should be '${originalSigner}'. Checking if it's coming from Safe...`,
       );
 
-      const IERC1271_ABI = [
-        'function isValidSignature(bytes32 _hash, bytes memory _signature) external view returns (bytes4)',
-      ];
+      try {
+        const IERC1271_ABI = [
+          'function isValidSignature(bytes32 _hash, bytes memory _signature) external view returns (bytes4)',
+        ];
 
-      const contract = new Contract(signerAddress, IERC1271_ABI, provider);
+        const contract = new Contract(signerAddress, IERC1271_ABI, provider);
 
-      const hash = hashMessage(message);
+        const hash = hashMessage(message);
 
-      const magicValue = await contract.isValidSignature(hash, signature);
-      if (magicValue === '0x1626ba7e') {
-        logger.info(
-          `Signature '${signature}' is valid for signer '${signerAddress}' using Safe.`,
-        );
-      } else {
-        logger.error(
-          `Signature '${signature}' is not valid for signer '${signerAddress}' using Safe.`,
-        );
+        const magicValue = await contract.isValidSignature(hash, signature);
+        if (magicValue === '0x1626ba7e') {
+          logger.info(
+            `Signature '${signature}' is valid for signer '${signerAddress}' using Safe.`,
+          );
+        } else {
+          logger.error(
+            `Signature '${signature}' is not valid for signer '${signerAddress}' using Safe.`,
+          );
 
-        throw new UnauthorizedError('Invalid signature.');
+          throw new UnauthorizedError('Invalid signature.');
+        }
+      } catch (error: any) {
+        if (error.message.includes('could not decode result data')) {
+          // Expected ethers error.
+          logger.info(
+            `Signature '${signature}' is not valid for signer '${signerAddress}'.`,
+          );
+
+          throw new UnauthorizedError('Invalid signature.');
+        }
       }
     }
 
@@ -80,7 +91,7 @@ export default class Auth {
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     if (currentTime < oneDayAgo || currentTime > now) {
       logger.info(
-        `The current time '${currentTime}' is not within the last 24 hours.`,
+        `The current time '${currentTime.toISOString()}' is not within the last 24 hours.`,
       );
 
       throw new UnauthorizedError('Vote is outdated.');
@@ -96,14 +107,14 @@ export default class Auth {
     votingRoundId: UUID,
     currentTime: Date,
   ) =>
-    `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime}.`;
+    `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
 
   public static REVEAL_RESULT_MESSAGE = (
     publisherAddress: Address,
     votingRoundId: UUID,
     currentTime: Date,
   ) =>
-    `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime}.`;
+    `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
 
   public static VOTE_MESSAGE_TEMPLATE = (
     currentTime: Date,
