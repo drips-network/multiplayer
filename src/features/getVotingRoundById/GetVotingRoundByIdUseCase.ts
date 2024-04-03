@@ -3,15 +3,20 @@ import { NotFoundError } from '../../application/errors';
 import type { GetVotingRoundByIdRequest } from './GetVotingRoundByIdRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import type { GetVotingRoundByIdResponse } from './GetVotingRoundByIdResponse';
-import { toDto } from '../../application/dtos/ReceiverDto';
+import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 
 export default class GetVotingRoundByIdUseCase
   implements UseCase<GetVotingRoundByIdRequest, GetVotingRoundByIdResponse>
 {
   private readonly _repository: IVotingRoundRepository;
+  private readonly _receiverMapper: IReceiverMapper;
 
-  public constructor(repository: IVotingRoundRepository) {
+  public constructor(
+    repository: IVotingRoundRepository,
+    receiverMapper: IReceiverMapper,
+  ) {
     this._repository = repository;
+    this._receiverMapper = receiverMapper;
   }
 
   public async execute(
@@ -37,7 +42,11 @@ export default class GetVotingRoundByIdUseCase
       result:
         votingRound._privateVotes || !votingRound._votes?.length
           ? null
-          : votingRound.getResult().map((receiver) => toDto(receiver)),
+          : votingRound
+              .getResult()
+              .map((receiver) =>
+                this._receiverMapper.mapToReceiverDto(receiver),
+              ),
       votes: votingRound._privateVotes
         ? null
         : votingRound.getLatestVotes().map((collaboratorsWithVotes) => ({
@@ -45,7 +54,7 @@ export default class GetVotingRoundByIdUseCase
             votedAt: collaboratorsWithVotes.latestVote?._updatedAt || null,
             latestVote:
               collaboratorsWithVotes.latestVote?.receivers?.map((receiver) =>
-                toDto(receiver),
+                this._receiverMapper.mapToReceiverDto(receiver),
               ) || null,
           })),
       nominationEndsAt: votingRound._nominationEndsAt,
@@ -53,6 +62,9 @@ export default class GetVotingRoundByIdUseCase
       hasVotingPeriodStarted: votingRound.hasVotingPeriodStarted,
       acceptsNominations: votingRound.acceptsNominations,
       isOpenForNominations: votingRound.isOpenForNominations,
+      nominations: votingRound._nominations?.map((n) =>
+        this._receiverMapper.mapToNominationInfoDto(n),
+      ),
     };
   }
 }

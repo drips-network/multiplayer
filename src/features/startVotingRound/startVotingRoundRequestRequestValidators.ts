@@ -1,8 +1,22 @@
 import { body } from 'express-validator';
 
 export const startVotingRoundRequestRequestValidators = [
-  body('startsAt').isISO8601().escape(),
-  body('endsAt').isISO8601().escape(),
+  body('schedule.startsAt')
+    .if((_, { req }) => req.body.schedule.startsAt)
+    .isISO8601()
+    .escape(),
+  body('schedule.endsAt')
+    .if((_, { req }) => req.body.schedule.endsAt)
+    .isISO8601()
+    .escape(),
+  body('schedule.nominationStartsAt')
+    .if((_, { req }) => req.body.schedule.nominationStartsAt)
+    .isISO8601()
+    .escape(),
+  body('schedule.nominationEndsAt')
+    .if((_, { req }) => req.body.schedule.nominationEndsAt)
+    .isISO8601()
+    .escape(),
   body('date').isISO8601().escape(),
   body('privateVotes').isBoolean(),
   body('signature').isString().not().isEmpty().escape(),

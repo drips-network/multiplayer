@@ -1,5 +1,6 @@
 import type { UUID } from 'crypto';
-import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
+import type { NominationInfoDto } from '../getVotingRoundById/GetVotingRoundByIdResponse';
+import type { ReceiverDto } from '../../application/dtos';
 
 export type GetVotingRoundsResponse = {
   votingRounds:
@@ -20,6 +21,7 @@ export type GetVotingRoundsResponse = {
         hasVotingPeriodStarted: boolean;
         acceptsNominations: boolean;
         isOpenForNominations: boolean;
+        nominations: NominationInfoDto[] | undefined;
         votes:
           | {
               collaboratorAddress: string;

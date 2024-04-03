@@ -1,5 +1,25 @@
 import type { UUID } from 'crypto';
-import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
+import type {
+  AddressNominationDto,
+  DripListNominationDto,
+  ProjectNominationDto,
+} from '../nominate/NominateRequest';
+import type { AccountIdDto, ReceiverDto } from '../../application/dtos';
+import type { NominationStatus } from '../../domain/votingRoundAggregate/Nomination';
+
+type InfoDto = {
+  accountId: AccountIdDto;
+  status: NominationStatus;
+};
+
+export type AddressNominationInfoDto = AddressNominationDto & InfoDto;
+export type ProjectNominationInfoDto = ProjectNominationDto & InfoDto;
+export type DripListNominationInfoDto = DripListNominationDto & InfoDto;
+
+export type NominationInfoDto =
+  | AddressNominationInfoDto
+  | ProjectNominationInfoDto
+  | DripListNominationInfoDto;
 
 export type GetVotingRoundByIdResponse = {
   id: UUID;
@@ -25,4 +45,5 @@ export type GetVotingRoundByIdResponse = {
   hasVotingPeriodStarted: boolean;
   acceptsNominations: boolean;
   isOpenForNominations: boolean;
+  nominations: NominationInfoDto[] | undefined;
 };

@@ -8,13 +8,13 @@ import type ICollaboratorRepository from '../../domain/collaboratorAggregate/ICo
 import { assertIsAddress } from '../../domain/typeUtils';
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 import Auth from '../../application/Auth';
-import type IReceiverService from '../../application/interfaces/IReceiverService';
+import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 
 type CastVoteCommand = CastVoteRequest & { votingRoundId: UUID };
 
 export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
   private readonly _logger: Logger;
-  private readonly _receiverService: IReceiverService;
+  private readonly _receiverMapper: IReceiverMapper;
   private readonly _votingRoundRepository: IVotingRoundRepository;
   private readonly _collaboratorRepository: ICollaboratorRepository;
 
@@ -22,10 +22,10 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
     collaboratorRepository: ICollaboratorRepository,
-    receiverService: IReceiverService,
+    receiverMapper: IReceiverMapper,
   ) {
     this._logger = logger;
-    this._receiverService = receiverService;
+    this._receiverMapper = receiverMapper;
     this._votingRoundRepository = votingRoundRepository;
     this._collaboratorRepository = collaboratorRepository;
   }
@@ -55,7 +55,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
 
     const receiverEntities: Receiver[] = await Promise.all(
       receivers.map(async (receiverDto) =>
-        this._receiverService.mapToReceiver(receiverDto),
+        this._receiverMapper.mapToReceiver(receiverDto),
       ),
     );
 

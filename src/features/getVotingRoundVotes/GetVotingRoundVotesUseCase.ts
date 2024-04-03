@@ -3,9 +3,9 @@ import type { Logger } from 'winston';
 import type UseCase from '../../application/interfaces/IUseCase';
 import { NotFoundError, UnauthorizedError } from '../../application/errors';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
-import { toDto } from '../../application/dtos/ReceiverDto';
 import type { GetVotingRoundVotesResponse } from './GetVotingRoundVotesResponse';
 import Auth from '../../application/Auth';
+import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 
 type GetVotingRoundVotesCommand = {
   votingRoundId: UUID;
@@ -17,11 +17,17 @@ export default class GetVotingRoundVotesUseCase
   implements UseCase<GetVotingRoundVotesCommand, GetVotingRoundVotesResponse>
 {
   private readonly _logger: Logger;
+  private readonly _receiverMapper: IReceiverMapper;
   private readonly _repository: IVotingRoundRepository;
 
-  public constructor(repository: IVotingRoundRepository, logger: Logger) {
+  public constructor(
+    repository: IVotingRoundRepository,
+    logger: Logger,
+    receiverMapper: IReceiverMapper,
+  ) {
     this._logger = logger;
     this._repository = repository;
+    this._receiverMapper = receiverMapper;
   }
 
   public async execute(
@@ -60,7 +66,7 @@ export default class GetVotingRoundVotesUseCase
         collaboratorAddress: collaboratorsWithVotes.collaborator._address,
         latestVote:
           collaboratorsWithVotes.latestVote?.receivers?.map((receiver) =>
-            toDto(receiver),
+            this._receiverMapper.mapToReceiverDto(receiver),
           ) || null,
       })),
     };

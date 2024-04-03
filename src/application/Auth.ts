@@ -10,7 +10,6 @@ import type { Logger } from 'winston';
 import type { Address, DripListId } from '../domain/typeUtils';
 import { BadRequestError, UnauthorizedError } from './errors';
 import type { DripList } from '../domain/DripList';
-import type IVotingRoundRepository from '../domain/votingRoundAggregate/IVotingRoundRepository';
 import appSettings from '../appSettings';
 import type {
   AddressReceiver,
@@ -24,16 +23,10 @@ import provider from './provider';
 export default class Auth {
   private readonly _logger: Logger;
   private readonly _client: GraphQLClient;
-  private readonly _votingRoundRepository: IVotingRoundRepository;
 
-  public constructor(
-    logger: Logger,
-    client: GraphQLClient,
-    votingRoundRepository: IVotingRoundRepository,
-  ) {
+  public constructor(logger: Logger, client: GraphQLClient) {
     this._logger = logger;
     this._client = client;
-    this._votingRoundRepository = votingRoundRepository;
   }
 
   public static async verifyMessage(

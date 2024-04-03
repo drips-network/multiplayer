@@ -1,4 +1,4 @@
-import type { AddressDto } from '../../application/dtos/commmon';
+import type { AddressDto } from '../../application/dtos';
 
 type Schedule =
   | {

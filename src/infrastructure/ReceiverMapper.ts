@@ -1,6 +1,5 @@
 import { hexlify, toUtf8Bytes } from 'ethers';
-import type { ReceiverDto } from '../application/dtos/ReceiverDto';
-import type IReceiverService from '../application/interfaces/IReceiverService';
+import type IReceiverMapper from '../application/interfaces/IReceiverMapper';
 import { parseGitHubUrl } from '../application/utils';
 import {
   assertIsAccountId,
@@ -21,8 +20,16 @@ import type {
   ProjectNominationReceiver,
 } from '../domain/votingRoundAggregate/Nomination';
 import type { NominationDto } from '../features/nominate/NominateRequest';
+import type {
+  AddressNominationInfoDto,
+  DripListNominationInfoDto,
+  NominationInfoDto,
+  ProjectNominationInfoDto,
+} from '../features/getVotingRoundById/GetVotingRoundByIdResponse';
+import type Nomination from '../domain/votingRoundAggregate/Nomination';
+import type { ReceiverDto } from '../application/dtos';
 
-export default class ReceiverService implements IReceiverService {
+export default class ReceiverMapper implements IReceiverMapper {
   private readonly _repoDriver: RepoDriver;
   private readonly _addressDriver: AddressDriver;
 
@@ -58,7 +65,7 @@ export default class ReceiverService implements IReceiverService {
     return { ...receiverDto } as DripListReceiver;
   }
 
-  async mapToNominationReceiver(
+  public async mapToNominationReceiver(
     receiverDto: NominationDto,
   ): Promise<NominationReceiver> {
     if ('address' in receiverDto) {
@@ -85,5 +92,52 @@ export default class ReceiverService implements IReceiverService {
 
     assertIsAccountId(receiverDto.accountId);
     return { ...receiverDto } as DripListNominationReceiver;
+  }
+
+  public mapToNominationInfoDto(nomination: Nomination): NominationInfoDto {
+    const { receiver } = nomination;
+
+    if ('address' in receiver) {
+      const { ...addressNominationDto } = receiver;
+      return {
+        ...addressNominationDto,
+        status: nomination._status,
+      } as AddressNominationInfoDto;
+    }
+    if ('url' in receiver) {
+      const { ...projectNominationDto } = receiver;
+      return {
+        ...projectNominationDto,
+        status: nomination._status,
+      } as ProjectNominationInfoDto;
+    }
+
+    return {
+      ...receiver,
+      status: nomination._status,
+    } as DripListNominationInfoDto;
+  }
+
+  public mapToReceiverDto(receiver: Receiver): ReceiverDto {
+    if ('address' in receiver) {
+      return {
+        address: receiver.address,
+        weight: receiver.weight,
+        type: receiver.type,
+      };
+    }
+    if ('url' in receiver) {
+      return {
+        url: receiver.url,
+        weight: receiver.weight,
+        type: receiver.type,
+      };
+    }
+
+    return {
+      accountId: receiver.accountId,
+      weight: receiver.weight,
+      type: receiver.type,
+    };
   }
 }

@@ -31,7 +31,7 @@ import {
 } from './generated/contracts';
 import IsVoterEndpoint from './features/isVoter/IsVoterEndpoint';
 import IsVoterUseCase from './features/isVoter/IsVoterUseCase';
-import ReceiverService from './infrastructure/ReceiverService';
+import ReceiverMapper from './infrastructure/ReceiverMapper';
 import NominateEndpoint from './features/nominate/NominateEndpoint';
 import NominateUseCase from './features/nominate/NominateUseCase';
 import provider from './application/provider';
@@ -59,7 +59,11 @@ export async function main(): Promise<void> {
         authorization: `Bearer ${appSettings.graphQlToken}`,
       },
     }),
-    votingRoundRepository,
+  );
+
+  const receiverMapper = new ReceiverMapper(
+    RepoDriver__factory.connect(appSettings.repoDriverAddress, provider),
+    AddressDriver__factory.connect(appSettings.addressDriverAddress, provider),
   );
 
   const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
@@ -69,16 +73,11 @@ export async function main(): Promise<void> {
     new SoftDeleteVotingRoundUseCase(logger, votingRoundRepository),
   );
   const getVotingRoundByIdEndpoint = new GetVotingRoundByIdEndpoint(
-    new GetVotingRoundByIdUseCase(votingRoundRepository),
+    new GetVotingRoundByIdUseCase(votingRoundRepository, receiverMapper),
   );
 
   const isVoterEndpoint = new IsVoterEndpoint(
     new IsVoterUseCase(votingRoundRepository),
-  );
-
-  const receiverService = new ReceiverService(
-    RepoDriver__factory.connect(appSettings.repoDriverAddress, provider),
-    AddressDriver__factory.connect(appSettings.addressDriverAddress, provider),
   );
 
   const castVoteEndpoint = new CastVoteEndpoint(
@@ -86,12 +85,12 @@ export async function main(): Promise<void> {
       logger,
       votingRoundRepository,
       collaboratorRepository,
-      receiverService,
+      receiverMapper,
     ),
   );
 
   const getVotingRoundsEndpoint = new GetVotingRoundsEndpoint(
-    new GetVotingRoundsUseCase(votingRoundRepository),
+    new GetVotingRoundsUseCase(votingRoundRepository, receiverMapper),
   );
 
   const linkEndpoint = new LinkEndpoint(
@@ -99,15 +98,23 @@ export async function main(): Promise<void> {
   );
 
   const getVotingRoundVotesEndpoint = new GetVotingRoundVotesEndpoint(
-    new GetVotingRoundVotesUseCase(votingRoundRepository, logger),
+    new GetVotingRoundVotesUseCase(
+      votingRoundRepository,
+      logger,
+      receiverMapper,
+    ),
   );
 
   const getVotingRoundResultEndpoint = new GetVotingRoundResultEndpoint(
-    new GetVotingRoundResultUseCase(votingRoundRepository, logger),
+    new GetVotingRoundResultUseCase(
+      votingRoundRepository,
+      logger,
+      receiverMapper,
+    ),
   );
 
   const nominateEndpoint = new NominateEndpoint(
-    new NominateUseCase(logger, votingRoundRepository, receiverService),
+    new NominateUseCase(logger, votingRoundRepository, receiverMapper),
   );
 
   await ApiServer.run(

@@ -5,22 +5,22 @@ import type { NominateRequest } from './NominateRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import { NotFoundError } from '../../application/errors';
 import Nomination from '../../domain/votingRoundAggregate/Nomination';
-import type IReceiverService from '../../application/interfaces/IReceiverService';
+import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 
 type NominateCommand = NominateRequest & { votingRoundId: UUID };
 
 export default class NominateUseCase implements UseCase<NominateCommand> {
   private readonly _logger: Logger;
-  private readonly _receiverService: IReceiverService;
+  private readonly _receiverMapper: IReceiverMapper;
   private readonly _votingRoundRepository: IVotingRoundRepository;
 
   public constructor(
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
-    receiverService: IReceiverService,
+    receiverMapper: IReceiverMapper,
   ) {
     this._logger = logger;
-    this._receiverService = receiverService;
+    this._receiverMapper = receiverMapper;
     this._votingRoundRepository = votingRoundRepository;
   }
 
@@ -39,7 +39,7 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
     }
 
     const receiver =
-      await this._receiverService.mapToNominationReceiver(nominationDto);
+      await this._receiverMapper.mapToNominationReceiver(nominationDto);
 
     const nomination = Nomination.create(votingRound, receiver);
 

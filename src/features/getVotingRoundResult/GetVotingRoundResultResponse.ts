@@ -1,4 +1,4 @@
-import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
+import type { ReceiverDto } from '../../application/dtos';
 
 export type GetVotingRoundResultResponse = {
   result: ReceiverDto[] | null;

@@ -1,5 +1,4 @@
-import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
-import type { AddressDto } from '../../application/dtos/commmon';
+import type { AddressDto, ReceiverDto } from '../../application/dtos';
 
 export type CastVoteRequest = {
   collaboratorAddress: AddressDto;

@@ -2,11 +2,11 @@ import type {
   AddressReceiverDto,
   DripListReceiverDto,
   ProjectReceiverDto,
-} from '../../application/dtos/ReceiverDto';
+} from '../../application/dtos';
 
-type AddressNominationDto = Omit<AddressReceiverDto, 'weight'>;
-type ProjectNominationDto = Omit<ProjectReceiverDto, 'weight'>;
-type DripListNominationDto = Omit<DripListReceiverDto, 'weight'>;
+export type AddressNominationDto = Omit<AddressReceiverDto, 'weight'>;
+export type ProjectNominationDto = Omit<ProjectReceiverDto, 'weight'>;
+export type DripListNominationDto = Omit<DripListReceiverDto, 'weight'>;
 
 export type NominationDto =
   | AddressNominationDto
