@@ -1,8 +1,8 @@
 import type { ReceiverDto } from '../../application/dtos/ReceiverDto';
+import type { AddressDto } from '../../application/dtos/commmon';
 
 export type CastVoteRequest = {
-  // votingRoundId: UUID // URL parameter.
-  collaboratorAddress: string;
+  collaboratorAddress: AddressDto;
   receivers: ReceiverDto[];
   signature: string;
   date: Date;
