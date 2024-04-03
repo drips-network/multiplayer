@@ -10,6 +10,7 @@ import type { NominationStatus } from '../../domain/votingRoundAggregate/Nominat
 type InfoDto = {
   accountId: AccountIdDto;
   status: NominationStatus;
+  nominatedAt: Date;
 };
 
 export type AddressNominationInfoDto = AddressNominationDto & InfoDto;

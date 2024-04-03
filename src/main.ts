@@ -35,6 +35,8 @@ import ReceiverMapper from './infrastructure/ReceiverMapper';
 import NominateEndpoint from './features/nominate/NominateEndpoint';
 import NominateUseCase from './features/nominate/NominateUseCase';
 import provider from './application/provider';
+import SetNominationsStatusesEndpoint from './features/setNominationsStatuses/SetNominationsStatusesEndpoint';
+import SetNominationsStatusesUseCase from './features/setNominationsStatuses/SetNominationsStatusesUseCase';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -117,6 +119,10 @@ export async function main(): Promise<void> {
     new NominateUseCase(logger, votingRoundRepository, receiverMapper),
   );
 
+  const setNominationsStatusesEndpoint = new SetNominationsStatusesEndpoint(
+    new SetNominationsStatusesUseCase(logger, votingRoundRepository),
+  );
+
   await ApiServer.run(
     [
       startVotingRoundEndpoint,
@@ -129,6 +135,7 @@ export async function main(): Promise<void> {
       getVotingRoundResultEndpoint,
       isVoterEndpoint,
       nominateEndpoint,
+      setNominationsStatusesEndpoint,
     ],
     appSettings.port,
   );

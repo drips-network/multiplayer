@@ -16,14 +16,14 @@ import {
 } from '../errors';
 import type IAggregateRoot from '../IAggregateRoot';
 import type { Receiver } from './Vote';
-import type { Address, DripListId } from '../typeUtils';
+import type { AccountId, Address, DripListId } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Publisher from '../publisherAggregate/Publisher';
 import Link from '../linkedDripList/Link';
 import { TOTAL_VOTE_WEIGHT } from '../constants';
 import Vote from './Vote';
 import type Nomination from './Nomination';
-import { NominationStatus } from './Nomination';
+import type { NominationStatus } from './Nomination';
 
 export enum VotingRoundStatus {
   Started = 'started',
@@ -471,16 +471,35 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     if (
       this._nominations.some(
-        (n) => n.receiver.accountId === nomination.receiver.accountId,
+        (n) =>
+          n.receiver.accountId === nomination.receiver.accountId &&
+          n._status !== 'rejected',
       )
     ) {
       throw new InvalidArgumentError('Receiver has already been nominated.');
     }
 
+    // If the receiver has been nominated before and was rejected, remove the rejected nomination to allow re-nomination.
+    if (
+      this._nominations.some(
+        (n) =>
+          n.receiver.accountId === nomination.receiver.accountId &&
+          n._status === 'rejected',
+      )
+    ) {
+      const index = this._nominations.findIndex(
+        (n) => n.receiver.accountId === nomination.receiver.accountId,
+      );
+
+      this._nominations.splice(index, 1);
+    }
+
     this._nominations.push(nomination);
   }
 
-  public acceptMany(nominations: Nomination[]): void {
+  public setNominationsStatuses(
+    nominations: { accountId: AccountId; status: NominationStatus }[],
+  ): void {
     if (!this._nominations || !this._nominations.length) {
       throw new InvalidArgumentError(
         'There are no nominations to accept for this voting round.',
@@ -494,45 +513,17 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     }
 
     nominations.forEach((nomination) => {
-      const index = this._nominations?.findIndex(
-        (n) => n.receiver.accountId === nomination.receiver.accountId,
+      const index = this._nominations!.findIndex(
+        (n) => n.receiver.accountId === nomination.accountId,
       );
 
-      if (!index || index === -1) {
+      if (index === -1) {
         throw new InvalidArgumentError(
-          'Receiver has not been nominated for this voting round.',
+          `Receiver with account ID ${nomination.accountId} has not been nominated for this voting round.`,
         );
       }
 
-      this._nominations![index]._status = NominationStatus.Accepted;
-    });
-  }
-
-  public rejectMany(nominations: Nomination[]): void {
-    if (!this._nominations || !this._nominations.length) {
-      throw new InvalidArgumentError(
-        'There are no nominations to reject for this voting round.',
-      );
-    }
-
-    if (this.hasVotingPeriodStarted) {
-      throw new InvalidVotingRoundOperationError(
-        'Cannot reject nominations after the voting period has started.',
-      );
-    }
-
-    nominations.forEach((nomination) => {
-      const index = this._nominations?.findIndex(
-        (n) => n.receiver.accountId === nomination.receiver.accountId,
-      );
-
-      if (!index || index === -1) {
-        throw new InvalidArgumentError(
-          'Receiver has not been nominated for this voting round.',
-        );
-      }
-
-      this._nominations![index]._status = NominationStatus.Rejected;
+      this._nominations![index]._status = nomination.status;
     });
   }
 }

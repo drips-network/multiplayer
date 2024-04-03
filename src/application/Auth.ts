@@ -7,7 +7,7 @@ import type { UUID } from 'crypto';
 import type { GraphQLClient } from 'graphql-request';
 import { gql } from 'graphql-request';
 import type { Logger } from 'winston';
-import type { Address, DripListId } from '../domain/typeUtils';
+import type { AccountId, Address, DripListId } from '../domain/typeUtils';
 import { BadRequestError, UnauthorizedError } from './errors';
 import type { DripList } from '../domain/DripList';
 import appSettings from '../appSettings';
@@ -19,6 +19,7 @@ import type {
 import shouldNeverHappen from './shouldNeverHappen';
 import type VotingRound from '../domain/votingRoundAggregate/VotingRound';
 import provider from './provider';
+import type { NominationStatus } from '../domain/votingRoundAggregate/Nomination';
 
 export default class Auth {
   private readonly _logger: Logger;
@@ -101,6 +102,16 @@ export default class Auth {
     currentTime: Date,
   ) =>
     `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+
+  public static SET_NOMINATION_STATUS_MESSAGE = (
+    publisherAddress: Address,
+    votingRoundId: UUID,
+    currentTime: Date,
+    nominations: { accountId: AccountId; status: NominationStatus }[],
+  ) =>
+    `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
+      nominations,
+    )}.`;
 
   public static REVEAL_RESULT_MESSAGE = (
     publisherAddress: Address,
