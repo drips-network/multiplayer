@@ -16,7 +16,7 @@ import {
 } from '../errors';
 import type IAggregateRoot from '../IAggregateRoot';
 import type { Receiver } from './Vote';
-import type { Address, AccountId, DripListId } from '../typeUtils';
+import type { Address, DripListId } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Publisher from '../publisherAggregate/Publisher';
 import Link from '../linkedDripList/Link';
@@ -355,68 +355,47 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
   public getResult(): Receiver[] {
     const latestVotes = this.getLatestVotes() || [];
-
-    // Initialize to keep track of detailed receiver information along with vote counts and weight sums.
     const receiverDetails: Record<
-      AccountId,
-      Receiver & { voteCount: number; averageWeight: number }
+      string,
+      Receiver & { voteCount: number; totalWeight: number }
     > = {};
 
+    // Accumulate total weights for each receiver.
     latestVotes.forEach((vote) =>
       vote.latestVote?.receivers?.forEach((receiver) => {
-        const { accountId, weight } = receiver;
-
-        if (!receiverDetails[accountId]) {
-          // Initialize with the first occurrence of the receiver, preserving original receiver details.
-          receiverDetails[accountId] = {
-            ...receiver,
-            voteCount: 0,
-            averageWeight: 0,
-          };
+        const key = receiver.accountId; // Assuming accountId uniquely identifies receivers
+        if (!receiverDetails[key]) {
+          receiverDetails[key] = { ...receiver, voteCount: 0, totalWeight: 0 };
         }
-
-        receiverDetails[accountId].voteCount += 1;
-        receiverDetails[accountId].averageWeight += weight;
+        receiverDetails[key].voteCount += 1;
+        receiverDetails[key].totalWeight += receiver.weight;
       }),
     );
 
-    // Calculate the average weight for each accountId.
-    Object.keys(receiverDetails).forEach((accountId) => {
-      const details = receiverDetails[accountId as AccountId];
-      details.averageWeight /= details.voteCount; // Finalize average weight calculation
+    const totalInitialWeight = Object.values(receiverDetails).reduce(
+      (sum, { totalWeight }) => sum + totalWeight,
+      0,
+    );
+
+    // Calculate proportions and redistribute weights.
+    let redistributedTotal = 0;
+    const receivers = Object.values(receiverDetails).map((receiver) => {
+      const proportion = receiver.totalWeight / totalInitialWeight;
+      const redistributedWeight = Math.round(proportion * 1000000); // Round to nearest whole number.
+      redistributedTotal += redistributedWeight;
+      return { ...receiver, weight: redistributedWeight };
     });
 
-    // Convert to array, exclude receivers with 0 averageWeight, and sort by averageWeight then by voteCount.
-    let receivers = Object.values(receiverDetails)
-      .filter(({ averageWeight }) => averageWeight > 0) // Exclude receivers with 0 average weight
-      .sort(
-        (a, b) =>
-          b.averageWeight - a.averageWeight || b.voteCount - a.voteCount,
-      );
-
-    // Handle ties for more than 200 receivers.
-    if (receivers.length > 200) {
-      const cutoffWeight = receivers[199].averageWeight;
-      const cutoffVoteCount = receivers[199].voteCount;
-
-      const firstRemovableIndex = receivers.findIndex(
-        (r, index) =>
-          index > 199 &&
-          (r.averageWeight < cutoffWeight || r.voteCount < cutoffVoteCount),
-      );
-
-      receivers =
-        firstRemovableIndex === -1
-          ? receivers.slice(0, 200)
-          : receivers.slice(0, firstRemovableIndex);
+    // Adjust for rounding to ensure total is exactly 1,000,000.
+    // Find the difference caused by rounding and adjust the last receiver accordingly.
+    const roundingDifference = 1000000 - redistributedTotal;
+    if (receivers.length > 0 && roundingDifference !== 0) {
+      receivers[receivers.length - 1].weight += roundingDifference;
     }
 
-    // Return receivers with their original properties.
     return receivers.map(
-      ({ averageWeight, voteCount: _voteCount, ...receiver }) => ({
-        ...receiver,
-        weight: averageWeight,
-      }),
+      ({ voteCount: _voteCount, totalWeight: _totalWeight, ...receiver }) =>
+        receiver,
     );
   }
 

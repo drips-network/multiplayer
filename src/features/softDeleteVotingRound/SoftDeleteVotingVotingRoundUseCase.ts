@@ -35,7 +35,7 @@ export default class SoftDeleteVotingRoundUseCase
 
     assertIsAddress(publisherAddress);
 
-    Auth.verifyMessage(
+    await Auth.verifyMessage(
       Auth.DELETE_VOTING_ROUND_MESSAGE_TEMPLATE(
         new Date(date),
         publisherAddress,
@@ -44,6 +44,7 @@ export default class SoftDeleteVotingRoundUseCase
       signature,
       publisherAddress,
       new Date(date),
+      this._logger,
     );
 
     await this._repository.softRemove(votingRound);

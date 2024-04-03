@@ -67,7 +67,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       )}`,
     );
 
-    Auth.verifyMessage(
+    await Auth.verifyMessage(
       Auth.VOTE_MESSAGE_TEMPLATE(
         new Date(date),
         collaboratorAddress,

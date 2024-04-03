@@ -1,5 +1,4 @@
 import { GraphQLClient } from 'graphql-request';
-import { JsonRpcProvider } from 'ethers';
 import ApiServer from './ApiServer';
 import 'reflect-metadata';
 import logger from './infrastructure/logger';
@@ -35,6 +34,7 @@ import IsVoterUseCase from './features/isVoter/IsVoterUseCase';
 import ReceiverService from './infrastructure/ReceiverService';
 import NominateEndpoint from './features/nominate/NominateEndpoint';
 import NominateUseCase from './features/nominate/NominateUseCase';
+import provider from './application/provider';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -76,8 +76,6 @@ export async function main(): Promise<void> {
     new IsVoterUseCase(votingRoundRepository),
   );
 
-  const provider = new JsonRpcProvider(appSettings.rpcUrl);
-
   const receiverService = new ReceiverService(
     RepoDriver__factory.connect(appSettings.repoDriverAddress, provider),
     AddressDriver__factory.connect(appSettings.addressDriverAddress, provider),
@@ -101,11 +99,11 @@ export async function main(): Promise<void> {
   );
 
   const getVotingRoundVotesEndpoint = new GetVotingRoundVotesEndpoint(
-    new GetVotingRoundVotesUseCase(votingRoundRepository),
+    new GetVotingRoundVotesUseCase(votingRoundRepository, logger),
   );
 
   const getVotingRoundResultEndpoint = new GetVotingRoundResultEndpoint(
-    new GetVotingRoundResultUseCase(votingRoundRepository),
+    new GetVotingRoundResultUseCase(votingRoundRepository, logger),
   );
 
   const nominateEndpoint = new NominateEndpoint(
