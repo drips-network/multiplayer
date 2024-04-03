@@ -37,12 +37,12 @@ export default class StartVotingRoundUseCase
     } = request;
 
     this._logger.info(
-      `Starting a new voting round for the draft Drip List with ID '${dripListId}'.`,
+      `Starting a new voting round for ${dripListId ? 'the Drip List with ID' : 'a Draft Drip List'} '${dripListId ?? ''}'.`,
     );
 
     assertIsAddress(publisherAddress);
 
-    this._verifyMessage(
+    await this._verifyMessage(
       publisherAddress,
       collaborators.map((c) => c as Address),
       new Date(date),
@@ -69,13 +69,13 @@ export default class StartVotingRoundUseCase
     };
   }
 
-  private _verifyMessage(
+  private async _verifyMessage(
     publisherAddress: Address,
     collaborators: Address[],
     currentTime: Date,
     signature: string,
     dripListId: string | undefined,
-  ): void {
+  ): Promise<void> {
     let reconstructedMessage: string;
 
     // Existing Drip List.
@@ -96,11 +96,12 @@ export default class StartVotingRoundUseCase
       );
     }
 
-    Auth.verifyMessage(
+    await Auth.verifyMessage(
       reconstructedMessage,
       signature,
       publisherAddress,
       currentTime,
+      this._logger,
     );
   }
 }

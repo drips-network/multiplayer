@@ -1,5 +1,4 @@
 import { GraphQLClient } from 'graphql-request';
-import { JsonRpcProvider } from 'ethers';
 import ApiServer from './ApiServer';
 import 'reflect-metadata';
 import logger from './infrastructure/logger';
@@ -32,6 +31,7 @@ import {
 } from './generated/contracts';
 import IsVoterEndpoint from './features/isVoter/IsVoterEndpoint';
 import IsVoterUseCase from './features/isVoter/IsVoterUseCase';
+import provider from './application/provider';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -73,8 +73,6 @@ export async function main(): Promise<void> {
     new IsVoterUseCase(votingRoundRepository),
   );
 
-  const provider = new JsonRpcProvider(appSettings.rpcUrl);
-
   const castVoteEndpoint = new CastVoteEndpoint(
     new CastVoteUseCase(
       logger,
@@ -94,10 +92,10 @@ export async function main(): Promise<void> {
     new LinkUseCase(logger, votingRoundRepository, auth),
   );
   const getVotingRoundVotesEndpoint = new GetVotingRoundVotesEndpoint(
-    new GetVotingRoundVotesUseCase(votingRoundRepository),
+    new GetVotingRoundVotesUseCase(votingRoundRepository, logger),
   );
   const getVotingRoundResultEndpoint = new GetVotingRoundResultEndpoint(
-    new GetVotingRoundResultUseCase(votingRoundRepository),
+    new GetVotingRoundResultUseCase(votingRoundRepository, logger),
   );
 
   await ApiServer.run(

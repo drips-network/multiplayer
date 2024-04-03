@@ -1,4 +1,5 @@
 import type { UUID } from 'crypto';
+import type { Logger } from 'winston';
 import type UseCase from '../../application/interfaces/IUseCase';
 import { NotFoundError, UnauthorizedError } from '../../application/errors';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
@@ -15,9 +16,11 @@ type GetVotingRoundVotesCommand = {
 export default class GetVotingRoundVotesUseCase
   implements UseCase<GetVotingRoundVotesCommand, GetVotingRoundVotesResponse>
 {
+  private readonly _logger: Logger;
   private readonly _repository: IVotingRoundRepository;
 
-  public constructor(repository: IVotingRoundRepository) {
+  public constructor(repository: IVotingRoundRepository, logger: Logger) {
+    this._logger = logger;
     this._repository = repository;
   }
 
@@ -38,7 +41,7 @@ export default class GetVotingRoundVotesUseCase
           `Authentication is required for private voting rounds.`,
         );
       } else {
-        Auth.verifyMessage(
+        await Auth.verifyMessage(
           Auth.REVEAL_VOTES_MESSAGE(
             votingRound._publisher._address,
             votingRoundId,
@@ -47,6 +50,7 @@ export default class GetVotingRoundVotesUseCase
           signature,
           votingRound._publisher._address,
           new Date(date),
+          this._logger,
         );
       }
     }

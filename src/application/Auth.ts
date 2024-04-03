@@ -1,4 +1,8 @@
-import { verifyMessage as ethersVerifyMessage } from 'ethers';
+import {
+  Contract,
+  verifyMessage as ethersVerifyMessage,
+  hashMessage,
+} from 'ethers';
 import type { UUID } from 'crypto';
 import type { GraphQLClient } from 'graphql-request';
 import { gql } from 'graphql-request';
@@ -15,6 +19,7 @@ import type {
 } from '../domain/votingRoundAggregate/Vote';
 import shouldNeverHappen from './shouldNeverHappen';
 import type VotingRound from '../domain/votingRoundAggregate/VotingRound';
+import provider from './provider';
 
 export default class Auth {
   private readonly _logger: Logger;
@@ -31,38 +36,57 @@ export default class Auth {
     this._votingRoundRepository = votingRoundRepository;
   }
 
-  public static verifyMessage(
+  public static async verifyMessage(
     message: string,
     signature: string,
     signerAddress: Address,
     currentTime: Date,
-    logger: Logger | undefined = undefined,
-  ): void {
-    logger?.info(
+    logger: Logger,
+  ): Promise<void> {
+    logger.info(
       `Verifying reconstructed message '${message}' with signature '${signature}' for signer '${signerAddress}'...`,
     );
 
     const originalSigner = ethersVerifyMessage(message, signature);
 
     if (originalSigner.toLowerCase() !== signerAddress.toLowerCase()) {
-      logger?.info(
-        `Signature '${signature}' is not valid for signer '${signerAddress}': Original signer is '${originalSigner}'.`,
+      logger.info(
+        `Signature '${signature}' is not valid for signer '${signerAddress}'. Original signer should be '${originalSigner}'. Checking if it's coming from Safe...`,
       );
 
-      throw new UnauthorizedError('Signature is not valid.');
+      const IERC1271_ABI = [
+        'function isValidSignature(bytes32 _hash, bytes memory _signature) external view returns (bytes4)',
+      ];
+
+      const contract = new Contract(signerAddress, IERC1271_ABI, provider);
+
+      const hash = hashMessage(message);
+
+      const magicValue = await contract.isValidSignature(hash, signature);
+      if (magicValue === '0x1626ba7e') {
+        logger.info(
+          `Signature '${signature}' is valid for signer '${signerAddress}' using Safe.`,
+        );
+      } else {
+        logger.error(
+          `Signature '${signature}' is not valid for signer '${signerAddress}' using Safe.`,
+        );
+
+        throw new UnauthorizedError('Invalid signature.');
+      }
     }
 
     const now = new Date();
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     if (currentTime < oneDayAgo || currentTime > now) {
-      logger?.info(
+      logger.info(
         `The current time '${currentTime}' is not within the last 24 hours.`,
       );
 
       throw new UnauthorizedError('Vote is outdated.');
     }
 
-    logger?.info(
+    logger.info(
       `Signature '${signature}' is valid for signer '${signerAddress}'.`,
     );
   }
