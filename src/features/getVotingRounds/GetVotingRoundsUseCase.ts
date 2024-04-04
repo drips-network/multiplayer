@@ -5,6 +5,7 @@ import type { GetVotingRoundsResponse } from './GetVotingRoundsResponse';
 import type { Address, DripListId } from '../../domain/typeUtils';
 import { assertIsAddress, toDripListId } from '../../domain/typeUtils';
 import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
+import { VotingRoundStatus } from '../../domain/votingRoundAggregate/VotingRound';
 
 export default class GetVotingRoundsUseCase
   implements UseCase<GetVotingRoundsRequest, GetVotingRoundsResponse>
@@ -55,7 +56,10 @@ export default class GetVotingRoundsUseCase
         privateVotes: votingRound._privateVotes,
         linkedAt: votingRound.linkedAt,
         result:
-          votingRound._privateVotes || !votingRound._votes?.length
+          (votingRound._privateVotes &&
+            votingRound.status !== VotingRoundStatus.Completed &&
+            votingRound.status !== VotingRoundStatus.Linked) ||
+          !votingRound._votes?.length
             ? null
             : votingRound
                 .getResult()

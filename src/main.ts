@@ -29,11 +29,11 @@ import {
   AddressDriver__factory,
   RepoDriver__factory,
 } from './generated/contracts';
-import IsVoterEndpoint from './features/isVoter/IsVoterEndpoint';
-import IsVoterUseCase from './features/isVoter/IsVoterUseCase';
 import ReceiverMapper from './infrastructure/ReceiverMapper';
 import NominateEndpoint from './features/nominate/NominateEndpoint';
 import NominateUseCase from './features/nominate/NominateUseCase';
+import GetCollaboratorByAddressEndpoint from './features/getCollaboratorByAddress/GetCollaboratorByAddressEndpoint';
+import GetCollaboratorByAddressUseCase from './features/getCollaboratorByAddress/GetCollaboratorByAddressUseCase';
 import provider from './application/provider';
 import SetNominationsStatusesEndpoint from './features/setNominationsStatuses/SetNominationsStatusesEndpoint';
 import SetNominationsStatusesUseCase from './features/setNominationsStatuses/SetNominationsStatusesUseCase';
@@ -78,8 +78,8 @@ export async function main(): Promise<void> {
     new GetVotingRoundByIdUseCase(votingRoundRepository, receiverMapper),
   );
 
-  const isVoterEndpoint = new IsVoterEndpoint(
-    new IsVoterUseCase(votingRoundRepository),
+  const getCollaboratorByAddressEndpoint = new GetCollaboratorByAddressEndpoint(
+    new GetCollaboratorByAddressUseCase(votingRoundRepository),
   );
 
   const castVoteEndpoint = new CastVoteEndpoint(
@@ -133,9 +133,9 @@ export async function main(): Promise<void> {
       linkEndpoint,
       getVotingRoundVotesEndpoint,
       getVotingRoundResultEndpoint,
-      isVoterEndpoint,
       nominateEndpoint,
       setNominationsStatusesEndpoint,
+      getCollaboratorByAddressEndpoint,
     ],
     appSettings.port,
   );
