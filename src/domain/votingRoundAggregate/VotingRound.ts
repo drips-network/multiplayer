@@ -106,6 +106,10 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return this._link?._updatedAt;
   }
 
+  get isLinked(): boolean {
+    return this.status === VotingRoundStatus.Linked;
+  }
+
   public static create(
     endsAt: Date,
     publisher: Publisher,

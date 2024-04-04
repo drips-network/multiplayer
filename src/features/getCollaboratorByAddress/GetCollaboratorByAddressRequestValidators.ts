@@ -1,6 +1,6 @@
 import { param } from 'express-validator';
 
-export const isVoterRequestValidators = [
+export const getCollaboratorByAddressRequestValidators = [
   param('votingRoundId').isUUID().escape(),
   param('collaboratorAddress')
     .isString()

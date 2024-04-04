@@ -29,8 +29,8 @@ import {
   AddressDriver__factory,
   RepoDriver__factory,
 } from './generated/contracts';
-import IsVoterEndpoint from './features/isVoter/IsVoterEndpoint';
-import IsVoterUseCase from './features/isVoter/IsVoterUseCase';
+import GetCollaboratorByAddressEndpoint from './features/getCollaboratorByAddress/GetCollaboratorByAddressEndpoint';
+import GetCollaboratorByAddressUseCase from './features/getCollaboratorByAddress/GetCollaboratorByAddressUseCase';
 import provider from './application/provider';
 
 export async function main(): Promise<void> {
@@ -69,8 +69,8 @@ export async function main(): Promise<void> {
     new GetVotingRoundByIdUseCase(votingRoundRepository),
   );
 
-  const isVoterEndpoint = new IsVoterEndpoint(
-    new IsVoterUseCase(votingRoundRepository),
+  const getCollaboratorByAddressEndpoint = new GetCollaboratorByAddressEndpoint(
+    new GetCollaboratorByAddressUseCase(votingRoundRepository),
   );
 
   const castVoteEndpoint = new CastVoteEndpoint(
@@ -108,7 +108,7 @@ export async function main(): Promise<void> {
       linkEndpoint,
       getVotingRoundVotesEndpoint,
       getVotingRoundResultEndpoint,
-      isVoterEndpoint,
+      getCollaboratorByAddressEndpoint,
     ],
     appSettings.port,
   );
