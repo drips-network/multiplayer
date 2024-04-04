@@ -1,4 +1,5 @@
 import type {
+  AddressDto,
   AddressReceiverDto,
   DripListReceiverDto,
   ProjectReceiverDto,
@@ -15,4 +16,7 @@ export type NominationDto =
 
 export type NominateRequest = {
   nomination: NominationDto;
+  signature: string;
+  date: Date;
+  nominatedBy: AddressDto;
 };

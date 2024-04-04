@@ -6,6 +6,8 @@ import type {
   DripListReceiver,
   ProjectReceiver,
 } from './Vote';
+import type { Address } from '../typeUtils';
+import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 
 export type AddressNominationReceiver = Omit<AddressReceiver, 'weight'>;
 export type ProjectNominationReceiver = Omit<ProjectReceiver, 'weight'>;
@@ -55,16 +57,32 @@ export default class Nomination extends BaseEntity {
     this._receiverJson = JSON.stringify(value);
   }
 
+  @Column('timestamp', {
+    nullable: false,
+    name: 'statusChangedAt',
+  })
+  public _statusChangedAt!: Date;
+
+  @Column('varchar', {
+    nullable: false,
+    name: 'address',
+    length: DataSchemaConstants.ADDRESS_LENGTH,
+  })
+  public _nominatedBy!: Address;
+
   public static create(
     votingRound: VotingRound,
     receiver: NominationReceiver,
+    nominatedBy: Address,
     status: NominationStatus = NominationStatus.Pending,
   ): Nomination {
     const nomination = new Nomination();
 
     nomination._votingRound = votingRound;
     nomination._status = status;
-    nomination.receiver = receiver; // Not `_receiver` because we want to use the setter.
+    nomination.receiver = receiver; // NOT `nomination._receiver` because we want to use the getter.
+    nomination._statusChangedAt = new Date();
+    nomination._nominatedBy = nominatedBy;
 
     return nomination;
   }

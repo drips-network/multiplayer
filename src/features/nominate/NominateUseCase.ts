@@ -6,6 +6,8 @@ import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVoti
 import { NotFoundError } from '../../application/errors';
 import Nomination from '../../domain/votingRoundAggregate/Nomination';
 import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
+import Auth from '../../application/Auth';
+import { assertIsAddress } from '../../domain/typeUtils';
 
 type NominateCommand = NominateRequest & { votingRoundId: UUID };
 
@@ -25,7 +27,13 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
   }
 
   public async execute(command: NominateCommand): Promise<void> {
-    const { votingRoundId, nomination: nominationDto } = command;
+    const {
+      votingRoundId,
+      nomination: nominationDto,
+      signature,
+      date,
+      nominatedBy,
+    } = command;
 
     this._logger.info(
       `Nominating receiver ${JSON.stringify(nominationDto, null, 2)} for voting round '${votingRoundId}'...`,
@@ -41,7 +49,22 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
     const receiver =
       await this._receiverMapper.mapToNominationReceiver(nominationDto);
 
-    const nomination = Nomination.create(votingRound, receiver);
+    assertIsAddress(nominatedBy);
+
+    await Auth.verifyMessage(
+      Auth.NOMINATE__MESSAGE(
+        nominatedBy,
+        votingRoundId,
+        new Date(date),
+        receiver,
+      ),
+      signature,
+      votingRound._publisher._address,
+      new Date(date),
+      this._logger,
+    );
+
+    const nomination = Nomination.create(votingRound, receiver, nominatedBy);
 
     votingRound.nominate(nomination);
 

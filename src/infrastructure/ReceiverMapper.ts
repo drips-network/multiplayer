@@ -103,6 +103,8 @@ export default class ReceiverMapper implements IReceiverMapper {
         ...addressNominationDto,
         status: nomination._status,
         nominatedAt: nomination._createdAt,
+        statusChangedAt: nomination._statusChangedAt,
+        nominatedBy: nomination._nominatedBy,
       } as AddressNominationInfoDto;
     }
     if ('url' in receiver) {
@@ -111,6 +113,8 @@ export default class ReceiverMapper implements IReceiverMapper {
         ...projectNominationDto,
         status: nomination._status,
         nominatedAt: nomination._createdAt,
+        statusChangedAt: nomination._statusChangedAt,
+        nominatedBy: nomination._nominatedBy,
       } as ProjectNominationInfoDto;
     }
 
@@ -118,6 +122,8 @@ export default class ReceiverMapper implements IReceiverMapper {
       ...receiver,
       status: nomination._status,
       nominatedAt: nomination._createdAt,
+      statusChangedAt: nomination._statusChangedAt,
+      nominatedBy: nomination._nominatedBy,
     } as DripListNominationInfoDto;
   }
 

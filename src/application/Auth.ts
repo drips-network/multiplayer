@@ -19,7 +19,10 @@ import type {
 import shouldNeverHappen from './shouldNeverHappen';
 import type VotingRound from '../domain/votingRoundAggregate/VotingRound';
 import provider from './provider';
-import type { NominationStatus } from '../domain/votingRoundAggregate/Nomination';
+import type {
+  NominationReceiver,
+  NominationStatus,
+} from '../domain/votingRoundAggregate/Nomination';
 
 export default class Auth {
   private readonly _logger: Logger;
@@ -112,6 +115,14 @@ export default class Auth {
     `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
       nominations,
     )}.`;
+
+  public static NOMINATE__MESSAGE = (
+    nominatedBy: Address,
+    votingRoundId: UUID,
+    currentTime: Date,
+    nomination: NominationReceiver,
+  ) =>
+    `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`;
 
   public static REVEAL_RESULT_MESSAGE = (
     publisherAddress: Address,

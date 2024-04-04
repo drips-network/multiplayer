@@ -4,13 +4,19 @@ import type {
   DripListNominationDto,
   ProjectNominationDto,
 } from '../nominate/NominateRequest';
-import type { AccountIdDto, ReceiverDto } from '../../application/dtos';
+import type {
+  AccountIdDto,
+  AddressDto,
+  ReceiverDto,
+} from '../../application/dtos';
 import type { NominationStatus } from '../../domain/votingRoundAggregate/Nomination';
 
 type InfoDto = {
   accountId: AccountIdDto;
   status: NominationStatus;
+  nominatedBy: AddressDto;
   nominatedAt: Date;
+  statusChangedAt: Date;
 };
 
 export type AddressNominationInfoDto = AddressNominationDto & InfoDto;

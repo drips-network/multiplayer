@@ -524,6 +524,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       }
 
       this._nominations![index]._status = nomination.status;
+      this._nominations![index]._statusChangedAt = new Date();
     });
   }
 }
