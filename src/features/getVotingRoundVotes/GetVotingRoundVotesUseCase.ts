@@ -4,8 +4,11 @@ import type UseCase from '../../application/interfaces/IUseCase';
 import { NotFoundError, UnauthorizedError } from '../../application/errors';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import type { GetVotingRoundVotesResponse } from './GetVotingRoundVotesResponse';
-import Auth from '../../application/Auth';
 import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
+import {
+  REVEAL_VOTES_MESSAGE,
+  type IAuthStrategy,
+} from '../../application/Auth';
 
 type GetVotingRoundVotesCommand = {
   votingRoundId: UUID;
@@ -17,6 +20,7 @@ export default class GetVotingRoundVotesUseCase
   implements UseCase<GetVotingRoundVotesCommand, GetVotingRoundVotesResponse>
 {
   private readonly _logger: Logger;
+  private readonly _auth: IAuthStrategy;
   private readonly _receiverMapper: IReceiverMapper;
   private readonly _repository: IVotingRoundRepository;
 
@@ -24,7 +28,9 @@ export default class GetVotingRoundVotesUseCase
     repository: IVotingRoundRepository,
     logger: Logger,
     receiverMapper: IReceiverMapper,
+    auth: IAuthStrategy,
   ) {
+    this._auth = auth;
     this._logger = logger;
     this._repository = repository;
     this._receiverMapper = receiverMapper;
@@ -41,14 +47,14 @@ export default class GetVotingRoundVotesUseCase
       throw new NotFoundError(`VotingRound not found.`);
     }
 
-    if (votingRound._privateVotes) {
+    if (votingRound._areVotesPrivate) {
       if (!signature || !date) {
         throw new UnauthorizedError(
           `Authentication is required for private voting rounds.`,
         );
       } else {
-        await Auth.verifyMessage(
-          Auth.REVEAL_VOTES_MESSAGE(
+        await this._auth.verifyMessage(
+          REVEAL_VOTES_MESSAGE(
             votingRound._publisher._address,
             votingRoundId,
             new Date(date),
@@ -56,7 +62,6 @@ export default class GetVotingRoundVotesUseCase
           signature,
           votingRound._publisher._address,
           new Date(date),
-          this._logger,
         );
       }
     }

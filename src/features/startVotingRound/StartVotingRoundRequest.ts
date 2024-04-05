@@ -1,18 +1,4 @@
-import type { AddressDto } from '../../application/dtos';
-
-type Schedule =
-  | {
-      startsAt: Date;
-      endsAt: Date;
-      nominationStartsAt: Date;
-      nominationEndsAt: Date;
-    }
-  | {
-      startsAt: Date | undefined;
-      endsAt: Date;
-      nominationStartsAt: undefined;
-      nominationEndsAt: undefined;
-    };
+import type { AddressDto, ScheduleDto } from '../../application/dtos';
 
 export type StartVotingRoundRequest =
   | {
@@ -21,8 +7,8 @@ export type StartVotingRoundRequest =
       collaborators: AddressDto[];
       signature: string;
       date: Date;
-      privateVotes: boolean;
-      schedule: Schedule;
+      areVotesPrivate: boolean;
+      schedule: ScheduleDto;
     }
   | {
       name: string;
@@ -31,6 +17,6 @@ export type StartVotingRoundRequest =
       collaborators: AddressDto[];
       signature: string;
       date: Date;
-      privateVotes: boolean;
-      schedule: Schedule;
+      areVotesPrivate: boolean;
+      schedule: ScheduleDto;
     };

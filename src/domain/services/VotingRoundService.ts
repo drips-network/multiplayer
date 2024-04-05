@@ -31,7 +31,7 @@ export default class VotingRoundService {
     name: string | undefined,
     description: string | undefined,
     collaborators: Collaborator[],
-    privateVotes: boolean,
+    areVotesPrivate: boolean,
     nominationStartsAt: Date | undefined = undefined,
     nominationEndsAt: Date | undefined = undefined,
   ): Promise<UUID> {
@@ -73,7 +73,7 @@ export default class VotingRoundService {
       name,
       description,
       [...existingCollaborators, ...newCollaborators],
-      privateVotes,
+      areVotesPrivate,
       nominationStartsAt,
       nominationEndsAt,
     );

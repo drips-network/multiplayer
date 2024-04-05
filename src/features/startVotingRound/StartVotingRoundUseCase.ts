@@ -8,15 +8,25 @@ import Publisher from '../../domain/publisherAggregate/Publisher';
 import type { Address } from '../../domain/typeUtils';
 import { assertIsAddress, toDripListId } from '../../domain/typeUtils';
 import Collaborator from '../../domain/collaboratorAggregate/Collaborator';
-import Auth from '../../application/Auth';
+import type { IAuthStrategy } from '../../application/Auth';
+import {
+  CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE,
+  START_VOTING_ROUND_MESSAGE_TEMPLATE,
+} from '../../application/Auth';
 
 export default class StartVotingRoundUseCase
   implements UseCase<StartVotingRoundRequest, StartVotingRoundResponse>
 {
   private readonly _logger: Logger;
+  private readonly _auth: IAuthStrategy;
   private readonly _votingRoundService: VotingRoundService;
 
-  public constructor(logger: Logger, votingRoundService: VotingRoundService) {
+  public constructor(
+    logger: Logger,
+    votingRoundService: VotingRoundService,
+    auth: IAuthStrategy,
+  ) {
+    this._auth = auth;
     this._logger = logger;
     this._votingRoundService = votingRoundService;
   }
@@ -30,7 +40,7 @@ export default class StartVotingRoundUseCase
       collaborators,
       signature,
       date,
-      privateVotes,
+      areVotesPrivate,
     } = request;
 
     const dripListId = 'dripListId' in request ? request.dripListId : undefined;
@@ -60,7 +70,7 @@ export default class StartVotingRoundUseCase
       name,
       description,
       collaborators.map((c) => Collaborator.create(getAddress(c) as Address)),
-      privateVotes,
+      areVotesPrivate,
       nominationStartsAt,
       nominationEndsAt,
     );
@@ -85,7 +95,7 @@ export default class StartVotingRoundUseCase
 
     // Existing Drip List.
     if (dripListId) {
-      reconstructedMessage = Auth.START_VOTING_ROUND_MESSAGE_TEMPLATE(
+      reconstructedMessage = START_VOTING_ROUND_MESSAGE_TEMPLATE(
         currentTime,
         publisherAddress,
         dripListId,
@@ -94,19 +104,18 @@ export default class StartVotingRoundUseCase
     }
     // Draft Drip List.
     else {
-      reconstructedMessage = Auth.CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
+      reconstructedMessage = CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
         currentTime,
         publisherAddress,
         collaborators,
       );
     }
 
-    await Auth.verifyMessage(
+    await this._auth.verifyMessage(
       reconstructedMessage,
       signature,
       publisherAddress,
       currentTime,
-      this._logger,
     );
   }
 }

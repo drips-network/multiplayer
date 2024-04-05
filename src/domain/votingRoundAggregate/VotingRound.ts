@@ -70,8 +70,8 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   @Column('varchar', { nullable: true, length: 200, name: 'description' })
   public _description: string | undefined;
 
-  @Column('bool', { nullable: false, name: 'privateVotes' })
-  public _privateVotes!: boolean;
+  @Column('bool', { nullable: false, name: 'areVotesPrivate' })
+  public _areVotesPrivate!: boolean;
 
   @ManyToMany(
     'Collaborator',
@@ -127,7 +127,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return this._link?._updatedAt;
   }
 
-  get acceptsNominations(): boolean {
+  get hasNominationPeriod(): boolean {
     return Boolean(this._nominationStartsAt && this._nominationEndsAt);
   }
 
@@ -155,7 +155,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     name: string | undefined,
     description: string | undefined,
     collaborators: Collaborator[],
-    privateVotes: boolean,
+    areVotesPrivate: boolean,
     nominationStartsAt: Date | undefined,
     nominationEndsAt: Date | undefined,
   ): VotingRound {
@@ -262,7 +262,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     votingRound._name = name;
     votingRound._description = description;
     votingRound._collaborators = collaborators;
-    votingRound._privateVotes = privateVotes;
+    votingRound._areVotesPrivate = areVotesPrivate;
     votingRound._nominationStartsAt = nominationStartsAt;
     votingRound._nominationEndsAt = nominationEndsAt;
 
@@ -457,7 +457,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   }
 
   public nominate(nomination: Nomination): void {
-    if (!this.acceptsNominations) {
+    if (!this.hasNominationPeriod) {
       throw new InvalidVotingRoundOperationError(
         'This voting round does not accept nominations.',
       );

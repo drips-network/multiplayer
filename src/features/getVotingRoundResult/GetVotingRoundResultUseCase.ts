@@ -4,9 +4,12 @@ import type UseCase from '../../application/interfaces/IUseCase';
 import { NotFoundError, UnauthorizedError } from '../../application/errors';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import type { GetVotingRoundResultResponse } from './GetVotingRoundResultResponse';
-import Auth from '../../application/Auth';
 import { VotingRoundStatus } from '../../domain/votingRoundAggregate/VotingRound';
 import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
+import {
+  REVEAL_RESULT_MESSAGE,
+  type IAuthStrategy,
+} from '../../application/Auth';
 
 type GetVotingRoundResultCommand = {
   votingRoundId: UUID;
@@ -18,6 +21,7 @@ export default class GetVotingRoundResultUseCase
   implements UseCase<GetVotingRoundResultCommand, GetVotingRoundResultResponse>
 {
   private readonly _logger: Logger;
+  private readonly _auth: IAuthStrategy;
   private readonly _receiverMapper: IReceiverMapper;
   private readonly _repository: IVotingRoundRepository;
 
@@ -25,7 +29,9 @@ export default class GetVotingRoundResultUseCase
     repository: IVotingRoundRepository,
     logger: Logger,
     receiverMapper: IReceiverMapper,
+    auth: IAuthStrategy,
   ) {
+    this._auth = auth;
     this._logger = logger;
     this._repository = repository;
     this._receiverMapper = receiverMapper;
@@ -43,7 +49,7 @@ export default class GetVotingRoundResultUseCase
     }
 
     if (
-      votingRound._privateVotes &&
+      votingRound._areVotesPrivate &&
       votingRound.status !== VotingRoundStatus.Completed
     ) {
       if (!signature || !date) {
@@ -51,8 +57,8 @@ export default class GetVotingRoundResultUseCase
           `Authentication is required for private voting rounds.`,
         );
       } else {
-        await Auth.verifyMessage(
-          Auth.REVEAL_RESULT_MESSAGE(
+        await this._auth.verifyMessage(
+          REVEAL_RESULT_MESSAGE(
             votingRound._publisher._address,
             votingRoundId,
             new Date(date),
@@ -60,7 +66,6 @@ export default class GetVotingRoundResultUseCase
           signature,
           votingRound._publisher._address,
           new Date(date),
-          this._logger,
         );
       }
     }

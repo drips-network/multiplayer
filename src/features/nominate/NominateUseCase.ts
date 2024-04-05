@@ -6,13 +6,15 @@ import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVoti
 import { NotFoundError } from '../../application/errors';
 import Nomination from '../../domain/votingRoundAggregate/Nomination';
 import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
-import Auth from '../../application/Auth';
+import type { IAuthStrategy } from '../../application/Auth';
+import { NOMINATE__MESSAGE } from '../../application/Auth';
 import { assertIsAddress } from '../../domain/typeUtils';
 
 type NominateCommand = NominateRequest & { votingRoundId: UUID };
 
 export default class NominateUseCase implements UseCase<NominateCommand> {
   private readonly _logger: Logger;
+  private readonly _auth: IAuthStrategy;
   private readonly _receiverMapper: IReceiverMapper;
   private readonly _votingRoundRepository: IVotingRoundRepository;
 
@@ -20,7 +22,9 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
     receiverMapper: IReceiverMapper,
+    auth: IAuthStrategy,
   ) {
+    this._auth = auth;
     this._logger = logger;
     this._receiverMapper = receiverMapper;
     this._votingRoundRepository = votingRoundRepository;
@@ -53,17 +57,11 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
 
     assertIsAddress(nominatedBy);
 
-    await Auth.verifyMessage(
-      Auth.NOMINATE__MESSAGE(
-        nominatedBy,
-        votingRoundId,
-        new Date(date),
-        receiver,
-      ),
+    await this._auth.verifyMessage(
+      NOMINATE__MESSAGE(nominatedBy, votingRoundId, new Date(date), receiver),
       signature,
       votingRound._publisher._address,
       new Date(date),
-      this._logger,
     );
 
     const nomination = Nomination.create(

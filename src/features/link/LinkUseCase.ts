@@ -5,22 +5,22 @@ import type { LinkRequest } from './LinkRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import { BadRequestError, NotFoundError } from '../../application/errors';
 import { toDripListId } from '../../domain/typeUtils';
-import type Auth from '../../application/Auth';
 import shouldNeverHappen from '../../application/shouldNeverHappen';
+import type { IAuthStrategy } from '../../application/Auth';
 
 type LinkCommand = LinkRequest & {
   votingRoundId: UUID;
 };
 
 export default class LinkUseCase implements UseCase<LinkCommand> {
-  private readonly _auth: Auth;
   private readonly _logger: Logger;
+  private readonly _auth: IAuthStrategy;
   private readonly _votingRoundRepository: IVotingRoundRepository;
 
   public constructor(
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
-    auth: Auth,
+    auth: IAuthStrategy,
   ) {
     this._auth = auth;
     this._logger = logger;

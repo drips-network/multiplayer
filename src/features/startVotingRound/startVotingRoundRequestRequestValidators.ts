@@ -18,7 +18,7 @@ export const startVotingRoundRequestRequestValidators = [
     .isISO8601()
     .escape(),
   body('date').isISO8601().escape(),
-  body('privateVotes').isBoolean(),
+  body('areVotesPrivate').isBoolean(),
   body('signature').isString().not().isEmpty().escape(),
   body('dripListId')
     .if((value, { req }) => !req.body.name && !req.body.description)

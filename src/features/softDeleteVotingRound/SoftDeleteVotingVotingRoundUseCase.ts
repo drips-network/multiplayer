@@ -4,7 +4,8 @@ import type UseCase from '../../application/interfaces/IUseCase';
 import { NotFoundError } from '../../application/errors';
 import type { SoftDeleteVotingRoundRequest } from './SoftDeleteVotingVotingRoundRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
-import Auth from '../../application/Auth';
+import type { IAuthStrategy } from '../../application/Auth';
+import { DELETE_VOTING_ROUND_MESSAGE_TEMPLATE } from '../../application/Auth';
 import { assertIsAddress } from '../../domain/typeUtils';
 
 type SoftDeleteVotingRoundCommand = SoftDeleteVotingRoundRequest & {
@@ -15,9 +16,15 @@ export default class SoftDeleteVotingRoundUseCase
   implements UseCase<SoftDeleteVotingRoundCommand>
 {
   private readonly _logger: Logger;
+  private readonly _auth: IAuthStrategy;
   private readonly _repository: IVotingRoundRepository;
 
-  public constructor(logger: Logger, repository: IVotingRoundRepository) {
+  public constructor(
+    logger: Logger,
+    repository: IVotingRoundRepository,
+    auth: IAuthStrategy,
+  ) {
+    this._auth = auth;
     this._logger = logger;
     this._repository = repository;
   }
@@ -35,8 +42,8 @@ export default class SoftDeleteVotingRoundUseCase
 
     assertIsAddress(publisherAddress);
 
-    await Auth.verifyMessage(
-      Auth.DELETE_VOTING_ROUND_MESSAGE_TEMPLATE(
+    await this._auth.verifyMessage(
+      DELETE_VOTING_ROUND_MESSAGE_TEMPLATE(
         new Date(date),
         publisherAddress,
         votingRound._id,
@@ -44,7 +51,6 @@ export default class SoftDeleteVotingRoundUseCase
       signature,
       publisherAddress,
       new Date(date),
-      this._logger,
     );
 
     await this._repository.softRemove(votingRound);

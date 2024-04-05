@@ -20,14 +20,14 @@ import type {
   ProjectNominationReceiver,
 } from '../domain/votingRoundAggregate/Nomination';
 import type { NominationDto } from '../features/nominate/NominateRequest';
+import type Nomination from '../domain/votingRoundAggregate/Nomination';
 import type {
   AddressNominationInfoDto,
   DripListNominationInfoDto,
   NominationInfoDto,
   ProjectNominationInfoDto,
-} from '../features/getVotingRoundById/GetVotingRoundByIdResponse';
-import type Nomination from '../domain/votingRoundAggregate/Nomination';
-import type { ReceiverDto } from '../application/dtos';
+  ReceiverDto,
+} from '../application/dtos';
 
 export default class ReceiverMapper implements IReceiverMapper {
   private readonly _repoDriver: RepoDriver;
@@ -97,33 +97,33 @@ export default class ReceiverMapper implements IReceiverMapper {
   public mapToNominationInfoDto(nomination: Nomination): NominationInfoDto {
     const { receiver } = nomination;
 
+    const commonInfo = {
+      status: nomination._status,
+      nominatedAt: nomination._createdAt,
+      statusChangedAt: nomination._statusChangedAt,
+      nominatedBy: nomination._nominatedBy,
+      description: nomination._description,
+      impactMetrics: nomination.impactMetrics,
+    };
+
     if ('address' in receiver) {
       const { ...addressNominationDto } = receiver;
       return {
         ...addressNominationDto,
-        status: nomination._status,
-        nominatedAt: nomination._createdAt,
-        statusChangedAt: nomination._statusChangedAt,
-        nominatedBy: nomination._nominatedBy,
+        ...commonInfo,
       } as AddressNominationInfoDto;
     }
     if ('url' in receiver) {
       const { ...projectNominationDto } = receiver;
       return {
         ...projectNominationDto,
-        status: nomination._status,
-        nominatedAt: nomination._createdAt,
-        statusChangedAt: nomination._statusChangedAt,
-        nominatedBy: nomination._nominatedBy,
+        ...commonInfo,
       } as ProjectNominationInfoDto;
     }
 
     return {
       ...receiver,
-      status: nomination._status,
-      nominatedAt: nomination._createdAt,
-      statusChangedAt: nomination._statusChangedAt,
-      nominatedBy: nomination._nominatedBy,
+      ...commonInfo,
     } as DripListNominationInfoDto;
   }
 

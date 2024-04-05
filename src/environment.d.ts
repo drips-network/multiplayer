@@ -15,6 +15,7 @@ declare global {
       RPC_URL: string;
       ADDRESS_DRIVER_ADDRESS: string;
       REPO_DRIVER_ADDRESS: string;
+      AUTH_STRATEGY: 'signature' | 'dev';
     }
   }
 }

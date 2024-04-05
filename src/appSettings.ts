@@ -38,6 +38,7 @@ const appSettings = {
   repoDriverAddress:
     process.env.REPO_DRIVER_ADDRESS ||
     shouldNeverHappen(`Missing RepoDriver address.`),
+  authStrategy: process.env.AUTH_STRATEGY || 'signature',
 };
 
 export default appSettings;

@@ -4,7 +4,8 @@ import type UseCase from '../../application/interfaces/IUseCase';
 import type { SetNominationsStatusesRequest } from './SetNominationsStatusesRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import { NotFoundError } from '../../application/errors';
-import Auth from '../../application/Auth';
+import type { IAuthStrategy } from '../../application/Auth';
+import { SET_NOMINATION_STATUS_MESSAGE } from '../../application/Auth';
 import { toAccountId } from '../../domain/typeUtils';
 
 type SetNominationsStatusesCommand = SetNominationsStatusesRequest & {
@@ -15,12 +16,15 @@ export default class SetNominationsStatusesUseCase
   implements UseCase<SetNominationsStatusesCommand>
 {
   private readonly _logger: Logger;
+  private readonly _auth: IAuthStrategy;
   private readonly _votingRoundRepository: IVotingRoundRepository;
 
   public constructor(
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
+    auth: IAuthStrategy,
   ) {
+    this._auth = auth;
     this._logger = logger;
     this._votingRoundRepository = votingRoundRepository;
   }
@@ -53,8 +57,8 @@ export default class SetNominationsStatusesUseCase
       status: n.status,
     }));
 
-    await Auth.verifyMessage(
-      Auth.SET_NOMINATION_STATUS_MESSAGE(
+    await this._auth.verifyMessage(
+      SET_NOMINATION_STATUS_MESSAGE(
         votingRound._publisher._address,
         votingRoundId,
         new Date(date),
@@ -63,7 +67,6 @@ export default class SetNominationsStatusesUseCase
       signature,
       votingRound._publisher._address,
       new Date(date),
-      this._logger,
     );
 
     votingRound.setNominationsStatuses(nominations);

@@ -24,7 +24,8 @@ import GetVotingRoundResultEndpoint from './features/getVotingRoundResult/GetVot
 import GetVotingRoundResultUseCase from './features/getVotingRoundResult/GetVotingRoundResultUseCase';
 import GetVotingRoundVotesEndpoint from './features/getVotingRoundVotes/GetVotingRoundVotesEndpoint';
 import GetVotingRoundVotesUseCase from './features/getVotingRoundVotes/GetVotingRoundVotesUseCase';
-import Auth from './application/Auth';
+import type { IAuthStrategy } from './application/Auth';
+import { Auth, DevAuth } from './application/Auth';
 import {
   AddressDriver__factory,
   RepoDriver__factory,
@@ -37,6 +38,7 @@ import GetCollaboratorByAddressUseCase from './features/getCollaboratorByAddress
 import provider from './application/provider';
 import SetNominationsStatusesEndpoint from './features/setNominationsStatuses/SetNominationsStatusesEndpoint';
 import SetNominationsStatusesUseCase from './features/setNominationsStatuses/SetNominationsStatusesUseCase';
+import VotingRoundMapper from './infrastructure/VotingRoundMapper';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -54,28 +56,40 @@ export async function main(): Promise<void> {
     collaboratorRepository,
   );
 
-  const auth = new Auth(
-    logger,
-    new GraphQLClient(appSettings.graphQlUrl, {
-      headers: {
-        authorization: `Bearer ${appSettings.graphQlToken}`,
-      },
-    }),
-  );
+  let auth: IAuthStrategy;
+  if (appSettings.authStrategy === 'dev') {
+    auth = new DevAuth();
+  } else if (appSettings.authStrategy === 'signature') {
+    auth = new Auth(
+      logger,
+      new GraphQLClient(appSettings.graphQlUrl, {
+        headers: {
+          authorization: `Bearer ${appSettings.graphQlToken}`,
+        },
+      }),
+    );
+  } else {
+    throw new Error(`Unknown auth strategy: ${appSettings.authStrategy}`);
+  }
+  if (appSettings.authStrategy !== 'signature') {
+    logger.warn('⛔️ AUTHENTICATION IS DISABLED ⛔️');
+  }
 
   const receiverMapper = new ReceiverMapper(
     RepoDriver__factory.connect(appSettings.repoDriverAddress, provider),
     AddressDriver__factory.connect(appSettings.addressDriverAddress, provider),
   );
 
+  const votingRoundMapper = new VotingRoundMapper(receiverMapper);
+
   const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
-    new StartVotingRoundUseCase(logger, votingRoundService),
+    new StartVotingRoundUseCase(logger, votingRoundService, auth),
   );
   const softDeleteVotingRoundEndpoint = new SoftDeleteVotingRoundEndpoint(
-    new SoftDeleteVotingRoundUseCase(logger, votingRoundRepository),
+    new SoftDeleteVotingRoundUseCase(logger, votingRoundRepository, auth),
   );
   const getVotingRoundByIdEndpoint = new GetVotingRoundByIdEndpoint(
-    new GetVotingRoundByIdUseCase(votingRoundRepository, receiverMapper),
+    new GetVotingRoundByIdUseCase(votingRoundRepository, votingRoundMapper),
   );
 
   const getCollaboratorByAddressEndpoint = new GetCollaboratorByAddressEndpoint(
@@ -88,11 +102,12 @@ export async function main(): Promise<void> {
       votingRoundRepository,
       collaboratorRepository,
       receiverMapper,
+      auth,
     ),
   );
 
   const getVotingRoundsEndpoint = new GetVotingRoundsEndpoint(
-    new GetVotingRoundsUseCase(votingRoundRepository, receiverMapper),
+    new GetVotingRoundsUseCase(votingRoundRepository, votingRoundMapper),
   );
 
   const linkEndpoint = new LinkEndpoint(
@@ -104,6 +119,7 @@ export async function main(): Promise<void> {
       votingRoundRepository,
       logger,
       receiverMapper,
+      auth,
     ),
   );
 
@@ -112,15 +128,16 @@ export async function main(): Promise<void> {
       votingRoundRepository,
       logger,
       receiverMapper,
+      auth,
     ),
   );
 
   const nominateEndpoint = new NominateEndpoint(
-    new NominateUseCase(logger, votingRoundRepository, receiverMapper),
+    new NominateUseCase(logger, votingRoundRepository, receiverMapper, auth),
   );
 
   const setNominationsStatusesEndpoint = new SetNominationsStatusesEndpoint(
-    new SetNominationsStatusesUseCase(logger, votingRoundRepository),
+    new SetNominationsStatusesUseCase(logger, votingRoundRepository, auth),
   );
 
   await ApiServer.run(

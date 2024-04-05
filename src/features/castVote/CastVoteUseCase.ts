@@ -7,13 +7,15 @@ import { NotFoundError, UnauthorizedError } from '../../application/errors';
 import type ICollaboratorRepository from '../../domain/collaboratorAggregate/ICollaboratorRepository';
 import { assertIsAddress } from '../../domain/typeUtils';
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
-import Auth from '../../application/Auth';
+import type { IAuthStrategy } from '../../application/Auth';
+import { VOTE_MESSAGE_TEMPLATE } from '../../application/Auth';
 import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 
 type CastVoteCommand = CastVoteRequest & { votingRoundId: UUID };
 
 export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
   private readonly _logger: Logger;
+  private readonly _auth: IAuthStrategy;
   private readonly _receiverMapper: IReceiverMapper;
   private readonly _votingRoundRepository: IVotingRoundRepository;
   private readonly _collaboratorRepository: ICollaboratorRepository;
@@ -23,7 +25,9 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
     votingRoundRepository: IVotingRoundRepository,
     collaboratorRepository: ICollaboratorRepository,
     receiverMapper: IReceiverMapper,
+    auth: IAuthStrategy,
   ) {
+    this._auth = auth;
     this._logger = logger;
     this._receiverMapper = receiverMapper;
     this._votingRoundRepository = votingRoundRepository;
@@ -67,8 +71,8 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       )}`,
     );
 
-    await Auth.verifyMessage(
-      Auth.VOTE_MESSAGE_TEMPLATE(
+    await this._auth.verifyMessage(
+      VOTE_MESSAGE_TEMPLATE(
         new Date(date),
         collaboratorAddress,
         votingRoundId,
@@ -77,7 +81,6 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       signature,
       collaboratorAddress,
       new Date(date),
-      this._logger,
     );
 
     collaborator._votes
