@@ -52,7 +52,7 @@ export default class Vote extends BaseEntity {
   })
   public _collaborator!: Collaborator;
 
-  @Column('json', { nullable: true, name: 'receivers' })
+  @Column('json', { nullable: false, name: 'receivers' })
   public _receiversJson!: string;
   private _receivers!: Receiver[];
   get receivers(): Receiver[] {

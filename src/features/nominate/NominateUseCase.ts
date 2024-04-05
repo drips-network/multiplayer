@@ -28,11 +28,13 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
 
   public async execute(command: NominateCommand): Promise<void> {
     const {
-      votingRoundId,
-      nomination: nominationDto,
-      signature,
       date,
+      signature,
       nominatedBy,
+      description,
+      votingRoundId,
+      impactMetrics,
+      nomination: nominationDto,
     } = command;
 
     this._logger.info(
@@ -64,7 +66,13 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
       this._logger,
     );
 
-    const nomination = Nomination.create(votingRound, receiver, nominatedBy);
+    const nomination = Nomination.create(
+      votingRound,
+      receiver,
+      nominatedBy,
+      description,
+      impactMetrics,
+    );
 
     votingRound.nominate(nomination);
 

@@ -9,6 +9,10 @@ import type {
 import type { Address } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 
+export type ImpactMetric = {
+  [key: string]: string | number;
+};
+
 export type AddressNominationReceiver = Omit<AddressReceiver, 'weight'>;
 export type ProjectNominationReceiver = Omit<ProjectReceiver, 'weight'>;
 export type DripListNominationReceiver = Omit<DripListReceiver, 'weight'>;
@@ -70,19 +74,39 @@ export default class Nomination extends BaseEntity {
   })
   public _nominatedBy!: Address;
 
+  @Column('varchar', { nullable: false, length: 200, name: 'description' })
+  public _description!: string;
+
+  @Column('json', { nullable: false, name: 'impactMetrics' })
+  public _impactMetricsJson!: string;
+  private _impactMetrics!: ImpactMetric[];
+  get impactMetrics(): ImpactMetric[] {
+    if (!this._impactMetrics && this._impactMetricsJson) {
+      this._impactMetrics = JSON.parse(this._impactMetricsJson);
+    }
+    return this._impactMetrics;
+  }
+  set impactMetrics(value: ImpactMetric[]) {
+    this._impactMetrics = value;
+    this._impactMetricsJson = JSON.stringify(value);
+  }
+
   public static create(
     votingRound: VotingRound,
     receiver: NominationReceiver,
     nominatedBy: Address,
-    status: NominationStatus = NominationStatus.Pending,
+    description: string,
+    impactMetrics: ImpactMetric[],
   ): Nomination {
     const nomination = new Nomination();
 
-    nomination._votingRound = votingRound;
-    nomination._status = status;
+    nomination._status = NominationStatus.Pending;
     nomination.receiver = receiver; // NOT `nomination._receiver` because we want to use the getter.
-    nomination._statusChangedAt = new Date();
+    nomination._votingRound = votingRound;
     nomination._nominatedBy = nominatedBy;
+    nomination._description = description;
+    nomination._statusChangedAt = new Date();
+    nomination.impactMetrics = impactMetrics; // NOT `nomination._impactMetrics` because we want to use the setter.
 
     return nomination;
   }
