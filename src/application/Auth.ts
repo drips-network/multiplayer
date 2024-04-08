@@ -1,5 +1,5 @@
 import {
-  Contract,
+  ethers,
   verifyMessage as ethersVerifyMessage,
   hashMessage,
 } from 'ethers';
@@ -7,6 +7,7 @@ import type { UUID } from 'crypto';
 import type { GraphQLClient } from 'graphql-request';
 import { gql } from 'graphql-request';
 import type { Logger } from 'winston';
+import Safe, { EthersAdapter } from '@safe-global/protocol-kit';
 import type { AccountId, Address, DripListId } from '../domain/typeUtils';
 import { BadRequestError, UnauthorizedError } from './errors';
 import type { DripList } from '../domain/DripList';
@@ -24,6 +25,21 @@ import type {
   NominationStatus,
 } from '../domain/votingRoundAggregate/Nomination';
 
+const GNOSIS_API_SAFES_BASE: { [chainId: number]: string } = {
+  11155111: 'https://safe-transaction-sepolia.safe.global/',
+  1: 'https://safe-transaction-mainnet.safe.global/',
+};
+
+export async function isSafe(chainId: number, address: string) {
+  const apiBase = GNOSIS_API_SAFES_BASE[chainId];
+  if (!apiBase) return false;
+
+  const res = await fetch(
+    `${GNOSIS_API_SAFES_BASE[chainId]}/api/v1/safes/${address}`,
+  );
+
+  return res.status === 200;
+}
 export interface IAuthStrategy {
   verifyMessage(
     message: string,
@@ -66,24 +82,41 @@ export class Auth implements IAuthStrategy {
       `Verifying reconstructed message '${message}' with signature '${signature}' for signer '${signerAddress}'...`,
     );
 
-    const originalSigner = ethersVerifyMessage(message, signature);
+    if (!isSafe(appSettings.chainId, signerAddress)) {
+      this._logger.info(`Signer '${signerAddress}' is EOA.`);
 
-    if (originalSigner.toLowerCase() !== signerAddress.toLowerCase()) {
-      this._logger.info(
-        `Signature '${signature}' is not valid for signer '${signerAddress}'. Original signer should be '${originalSigner}'. Checking if it's coming from Safe...`,
-      );
+      const originalSigner = ethersVerifyMessage(message, signature);
+
+      if (originalSigner.toLowerCase() !== signerAddress.toLowerCase()) {
+        this._logger.info(
+          `Signature '${signature}' is not valid for signer '${signerAddress}'. Original signer should be '${originalSigner}'. Checking if it's coming from Safe...`,
+        );
+      } else {
+        this._logger.info(
+          `Signature '${signature}' is not valid for signer '${signerAddress}'. Original signer should be '${originalSigner}'. Checking if it's coming from Safe...`,
+        );
+
+        throw new UnauthorizedError('Invalid signature.');
+      }
+    } else {
+      this._logger.info(`Signer '${signerAddress}' is a multisig.`);
 
       try {
-        const IERC1271_ABI = [
-          'function isValidSignature(bytes32 _hash, bytes memory _signature) external view returns (bytes4)',
-        ];
-
-        const contract = new Contract(signerAddress, IERC1271_ABI, provider);
-
         const hash = hashMessage(message);
 
-        const magicValue = await contract.isValidSignature(hash, signature);
-        if (magicValue === '0x1626ba7e') {
+        const ethAdapter = new EthersAdapter({
+          ethers,
+          signerOrProvider: await provider.getSigner(0),
+        });
+
+        const safeSdk: Safe = await Safe.create({
+          ethAdapter,
+          safeAddress: signerAddress,
+        });
+
+        const isValid = await safeSdk.isValidSignature(hash, '0x');
+
+        if (isValid) {
           this._logger.info(
             `Signature '${signature}' is valid for signer '${signerAddress}' using Safe.`,
           );
