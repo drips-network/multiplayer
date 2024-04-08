@@ -7,7 +7,6 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm';
-import { isAddress } from 'ethers';
 import BaseEntity from '../BaseEntity';
 import type Collaborator from '../collaboratorAggregate/Collaborator';
 import {
@@ -20,10 +19,10 @@ import type { AccountId, Address, DripListId } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Publisher from '../publisherAggregate/Publisher';
 import Link from '../linkedDripList/Link';
-import { TOTAL_VOTE_WEIGHT } from '../constants';
+import { NOW_IN_MILLIS, TOTAL_VOTE_WEIGHT } from '../constants';
 import Vote from './Vote';
 import type Nomination from './Nomination';
-import type { NominationStatus } from './Nomination';
+import { NominationStatus } from './Nomination';
 
 export enum VotingRoundStatus {
   Started = 'started',
@@ -100,28 +99,28 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   )
   public _nominations: Nomination[] | undefined;
 
-  public get status(): VotingRoundStatus {
-    if (this._deletedAt) {
-      return VotingRoundStatus.Deleted;
-    }
-
-    if (this._endsAt.getTime() < new Date().getTime() && this.linkedAt) {
-      return VotingRoundStatus.Linked;
-    }
-
-    if (this._endsAt.getTime() < new Date().getTime()) {
-      return VotingRoundStatus.Completed;
-    }
-
-    return VotingRoundStatus.Started;
-  }
-
   @OneToOne('Link', (link: Link) => link._votingRound, {
     nullable: true,
     cascade: ['insert', 'update'],
   })
   @JoinColumn()
   public _link: Link | undefined;
+
+  public get status(): VotingRoundStatus {
+    if (this._deletedAt) {
+      return VotingRoundStatus.Deleted;
+    }
+
+    if (this.linkedAt) {
+      return VotingRoundStatus.Linked;
+    }
+
+    if (this._endsAt.getTime() < NOW_IN_MILLIS) {
+      return VotingRoundStatus.Completed;
+    }
+
+    return VotingRoundStatus.Started;
+  }
 
   get linkedAt(): Date | undefined {
     return this._link?._updatedAt;
@@ -135,16 +134,12 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return Boolean(
       this._nominationStartsAt &&
         this._nominationEndsAt &&
-        new Date().getTime() <= this._nominationEndsAt.getTime(),
+        NOW_IN_MILLIS <= this._nominationEndsAt.getTime(),
     );
   }
 
   get hasVotingPeriodStarted(): boolean {
-    return new Date().getTime() >= this._startsAt.getTime();
-  }
-
-  get isLinked(): boolean {
-    return this.status === VotingRoundStatus.Linked;
+    return NOW_IN_MILLIS >= this._startsAt.getTime();
   }
 
   public static create(
@@ -166,12 +161,8 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       throw new InvalidArgumentError('Start date must be before end date.');
     }
 
-    if (startsAtTime < new Date().getTime()) {
+    if (startsAtTime < NOW_IN_MILLIS) {
       throw new InvalidArgumentError('Start date must be in the future.');
-    }
-
-    if (endsAtTime < new Date().getTime()) {
-      throw new InvalidArgumentError('End date must be in the future.');
     }
 
     if (
@@ -185,7 +176,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     if (
       nominationStartsAt &&
-      new Date(nominationEndsAt!).getTime() < new Date().getTime()
+      new Date(nominationStartsAt).getTime() < NOW_IN_MILLIS
     ) {
       throw new InvalidArgumentError(
         'Nomination start date must be in the future.',
@@ -193,43 +184,30 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     }
 
     if (
-      nominationEndsAt &&
-      new Date(nominationEndsAt).getTime() < new Date().getTime()
-    ) {
-      throw new InvalidArgumentError(
-        'Nomination end date must be in the future.',
-      );
-    }
-
-    if (
       nominationStartsAt &&
       nominationEndsAt &&
-      new Date(nominationStartsAt).getTime() >
-        new Date(nominationEndsAt).getTime()
+      nominationStartsAt.getTime() > nominationEndsAt.getTime()
     ) {
       throw new InvalidArgumentError(
         'Nomination start date must be before nomination end date.',
       );
     }
 
-    if (
-      nominationEndsAt &&
-      new Date(nominationEndsAt).getTime() > startsAtTime
-    ) {
+    if (nominationEndsAt && nominationEndsAt.getTime() > startsAtTime) {
       throw new InvalidArgumentError(
         'Nomination end date must be before the voting round start date.',
       );
     }
 
-    if (name?.length && name.length > 50) {
+    if (name?.length && name.length > 80) {
       throw new InvalidArgumentError(
-        'Name must be between 1 and 50 characters long.',
+        'Name must be less than 80 characters long.',
       );
     }
 
     if (description?.length && description.length > 200) {
       throw new InvalidArgumentError(
-        'Description must be between 1 and 200 characters long.',
+        'Description must be less than 200 characters long.',
       );
     }
 
@@ -293,24 +271,6 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       );
     }
 
-    receivers.forEach((receiver) => {
-      if (receiver.type === 'address') {
-        if (!isAddress(receiver.address)) {
-          throw new InvalidArgumentError(
-            'Address must be provided for address type receiver.',
-          );
-        }
-      }
-
-      if (receiver.type === 'project') {
-        if (!receiver.url) {
-          throw new InvalidArgumentError(
-            'URL must be provided for project type receiver.',
-          );
-        }
-      }
-    });
-
     const vote = Vote.create(this, collaborator, receivers);
 
     if (!this._votes) {
@@ -367,7 +327,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     // Accumulate total weights for each receiver.
     latestVotes.forEach((vote) =>
       vote.latestVote?.receivers?.forEach((receiver) => {
-        const key = receiver.accountId; // Assuming accountId uniquely identifies receivers
+        const key = receiver.accountId;
         if (!receiverDetails[key]) {
           receiverDetails[key] = { ...receiver, voteCount: 0, totalWeight: 0 };
         }
@@ -403,59 +363,6 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     );
   }
 
-  public linkToNewDripList(dripListId: DripListId): void {
-    if (this._link) {
-      throw new InvalidArgumentError(
-        'Cannot link a voting round that is already linked.',
-      );
-    }
-
-    if (this.status !== VotingRoundStatus.Completed) {
-      throw new InvalidArgumentError(
-        `Cannot link a voting round that is not completed. Status: ${this.status}.`,
-      );
-    }
-
-    if (!this._votes?.length) {
-      throw new InvalidArgumentError(
-        'Cannot link a Drip List to a voting round with no votes.',
-      );
-    }
-
-    const link = Link.create(dripListId, this);
-
-    this._link = link;
-    this._dripListId = dripListId;
-  }
-
-  public linkToExistingDripList(): void {
-    if (!this._dripListId) {
-      throw new InvalidArgumentError('There is no Drip List to link to.');
-    }
-
-    if (this._link) {
-      throw new InvalidArgumentError(
-        'Cannot link a voting round that is already linked.',
-      );
-    }
-
-    if (this.status !== VotingRoundStatus.Completed) {
-      throw new InvalidArgumentError(
-        `Cannot link a voting round that is not completed. Status: ${this.status}.`,
-      );
-    }
-
-    if (!this._votes?.length) {
-      throw new InvalidArgumentError(
-        'Cannot link a Drip List to a voting round with no votes.',
-      );
-    }
-
-    const link = Link.create(this._dripListId, this);
-
-    this._link = link;
-  }
-
   public nominate(nomination: Nomination): void {
     if (!this.hasNominationPeriod) {
       throw new InvalidVotingRoundOperationError(
@@ -477,7 +384,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       this._nominations.some(
         (n) =>
           n.receiver.accountId === nomination.receiver.accountId &&
-          n._status !== 'rejected',
+          n._status !== NominationStatus.Rejected,
       )
     ) {
       throw new InvalidArgumentError('Receiver has already been nominated.');
@@ -488,7 +395,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       this._nominations.some(
         (n) =>
           n.receiver.accountId === nomination.receiver.accountId &&
-          n._status === 'rejected',
+          n._status === NominationStatus.Rejected,
       )
     ) {
       const index = this._nominations.findIndex(
@@ -530,5 +437,44 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       this._nominations![index]._status = nomination.status;
       this._nominations![index]._statusChangedAt = new Date();
     });
+  }
+
+  public linkToNewDripList(dripListId: DripListId): void {
+    this._validateCanLink();
+    this.createLink(dripListId);
+  }
+
+  public linkToExistingDripList(): void {
+    if (!this._dripListId) {
+      throw new InvalidArgumentError('There is no Drip List to link to.');
+    }
+    this._validateCanLink();
+    this.createLink(this._dripListId);
+  }
+
+  private _validateCanLink(): void {
+    if (this._link) {
+      throw new InvalidArgumentError(
+        'Cannot link a voting round that is already linked.',
+      );
+    }
+
+    if (this.status !== VotingRoundStatus.Completed) {
+      throw new InvalidArgumentError(
+        `Cannot link a voting round that is not completed. Status: ${this.status}.`,
+      );
+    }
+
+    if (!this._votes?.length) {
+      throw new InvalidArgumentError(
+        'Cannot link a Drip List to a voting round with no votes.',
+      );
+    }
+  }
+
+  private createLink(dripListId: DripListId): void {
+    const link = Link.create(dripListId, this);
+    this._link = link;
+    this._dripListId = dripListId;
   }
 }

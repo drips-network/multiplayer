@@ -32,7 +32,7 @@ export type Receiver = AddressReceiver | ProjectReceiver | DripListReceiver;
   name: 'Votes',
 })
 export default class Vote extends BaseEntity {
-  @ManyToOne('VotingRound', (votingRound: VotingRound) => votingRound._votes, {
+  @ManyToOne('', (votingRound: VotingRound) => votingRound._votes, {
     nullable: false,
   })
   @JoinColumn({

@@ -98,6 +98,26 @@ export default class Nomination extends BaseEntity {
     description: string,
     impactMetrics: ImpactMetric[],
   ): Nomination {
+    if (!votingRound) {
+      throw new Error('Invalid votingRound.');
+    }
+
+    if (!receiver) {
+      throw new Error('Invalid receiver.');
+    }
+
+    if (!nominatedBy) {
+      throw new Error('Invalid nominatedBy.');
+    }
+
+    if (!description) {
+      throw new Error('Invalid description.');
+    }
+
+    if (!impactMetrics || !impactMetrics.length) {
+      throw new Error('Invalid impactMetrics.');
+    }
+
     const nomination = new Nomination();
 
     nomination._status = NominationStatus.Pending;

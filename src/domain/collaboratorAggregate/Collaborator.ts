@@ -1,9 +1,11 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
+import { isAddress } from 'ethers';
 import BaseEntity from '../BaseEntity';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Vote from '../votingRoundAggregate/Vote';
 import type VotingRound from '../votingRoundAggregate/VotingRound';
 import { type Address } from '../typeUtils';
+import { InvalidArgumentError } from '../errors';
 
 @Entity({
   name: 'Collaborators',
@@ -30,6 +32,10 @@ export default class Collaborator extends BaseEntity {
   public _votes: Vote[] | undefined;
 
   public static create(address: Address) {
+    if (!isAddress(address)) {
+      throw new InvalidArgumentError('Invalid address.');
+    }
+
     const collaborator = new Collaborator();
 
     collaborator._address = address;

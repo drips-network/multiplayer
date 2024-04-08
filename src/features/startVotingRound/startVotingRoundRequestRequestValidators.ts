@@ -3,21 +3,17 @@ import { body } from 'express-validator';
 export const startVotingRoundRequestRequestValidators = [
   body('schedule.startsAt')
     .if((_, { req }) => req.body.schedule.startsAt)
-    .isISO8601()
-    .escape(),
+    .isISO8601(),
   body('schedule.endsAt')
     .if((_, { req }) => req.body.schedule.endsAt)
-    .isISO8601()
-    .escape(),
+    .isISO8601(),
   body('schedule.nominationStartsAt')
     .if((_, { req }) => req.body.schedule.nominationStartsAt)
-    .isISO8601()
-    .escape(),
+    .isISO8601(),
   body('schedule.nominationEndsAt')
     .if((_, { req }) => req.body.schedule.nominationEndsAt)
-    .isISO8601()
-    .escape(),
-  body('date').isISO8601().escape(),
+    .isISO8601(),
+  body('date').isISO8601(),
   body('areVotesPrivate').isBoolean(),
   body('signature').isString().not().isEmpty().escape(),
   body('dripListId')
