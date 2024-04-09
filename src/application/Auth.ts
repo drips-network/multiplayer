@@ -82,16 +82,14 @@ export class Auth implements IAuthStrategy {
       `Verifying reconstructed message '${message}' with signature '${signature}' for signer '${signerAddress}'...`,
     );
 
-    if (!isSafe(appSettings.chainId, signerAddress)) {
+    const isEoa = !(await isSafe(appSettings.chainId, signerAddress));
+
+    if (isEoa) {
       this._logger.info(`Signer '${signerAddress}' is EOA.`);
 
       const originalSigner = ethersVerifyMessage(message, signature);
 
       if (originalSigner.toLowerCase() !== signerAddress.toLowerCase()) {
-        this._logger.info(
-          `Signature '${signature}' is not valid for signer '${signerAddress}'. Original signer should be '${originalSigner}'. Checking if it's coming from Safe...`,
-        );
-      } else {
         this._logger.info(
           `Signature '${signature}' is not valid for signer '${signerAddress}'. Original signer should be '${originalSigner}'. Checking if it's coming from Safe...`,
         );
@@ -101,41 +99,30 @@ export class Auth implements IAuthStrategy {
     } else {
       this._logger.info(`Signer '${signerAddress}' is a multisig.`);
 
-      try {
-        const hash = hashMessage(message);
+      const hash = hashMessage(message);
 
-        const ethAdapter = new EthersAdapter({
-          ethers,
-          signerOrProvider: await provider.getSigner(0),
-        });
+      const ethAdapter = new EthersAdapter({
+        ethers,
+        signerOrProvider: await provider.getSigner(0),
+      });
 
-        const safeSdk: Safe = await Safe.create({
-          ethAdapter,
-          safeAddress: signerAddress,
-        });
+      const safeSdk: Safe = await Safe.create({
+        ethAdapter,
+        safeAddress: signerAddress,
+      });
 
-        const isValid = await safeSdk.isValidSignature(hash, '0x');
+      const isValid = await safeSdk.isValidSignature(hash, '0x');
 
-        if (isValid) {
-          this._logger.info(
-            `Signature '${signature}' is valid for signer '${signerAddress}' using Safe.`,
-          );
-        } else {
-          this._logger.error(
-            `Signature '${signature}' is not valid for signer '${signerAddress}' using Safe.`,
-          );
+      if (isValid) {
+        this._logger.info(
+          `Signature '${signature}' is valid for signer '${signerAddress}' using Safe.`,
+        );
+      } else {
+        this._logger.error(
+          `Signature '${signature}' is not valid for signer '${signerAddress}' using Safe.`,
+        );
 
-          throw new UnauthorizedError('Invalid signature.');
-        }
-      } catch (error: any) {
-        if (error.message.includes('could not decode result data')) {
-          // Expected ethers error.
-          this._logger.info(
-            `Signature '${signature}' is not valid for signer '${signerAddress}'.`,
-          );
-
-          throw new UnauthorizedError('Invalid signature.');
-        }
+        throw new UnauthorizedError('Invalid signature.');
       }
     }
 

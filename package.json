@@ -15,8 +15,8 @@
     "build": "npm run build:contracts && tsc",
     "build:contracts": "typechain --target=ethers-v6 --out-dir ./src/generated/contracts ./src/abi/**.json",
     "start": "npm run build && node dist/main.js",
-    "test": "ENV=local jest --detectOpenHandles",
-    "test:coverage": "ENV=local jest --coverage"
+    "test": "NODE_ENV=local jest --detectOpenHandles",
+    "test:coverage": "NODE_ENV=local jest --coverage"
   },
   "keywords": [],
   "author": "",

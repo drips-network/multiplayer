@@ -13,12 +13,13 @@ import type { NominationReceiver } from '../../src/domain/votingRoundAggregate/N
 import Nomination, {
   NominationStatus,
 } from '../../src/domain/votingRoundAggregate/Nomination';
-
-const now = new Date();
-const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-const twoDaysAfter = new Date(Date.now() + 48 * 60 * 60 * 1000);
-const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+import {
+  now,
+  tomorrow,
+  twoDaysAfter,
+  twoDaysAgo,
+  yesterday,
+} from '../testUtils';
 
 describe('VotingRound', () => {
   describe('status', () => {
