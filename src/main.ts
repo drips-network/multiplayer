@@ -30,7 +30,7 @@ import {
   AddressDriver__factory,
   RepoDriver__factory,
 } from './generated/contracts';
-import ReceiverMapper from './infrastructure/ReceiverMapper';
+import ReceiverMapper from './application/ReceiverMapper';
 import NominateEndpoint from './features/nominate/NominateEndpoint';
 import NominateUseCase from './features/nominate/NominateUseCase';
 import GetCollaboratorByAddressEndpoint from './features/getCollaboratorByAddress/GetCollaboratorByAddressEndpoint';
@@ -38,7 +38,7 @@ import GetCollaboratorByAddressUseCase from './features/getCollaboratorByAddress
 import provider from './application/provider';
 import SetNominationsStatusesEndpoint from './features/setNominationsStatuses/SetNominationsStatusesEndpoint';
 import SetNominationsStatusesUseCase from './features/setNominationsStatuses/SetNominationsStatusesUseCase';
-import VotingRoundMapper from './infrastructure/VotingRoundMapper';
+import VotingRoundMapper from './application/VotingRoundMapper';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');

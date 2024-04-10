@@ -1,6 +1,6 @@
 import { hexlify, toUtf8Bytes } from 'ethers';
-import type IReceiverMapper from '../application/interfaces/IReceiverMapper';
-import { parseGitHubUrl } from '../application/utils';
+import type IReceiverMapper from './interfaces/IReceiverMapper';
+import { parseGitHubUrl } from './utils';
 import {
   assertIsAccountId,
   type AddressDriverId,
@@ -27,7 +27,7 @@ import type {
   NominationInfoDto,
   ProjectNominationInfoDto,
   ReceiverDto,
-} from '../application/dtos';
+} from './dtos';
 
 export default class ReceiverMapper implements IReceiverMapper {
   private readonly _repoDriver: RepoDriver;

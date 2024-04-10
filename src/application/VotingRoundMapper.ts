@@ -1,7 +1,7 @@
-import type { ScheduleDto, VotingRoundDto } from '../application/dtos';
-import type IReceiverMapper from '../application/interfaces/IReceiverMapper';
-import type IVotingRoundMapper from '../application/interfaces/IVotingRoundMapper';
-import shouldNeverHappen from '../application/shouldNeverHappen';
+import type { ScheduleDto, VotingRoundDto } from './dtos';
+import type IReceiverMapper from './interfaces/IReceiverMapper';
+import type IVotingRoundMapper from './interfaces/IVotingRoundMapper';
+import shouldNeverHappen from './shouldNeverHappen';
 import type VotingRound from '../domain/votingRoundAggregate/VotingRound';
 
 export default class VotingRoundMapper implements IVotingRoundMapper {
