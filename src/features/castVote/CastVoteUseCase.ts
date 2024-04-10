@@ -11,7 +11,7 @@ import type { IAuthStrategy } from '../../application/Auth';
 import { VOTE_MESSAGE_TEMPLATE } from '../../application/Auth';
 import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 
-type CastVoteCommand = CastVoteRequest & { votingRoundId: UUID };
+export type CastVoteCommand = CastVoteRequest & { votingRoundId: UUID };
 
 export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
   private readonly _logger: Logger;
@@ -54,7 +54,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       await this._collaboratorRepository.getByAddress(collaboratorAddress);
 
     if (!collaborator) {
-      throw new NotFoundError(`Collaborator not found.`);
+      throw new NotFoundError(`collaborator not found.`);
     }
 
     const receiverEntities: Receiver[] = await Promise.all(
@@ -73,20 +73,20 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
 
     await this._auth.verifyMessage(
       VOTE_MESSAGE_TEMPLATE(
-        new Date(date),
+        date,
         collaboratorAddress,
         votingRoundId,
         receiverEntities,
       ),
       signature,
       collaboratorAddress,
-      new Date(date),
+      date,
     );
 
     collaborator._votes
-      ?.filter((v) => v._id === votingRoundId)
+      ?.filter((v) => v._votingRound._id === votingRoundId)
       .forEach((vote) => {
-        if (vote._updatedAt > new Date(date)) {
+        if (vote._updatedAt > date) {
           throw new UnauthorizedError('Vote already casted.');
         }
       });

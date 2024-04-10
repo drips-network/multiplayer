@@ -2,7 +2,7 @@ import { body, param } from 'express-validator';
 
 export const castVoteRequestValidators = [
   param('votingRoundId').isUUID().escape(),
-  body('date').isISO8601().escape(),
+  body('date').isISO8601(),
   body('signature').isString().not().isEmpty().escape(),
   body('collaboratorAddress')
     .isString()

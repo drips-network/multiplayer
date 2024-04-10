@@ -2,7 +2,6 @@ import { Wallet, verifyMessage } from 'ethers';
 import Safe, { EthersAdapter } from '@safe-global/protocol-kit';
 import { Auth } from '../../src/application/Auth';
 import type { Address } from '../../src/domain/typeUtils';
-import logger from '../../src/infrastructure/logger';
 import { yesterday } from '../testUtils';
 
 jest.mock('@safe-global/protocol-kit');
@@ -30,6 +29,8 @@ jest.mock('../../src/application/Auth', () => {
 });
 
 describe('Auth', () => {
+  const loggerMock = { info: jest.fn(), error: jest.fn() } as any;
+
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -47,7 +48,7 @@ describe('Auth', () => {
       }),
     );
 
-    const auth = new Auth(logger, null as any);
+    const auth = new Auth(loggerMock, null as any);
 
     // Act
     const verify = () =>
@@ -69,7 +70,7 @@ describe('Auth', () => {
       }),
     );
 
-    const auth = new Auth(logger, null as any);
+    const auth = new Auth(loggerMock, null as any);
 
     // Act
     const verify = () =>
@@ -98,7 +99,7 @@ describe('Auth', () => {
       isValidSignature: jest.fn().mockReturnValueOnce(false),
     });
 
-    const auth = new Auth(logger, null as any);
+    const auth = new Auth(loggerMock, null as any);
 
     // Act
     const verify = () =>
@@ -126,7 +127,7 @@ describe('Auth', () => {
       isValidSignature: jest.fn().mockReturnValueOnce(true),
     });
 
-    const auth = new Auth(logger, null as any);
+    const auth = new Auth(loggerMock, null as any);
 
     // Act
     const verify = () =>
@@ -148,7 +149,7 @@ describe('Auth', () => {
       }),
     );
 
-    const auth = new Auth(logger, null as any);
+    const auth = new Auth(loggerMock, null as any);
 
     // Act
     const verify = () =>
