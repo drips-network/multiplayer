@@ -155,7 +155,7 @@ export class Auth implements IAuthStrategy {
       );
     }
 
-    const { dripList } = await this._client.request<{ dripList: DripList }>(
+    const result = await this._client.request<{ dripList: DripList }>(
       gql`
         query DripList($dripListId: ID!) {
           dripList(id: $dripListId) {
@@ -169,11 +169,13 @@ export class Auth implements IAuthStrategy {
       { dripListId },
     );
 
-    if (!dripList) {
-      this._logger.error(`Drip List '${dripListId}' not found.`);
+    if (!result?.dripList) {
+      this._logger.error(`Drip List with ID '${dripListId}' not found.`);
 
       throw new BadRequestError('Drip List not found.');
     }
+
+    const { dripList } = result;
 
     if (dripList.owner.address !== votingRound._publisher._address) {
       this._logger.error(
@@ -197,14 +199,14 @@ export class Auth implements IAuthStrategy {
   }
 }
 
-export const REVEAL_VOTES_MESSAGE = (
+export const REVEAL_VOTES_MESSAGE_TEMPLATE = (
   publisherAddress: Address,
   votingRoundId: UUID,
   currentTime: Date,
 ) =>
   `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
 
-export const SET_NOMINATION_STATUS_MESSAGE = (
+export const SET_NOMINATION_STATUS_MESSAGE_TEMPLATE = (
   publisherAddress: Address,
   votingRoundId: UUID,
   currentTime: Date,
@@ -214,7 +216,7 @@ export const SET_NOMINATION_STATUS_MESSAGE = (
     nominations,
   )}.`;
 
-export const NOMINATE__MESSAGE = (
+export const NOMINATE_MESSAGE_TEMPLATE = (
   nominatedBy: Address,
   votingRoundId: UUID,
   currentTime: Date,
@@ -222,7 +224,7 @@ export const NOMINATE__MESSAGE = (
 ) =>
   `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`;
 
-export const REVEAL_RESULT_MESSAGE = (
+export const REVEAL_RESULT_MESSAGE_TEMPLATE = (
   publisherAddress: Address,
   votingRoundId: UUID,
   currentTime: Date,
@@ -252,7 +254,7 @@ export const VOTE_MESSAGE_TEMPLATE = (
           return shouldNeverHappen();
       }
     })
-    .sort((a, b) => Number(a[1]) - Number(b[1]));
+    .sort();
 
   return `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(sortedReceivers)}`;
 };
@@ -270,9 +272,7 @@ export const START_VOTING_ROUND_MESSAGE_TEMPLATE = (
   dripListId: string,
   collaborators: Address[],
 ) => {
-  const sortedCollaborators = collaborators.sort(
-    (a, b) => Number(a) - Number(b),
-  );
+  const sortedCollaborators = collaborators.sort();
 
   return `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
 };
@@ -282,9 +282,7 @@ export const CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE = (
   publisherAddress: Address,
   collaborators: string[],
 ) => {
-  const sortedCollaborators = collaborators.sort(
-    (a, b) => Number(a) - Number(b),
-  );
+  const sortedCollaborators = collaborators.sort();
 
   return `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
 };

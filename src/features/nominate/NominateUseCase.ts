@@ -7,7 +7,7 @@ import { NotFoundError } from '../../application/errors';
 import Nomination from '../../domain/votingRoundAggregate/Nomination';
 import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 import type { IAuthStrategy } from '../../application/Auth';
-import { NOMINATE__MESSAGE } from '../../application/Auth';
+import { NOMINATE_MESSAGE_TEMPLATE } from '../../application/Auth';
 import { assertIsAddress } from '../../domain/typeUtils';
 
 type NominateCommand = NominateRequest & { votingRoundId: UUID };
@@ -58,7 +58,12 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
     assertIsAddress(nominatedBy);
 
     await this._auth.verifyMessage(
-      NOMINATE__MESSAGE(nominatedBy, votingRoundId, new Date(date), receiver),
+      NOMINATE_MESSAGE_TEMPLATE(
+        nominatedBy,
+        votingRoundId,
+        new Date(date),
+        receiver,
+      ),
       signature,
       votingRound._publisher._address,
       new Date(date),

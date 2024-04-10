@@ -7,7 +7,7 @@ import type { GetVotingRoundResultResponse } from './GetVotingRoundResultRespons
 import { VotingRoundStatus } from '../../domain/votingRoundAggregate/VotingRound';
 import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 import {
-  REVEAL_RESULT_MESSAGE,
+  REVEAL_RESULT_MESSAGE_TEMPLATE,
   type IAuthStrategy,
 } from '../../application/Auth';
 
@@ -58,7 +58,7 @@ export default class GetVotingRoundResultUseCase
         );
       } else {
         await this._auth.verifyMessage(
-          REVEAL_RESULT_MESSAGE(
+          REVEAL_RESULT_MESSAGE_TEMPLATE(
             votingRound._publisher._address,
             votingRoundId,
             new Date(date),

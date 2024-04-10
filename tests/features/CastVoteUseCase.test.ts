@@ -18,7 +18,10 @@ import { yesterday } from '../testUtils';
 jest.mock('../../src/application/Auth');
 
 describe('CastVoteUseCase', () => {
-  const loggerMock = { info: jest.fn(), error: jest.fn() } as unknown as Logger;
+  const loggerMock = {
+    info: jest.fn(),
+    error: jest.fn(),
+  } as unknown as jest.Mocked<Logger>;
   const votingRoundRepositoryMock = {
     getById: jest.fn(),
     save: jest.fn(),

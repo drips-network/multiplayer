@@ -5,7 +5,7 @@ import type { SetNominationsStatusesRequest } from './SetNominationsStatusesRequ
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import { NotFoundError } from '../../application/errors';
 import type { IAuthStrategy } from '../../application/Auth';
-import { SET_NOMINATION_STATUS_MESSAGE } from '../../application/Auth';
+import { SET_NOMINATION_STATUS_MESSAGE_TEMPLATE } from '../../application/Auth';
 import { toAccountId } from '../../domain/typeUtils';
 
 type SetNominationsStatusesCommand = SetNominationsStatusesRequest & {
@@ -58,7 +58,7 @@ export default class SetNominationsStatusesUseCase
     }));
 
     await this._auth.verifyMessage(
-      SET_NOMINATION_STATUS_MESSAGE(
+      SET_NOMINATION_STATUS_MESSAGE_TEMPLATE(
         votingRound._publisher._address,
         votingRoundId,
         new Date(date),
