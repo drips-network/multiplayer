@@ -11,7 +11,7 @@ import {
   type IAuthStrategy,
 } from '../../application/Auth';
 
-type GetVotingRoundResultCommand = {
+export type GetVotingRoundResultCommand = {
   votingRoundId: UUID;
   signature: string | undefined;
   date: string | undefined;
@@ -45,7 +45,7 @@ export default class GetVotingRoundResultUseCase
     const votingRound = await this._repository.getById(votingRoundId);
 
     if (!votingRound) {
-      throw new NotFoundError(`VotingRound not found.`);
+      throw new NotFoundError(`voting round not found.`);
     }
 
     if (
@@ -57,12 +57,14 @@ export default class GetVotingRoundResultUseCase
           `Authentication is required for private voting rounds.`,
         );
       } else {
+        const message = REVEAL_RESULT_MESSAGE_TEMPLATE(
+          votingRound._publisher._address,
+          votingRoundId,
+          new Date(date),
+        );
+
         await this._auth.verifyMessage(
-          REVEAL_RESULT_MESSAGE_TEMPLATE(
-            votingRound._publisher._address,
-            votingRoundId,
-            new Date(date),
-          ),
+          message,
           signature,
           votingRound._publisher._address,
           new Date(date),

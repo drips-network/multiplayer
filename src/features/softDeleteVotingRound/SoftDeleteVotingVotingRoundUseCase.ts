@@ -8,7 +8,7 @@ import type { IAuthStrategy } from '../../application/Auth';
 import { DELETE_VOTING_ROUND_MESSAGE_TEMPLATE } from '../../application/Auth';
 import { assertIsAddress } from '../../domain/typeUtils';
 
-type SoftDeleteVotingRoundCommand = SoftDeleteVotingRoundRequest & {
+export type SoftDeleteVotingRoundCommand = SoftDeleteVotingRoundRequest & {
   id: UUID;
 };
 
@@ -42,16 +42,13 @@ export default class SoftDeleteVotingRoundUseCase
 
     assertIsAddress(publisherAddress);
 
-    await this._auth.verifyMessage(
-      DELETE_VOTING_ROUND_MESSAGE_TEMPLATE(
-        new Date(date),
-        publisherAddress,
-        votingRound._id,
-      ),
-      signature,
+    const message = DELETE_VOTING_ROUND_MESSAGE_TEMPLATE(
+      date,
       publisherAddress,
-      new Date(date),
+      votingRound._id,
     );
+
+    await this._auth.verifyMessage(message, signature, publisherAddress, date);
 
     await this._repository.softRemove(votingRound);
 

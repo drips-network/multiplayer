@@ -57,7 +57,7 @@ export default class StartVotingRoundUseCase
     await this._verifyMessage(
       publisherAddress,
       collaborators.map((c) => c as Address),
-      new Date(date),
+      date,
       signature,
       dripListId,
     );

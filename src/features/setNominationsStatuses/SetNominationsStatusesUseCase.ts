@@ -8,7 +8,7 @@ import type { IAuthStrategy } from '../../application/Auth';
 import { SET_NOMINATION_STATUS_MESSAGE_TEMPLATE } from '../../application/Auth';
 import { toAccountId } from '../../domain/typeUtils';
 
-type SetNominationsStatusesCommand = SetNominationsStatusesRequest & {
+export type SetNominationsStatusesCommand = SetNominationsStatusesRequest & {
   votingRoundId: UUID;
 };
 
@@ -57,16 +57,18 @@ export default class SetNominationsStatusesUseCase
       status: n.status,
     }));
 
+    const message = SET_NOMINATION_STATUS_MESSAGE_TEMPLATE(
+      votingRound._publisher._address,
+      votingRoundId,
+      date,
+      nominations,
+    );
+
     await this._auth.verifyMessage(
-      SET_NOMINATION_STATUS_MESSAGE_TEMPLATE(
-        votingRound._publisher._address,
-        votingRoundId,
-        new Date(date),
-        nominations,
-      ),
+      message,
       signature,
       votingRound._publisher._address,
-      new Date(date),
+      date,
     );
 
     votingRound.setNominationsStatuses(nominations);

@@ -100,7 +100,7 @@ describe('CastVoteUseCase', () => {
       await expect(execute).rejects.toThrow('collaborator not found.');
     });
 
-    it('should verify message', async () => {
+    it('should verify signature', async () => {
       // Arrange
       const votingRoundId = randomUUID();
 
@@ -132,20 +132,23 @@ describe('CastVoteUseCase', () => {
         collaboratorAddress: Wallet.createRandom().address,
       };
 
+      (VOTE_MESSAGE_TEMPLATE as jest.Mock).mockReturnValue('message');
+
       // Act
       await useCase.execute(command);
 
       // Assert
       expect(authMock.verifyMessage).toHaveBeenCalledWith(
-        VOTE_MESSAGE_TEMPLATE(
-          command.date,
-          command.collaboratorAddress,
-          command.votingRoundId,
-          [receiverEntity],
-        ),
+        'message',
         command.signature,
         command.collaboratorAddress,
         command.date,
+      );
+      expect(VOTE_MESSAGE_TEMPLATE).toHaveBeenCalledWith(
+        command.date,
+        command.collaboratorAddress,
+        command.votingRoundId,
+        [receiverEntity],
       );
     });
   });
@@ -245,5 +248,6 @@ describe('CastVoteUseCase', () => {
     expect(votingRound.castVote).toHaveBeenCalledWith(collaborator, [
       receiverEntity,
     ]);
+    expect(votingRoundRepositoryMock.save).toHaveBeenCalledWith(votingRound);
   });
 });

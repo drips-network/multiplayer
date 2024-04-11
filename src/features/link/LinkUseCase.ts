@@ -8,7 +8,7 @@ import { toDripListId } from '../../domain/typeUtils';
 import shouldNeverHappen from '../../application/shouldNeverHappen';
 import type { IAuthStrategy } from '../../application/Auth';
 
-type LinkCommand = LinkRequest & {
+export type LinkCommand = LinkRequest & {
   votingRoundId: UUID;
 };
 

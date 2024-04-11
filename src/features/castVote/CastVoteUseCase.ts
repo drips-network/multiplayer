@@ -71,13 +71,15 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       )}`,
     );
 
+    const message = VOTE_MESSAGE_TEMPLATE(
+      date,
+      collaboratorAddress,
+      votingRoundId,
+      receiverEntities,
+    );
+
     await this._auth.verifyMessage(
-      VOTE_MESSAGE_TEMPLATE(
-        date,
-        collaboratorAddress,
-        votingRoundId,
-        receiverEntities,
-      ),
+      message,
       signature,
       collaboratorAddress,
       date,

@@ -10,7 +10,7 @@ import type { IAuthStrategy } from '../../application/Auth';
 import { NOMINATE_MESSAGE_TEMPLATE } from '../../application/Auth';
 import { assertIsAddress } from '../../domain/typeUtils';
 
-type NominateCommand = NominateRequest & { votingRoundId: UUID };
+export type NominateCommand = NominateRequest & { votingRoundId: UUID };
 
 export default class NominateUseCase implements UseCase<NominateCommand> {
   private readonly _logger: Logger;
@@ -57,16 +57,18 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
 
     assertIsAddress(nominatedBy);
 
+    const message = NOMINATE_MESSAGE_TEMPLATE(
+      nominatedBy,
+      votingRoundId,
+      date,
+      receiver,
+    );
+
     await this._auth.verifyMessage(
-      NOMINATE_MESSAGE_TEMPLATE(
-        nominatedBy,
-        votingRoundId,
-        new Date(date),
-        receiver,
-      ),
+      message,
       signature,
       votingRound._publisher._address,
-      new Date(date),
+      date,
     );
 
     const nomination = Nomination.create(
