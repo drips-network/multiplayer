@@ -42,12 +42,12 @@ export default class VotingRoundMapper implements IVotingRoundMapper {
       id: votingRound._id,
       schedule,
       status: votingRound.status,
-      dripListId: votingRound._dripListId,
-      name: votingRound._name,
-      description: votingRound._description,
+      dripListId: votingRound._dripListId || null,
+      name: votingRound._name || null,
+      description: votingRound._description || null,
       publisherAddress: votingRound._publisher._address,
       areVotesPrivate: votingRound._areVotesPrivate,
-      linkedAt: votingRound.linkedAt,
+      linkedAt: votingRound.linkedAt || null,
       result:
         (votingRound._areVotesPrivate &&
           votingRound.status !== 'completed' &&

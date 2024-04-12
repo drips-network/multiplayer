@@ -35,6 +35,10 @@ export default class VotingRoundService {
     nominationStartsAt: Date | undefined = undefined,
     nominationEndsAt: Date | undefined = undefined,
   ): Promise<UUID> {
+    if (!collaborators?.length) {
+      throw new InvalidVotingRoundOperationError('Collaborators are missing.');
+    }
+
     const activeVotingRounds =
       await this._votingRoundRepository.getActiveVotingRoundsByPublisher(
         publisher,

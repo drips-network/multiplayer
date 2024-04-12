@@ -433,7 +433,7 @@ describe('VotingRound', () => {
       expect(create).toThrow('Name must be less than 80 characters long.');
     });
 
-    it('should throw when description is greater than 200 characters long', () => {
+    it('should throw when description is greater than 1000 characters long', () => {
       // Arrange
       const startsAt = tomorrow;
       const endsAt = twoDaysAfter;
@@ -448,7 +448,7 @@ describe('VotingRound', () => {
           null as any,
           null as any,
           null as any,
-          Array(201).fill('x').join(''),
+          Array(1001).fill('x').join(''),
           [],
           null as any,
           nominationStartsAt,
@@ -457,7 +457,7 @@ describe('VotingRound', () => {
 
       // Assert
       expect(create).toThrow(
-        'Description must be less than 200 characters long.',
+        'Description must be less than 1000 characters long.',
       );
     });
 

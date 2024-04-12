@@ -63,10 +63,10 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   })
   public _dripListId: DripListId | undefined;
 
-  @Column('varchar', { nullable: true, length: 50, name: 'name' })
+  @Column('varchar', { nullable: true, length: 80, name: 'name' })
   public _name: string | undefined;
 
-  @Column('varchar', { nullable: true, length: 200, name: 'description' })
+  @Column('varchar', { nullable: true, length: 1000, name: 'description' })
   public _description: string | undefined;
 
   @Column('bool', { nullable: false, name: 'areVotesPrivate' })
@@ -205,9 +205,9 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       );
     }
 
-    if (description?.length && description.length > 200) {
+    if (description?.length && description.length > 1000) {
       throw new InvalidArgumentError(
-        'Description must be less than 200 characters long.',
+        'Description must be less than 1000 characters long.',
       );
     }
 

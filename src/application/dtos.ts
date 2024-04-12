@@ -91,16 +91,16 @@ type ResultDto = ReceiverDto[] | null; // `null` if the voting round is private 
 
 export type VotingRoundDto = {
   id: UUID;
-  dripListId: string | undefined;
+  dripListId: string | null;
   schedule: ScheduleDto;
   publisherAddress: AddressDto;
   status: VotingRoundStatusDto;
   areVotesPrivate: boolean;
-  linkedAt: Date | undefined;
+  linkedAt: Date | null;
   result: ResultDto;
   votes: VotesDto;
   hasVotingPeriodStarted: boolean;
   nominationPeriod: NominationPeriodDto;
-  name: string | undefined;
-  description: string | undefined;
+  name: string | null;
+  description: string | null;
 };
