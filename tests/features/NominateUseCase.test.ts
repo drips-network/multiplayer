@@ -50,7 +50,9 @@ describe('NominateUseCase', () => {
         description: 'description',
         impactMetrics: [
           {
-            key: 'value',
+            key: 'key',
+            value: 1,
+            link: 'https://link.com',
           },
         ],
         nomination: {
@@ -71,6 +73,50 @@ describe('NominateUseCase', () => {
 
       // Assert
       await expect(execute).rejects.toThrow('voting round not found.');
+    });
+
+    it('should throw when any link is invalid', async () => {
+      // Arrange
+      const votingRoundId = randomUUID();
+      const votingRound = {
+        _id: votingRoundId,
+        _publisher: {
+          _address: 'publisherAddress',
+        },
+      } as unknown as VotingRound;
+      votingRoundRepositoryMock.getById.mockResolvedValue(votingRound);
+
+      const command: NominateCommand = {
+        votingRoundId,
+        date: new Date(),
+        signature: 'signature',
+        nominatedBy: 'nominatedBy',
+        description: 'description',
+        impactMetrics: [
+          {
+            key: 'key',
+            value: 1,
+            link: 'invalidLink',
+          },
+        ],
+        nomination: {
+          address: 'address',
+          type: 'address',
+        },
+      };
+
+      const useCase = new NominateUseCase(
+        loggerMock,
+        votingRoundRepositoryMock,
+        receiverMapperMock,
+        authMock,
+      );
+
+      // Act
+      const execute = () => useCase.execute(command);
+
+      // Assert
+      await expect(execute).rejects.toThrow('Invalid link: "invalidLink".');
     });
 
     it('should verify signature', async () => {
@@ -99,7 +145,9 @@ describe('NominateUseCase', () => {
         description: 'description',
         impactMetrics: [
           {
-            key: 'value',
+            key: 'key',
+            value: 1,
+            link: 'https://link.com',
           },
         ],
         nomination: {
@@ -164,7 +212,9 @@ describe('NominateUseCase', () => {
         description: 'description',
         impactMetrics: [
           {
-            key: 'value',
+            key: 'key',
+            value: 1,
+            link: 'https://link.com',
           },
         ],
         nomination: {

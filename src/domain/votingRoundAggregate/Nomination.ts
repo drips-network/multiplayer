@@ -10,7 +10,9 @@ import type { Address } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 
 export type ImpactMetric = {
-  [key: string]: string | number;
+  key: string;
+  value: number;
+  link: string;
 };
 
 export type AddressNominationReceiver = Omit<AddressReceiver, 'weight'>;

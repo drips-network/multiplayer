@@ -9,4 +9,9 @@ export const nominateRequestValidators = [
   body('nominatedBy').isString().isLength({ min: 42, max: 42 }).escape(),
   body('description').isString().isLength({ max: 200 }).escape(),
   body('impactMetrics').isObject(),
+  body('impactMetrics.key').isString().escape(),
+  body('impactMetrics.value').isNumeric().escape(),
+  body('impactMetrics.link')
+    .isURL({ protocols: ['https'] })
+    .escape(),
 ];

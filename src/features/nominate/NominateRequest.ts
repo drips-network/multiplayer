@@ -10,7 +10,9 @@ export type ProjectNominationDto = Omit<ProjectReceiverDto, 'weight'>;
 export type DripListNominationDto = Omit<DripListReceiverDto, 'weight'>;
 
 export type ImpactMetricDto = {
-  [key: string]: string | number;
+  key: string;
+  value: number;
+  link: string;
 };
 
 export type NominationDto =

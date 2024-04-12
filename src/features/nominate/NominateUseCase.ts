@@ -3,12 +3,13 @@ import type { UUID } from 'crypto';
 import type UseCase from '../../application/interfaces/IUseCase';
 import type { NominateRequest } from './NominateRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
-import { NotFoundError } from '../../application/errors';
+import { BadRequestError, NotFoundError } from '../../application/errors';
 import Nomination from '../../domain/votingRoundAggregate/Nomination';
 import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 import type { IAuthStrategy } from '../../application/Auth';
 import { NOMINATE_MESSAGE_TEMPLATE } from '../../application/Auth';
 import { assertIsAddress } from '../../domain/typeUtils';
+import { isValidHttpsUrl } from '../../application/utils';
 
 export type NominateCommand = NominateRequest & { votingRoundId: UUID };
 
@@ -51,6 +52,12 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
     if (!votingRound) {
       throw new NotFoundError(`voting round not found.`);
     }
+
+    impactMetrics.forEach((metric) => {
+      if (!isValidHttpsUrl(metric.link)) {
+        throw new BadRequestError(`Invalid link: "${metric.link}".`);
+      }
+    });
 
     const receiver =
       await this._receiverMapper.mapToNominationReceiver(nominationDto);

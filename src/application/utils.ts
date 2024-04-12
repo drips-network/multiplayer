@@ -16,3 +16,8 @@ export function parseGitHubUrl(url: string): {
 
   throw new BadRequestError(`Invalid GitHub URL.`);
 }
+
+export function isValidHttpsUrl(url: string) {
+  const pattern = /^https:\/\/[^\s$.?#].[^\s]*$/;
+  return pattern.test(url);
+}

@@ -26,7 +26,9 @@ describe('Nomination', () => {
       const vote = new Nomination();
       const impactMetrics = [
         {
-          accountId: 'accountId',
+          key: 'accountId',
+          value: 1,
+          link: 'https://link.com',
         },
       ];
 
@@ -117,7 +119,9 @@ describe('Nomination', () => {
       const description = 'description';
       const impactMetrics = [
         {
-          accountId: 'accountId',
+          key: 'accountId',
+          value: 1,
+          link: 'https://link.com',
         },
       ];
 
