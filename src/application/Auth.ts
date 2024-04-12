@@ -136,6 +136,9 @@ export default class Auth {
     );
   }
 
+  public static REVEAL_VOTE = (votingRoundId: UUID, currentTime: Date) =>
+    `Reveal my vote for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+
   public static REVEAL_VOTES_MESSAGE = (
     publisherAddress: Address,
     votingRoundId: UUID,

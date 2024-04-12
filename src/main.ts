@@ -70,7 +70,7 @@ export async function main(): Promise<void> {
   );
 
   const getCollaboratorByAddressEndpoint = new GetCollaboratorByAddressEndpoint(
-    new GetCollaboratorByAddressUseCase(votingRoundRepository),
+    new GetCollaboratorByAddressUseCase(votingRoundRepository, logger),
   );
 
   const castVoteEndpoint = new CastVoteEndpoint(

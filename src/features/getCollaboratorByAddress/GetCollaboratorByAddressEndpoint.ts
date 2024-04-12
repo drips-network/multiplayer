@@ -1,13 +1,14 @@
 import type { Application, Response } from 'express';
 import type { UUID } from 'crypto';
 import type { IEndpoint } from '../../application/interfaces/IEndpoint';
-import type { TypedRequestParams } from '../../application/interfaces/ITypedRequestParams';
 import ApiServer from '../../ApiServer';
-import { getCollaboratorByAddressRequestValidators } from './GetCollaboratorByAddressRequestValidators';
 import type GetCollaboratorByAddressUseCase from './GetCollaboratorByAddressUseCase';
 import type { TypedResponse } from '../../application/interfaces/ITypedResponse';
 import { assertIsAddress } from '../../domain/typeUtils';
 import type { GetCollaboratorByAddressResponse } from './GetCollaboratorByAddressResponse';
+import type { TypedRequest } from '../../application/interfaces/ITypedRequest';
+import type { GetCollaboratorByAddressRequest } from './GetCollaboratorByAddressRequest';
+import { getCollaboratorByAddressRequestValidators } from './GetCollaboratorByAddressRequestValidators';
 
 export default class GetCollaboratorByAddressEndpoint implements IEndpoint {
   private readonly _getCollaboratorByAddressUseCase: GetCollaboratorByAddressUseCase;
@@ -27,10 +28,13 @@ export default class GetCollaboratorByAddressEndpoint implements IEndpoint {
   }
 
   public async handle(
-    req: TypedRequestParams<{
-      votingRoundId: UUID;
-      collaboratorAddress: string;
-    }>,
+    req: TypedRequest<
+      {
+        votingRoundId: UUID;
+        collaboratorAddress: string;
+      },
+      GetCollaboratorByAddressRequest
+    >,
     res: TypedResponse<GetCollaboratorByAddressResponse>,
   ): Promise<Response> {
     assertIsAddress(req.params.collaboratorAddress);
@@ -39,6 +43,7 @@ export default class GetCollaboratorByAddressEndpoint implements IEndpoint {
       await this._getCollaboratorByAddressUseCase.execute({
         votingRoundId: req.params.votingRoundId,
         collaboratorAddress: req.params.collaboratorAddress,
+        ...req.query,
       });
 
     return res.status(200).send(getCollaboratorByAddress);
