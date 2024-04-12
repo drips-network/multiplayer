@@ -35,16 +35,21 @@ export type ReceiverDto =
 
 export type ScheduleDto =
   | {
-      startsAt: Date;
-      endsAt: Date;
-      nominationStartsAt: Date;
-      nominationEndsAt: Date;
+      voting: {
+        startsAt: Date;
+        endsAt: Date;
+      };
+      nomination: {
+        startsAt: Date;
+        endsAt: Date;
+      };
     }
   | {
-      startsAt: Date | undefined;
-      endsAt: Date;
-      nominationStartsAt: undefined;
-      nominationEndsAt: undefined;
+      voting: {
+        startsAt: Date | undefined;
+        endsAt: Date;
+      };
+      nomination: undefined;
     };
 
 type InfoDto = {

@@ -1,19 +1,22 @@
 import { body } from 'express-validator';
 
 export const startVotingRoundRequestRequestValidators = [
-  body('schedule.startsAt')
+  body('schedule').isObject(),
+  body('schedule.voting').isObject(),
+  body('schedule.voting.startsAt')
     .if((_, { req }) => req.body.schedule.startsAt)
-    .isISO8601(),
-  body('schedule.endsAt')
-    .if((_, { req }) => req.body.schedule.endsAt)
-    .isISO8601(),
-  body('schedule.nominationStartsAt')
-    .if((_, { req }) => req.body.schedule.nominationStartsAt)
-    .isISO8601(),
-  body('schedule.nominationEndsAt')
-    .if((_, { req }) => req.body.schedule.nominationEndsAt)
-    .isISO8601(),
-  body('date').isISO8601(),
+    .isISO8601()
+    .toDate(),
+  body('schedule.voting.endsAt').isISO8601().toDate(),
+  body('schedule.nomination.startsAt')
+    .if((_, { req }) => req.body.schedule.nomination.startsAt)
+    .isISO8601()
+    .toDate(),
+  body('schedule.nomination.endsAt')
+    .if((_, { req }) => req.body.schedule.nomination.endsAt)
+    .isISO8601()
+    .toDate(),
+  body('date').isISO8601().toDate(),
   body('areVotesPrivate').isBoolean(),
   body('signature').isString().not().isEmpty().escape(),
   body('dripListId')

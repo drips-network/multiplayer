@@ -35,7 +35,10 @@ export default class StartVotingRoundUseCase
     request: StartVotingRoundRequest,
   ): Promise<StartVotingRoundResponse> {
     const {
-      schedule: { startsAt, endsAt, nominationEndsAt, nominationStartsAt },
+      schedule: {
+        voting: { startsAt: votingStartsAt, endsAt: votingEndsAt },
+        nomination,
+      },
       publisherAddress,
       collaborators,
       signature,
@@ -47,6 +50,8 @@ export default class StartVotingRoundUseCase
     const name = 'name' in request ? request.name : undefined;
     const description =
       'description' in request ? request.description : undefined;
+    const nominationStartsAt = nomination?.startsAt;
+    const nominationEndsAt = nomination?.endsAt;
 
     this._logger.info(
       `Starting a new voting round for ${dripListId ? 'the Drip List with ID' : 'a Draft Drip List'} '${dripListId ?? ''}'.`,
@@ -63,8 +68,8 @@ export default class StartVotingRoundUseCase
     );
 
     const newVotingRoundId = await this._votingRoundService.start(
-      startsAt || new Date(),
-      endsAt,
+      votingStartsAt || new Date(),
+      votingEndsAt,
       Publisher.create(publisherAddress),
       dripListId ? toDripListId(dripListId) : undefined,
       name,

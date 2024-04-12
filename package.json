@@ -14,7 +14,7 @@
     "check": "tsc --noEmit",
     "build": "npm run build:contracts && tsc",
     "build:contracts": "typechain --target=ethers-v6 --out-dir ./src/generated/contracts ./src/abi/**.json",
-    "start": "npm run build && node dist/main.js",
+    "start": "npm run build && node dist/src/main.js",
     "test": "NODE_ENV=local jest --detectOpenHandles",
     "test:coverage": "NODE_ENV=local jest --coverage"
   },

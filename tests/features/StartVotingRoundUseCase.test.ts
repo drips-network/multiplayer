@@ -41,10 +41,14 @@ describe('StartVotingRoundUseCase', () => {
 
       const request: StartVotingRoundRequest = {
         schedule: {
-          startsAt: new Date(),
-          endsAt: new Date(),
-          nominationEndsAt: new Date(),
-          nominationStartsAt: new Date(),
+          voting: {
+            startsAt: new Date(),
+            endsAt: new Date(),
+          },
+          nomination: {
+            startsAt: new Date(),
+            endsAt: new Date(),
+          },
         },
         publisherAddress: Wallet.createRandom().address,
         collaborators: [Wallet.createRandom().address],
@@ -87,10 +91,14 @@ describe('StartVotingRoundUseCase', () => {
 
       const request: StartVotingRoundRequest = {
         schedule: {
-          startsAt: new Date(),
-          endsAt: new Date(),
-          nominationEndsAt: new Date(),
-          nominationStartsAt: new Date(),
+          voting: {
+            startsAt: new Date(),
+            endsAt: new Date(),
+          },
+          nomination: {
+            startsAt: new Date(),
+            endsAt: new Date(),
+          },
         },
         publisherAddress: Wallet.createRandom().address,
         collaborators: [Wallet.createRandom().address],
@@ -132,10 +140,14 @@ describe('StartVotingRoundUseCase', () => {
 
       const request: StartVotingRoundRequest = {
         schedule: {
-          startsAt: new Date(),
-          endsAt: new Date(),
-          nominationEndsAt: new Date(),
-          nominationStartsAt: new Date(),
+          voting: {
+            startsAt: new Date(),
+            endsAt: new Date(),
+          },
+          nomination: {
+            startsAt: new Date(),
+            endsAt: new Date(),
+          },
         },
         publisherAddress: Wallet.createRandom().address,
         collaborators: [Wallet.createRandom().address],
@@ -151,8 +163,8 @@ describe('StartVotingRoundUseCase', () => {
 
       // Assert
       expect(votingRoundServiceMock.start).toHaveBeenCalledWith(
-        request.schedule.startsAt,
-        request.schedule.endsAt,
+        request.schedule.voting.startsAt,
+        request.schedule.voting.endsAt,
         Publisher.create(request.publisherAddress),
         undefined,
         request.name,
@@ -161,8 +173,8 @@ describe('StartVotingRoundUseCase', () => {
           Collaborator.create(getAddress(c) as Address),
         ),
         request.areVotesPrivate,
-        request.schedule.nominationStartsAt,
-        request.schedule.nominationEndsAt,
+        request.schedule.nomination!.startsAt,
+        request.schedule.nomination!.endsAt,
       );
     });
   });

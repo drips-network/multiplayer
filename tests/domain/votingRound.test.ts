@@ -54,7 +54,7 @@ describe('VotingRound', () => {
     it('should return Completed when end date is in the past', () => {
       // Arrange
       const votingRound = new VotingRound();
-      votingRound._endsAt = yesterday;
+      votingRound._votingEndsAt = yesterday;
 
       // Act
       const result = votingRound.status;
@@ -66,7 +66,7 @@ describe('VotingRound', () => {
     it('should return Started deletedAt and linkedAt are not set and end date is in future', () => {
       // Arrange
       const votingRound = new VotingRound();
-      votingRound._endsAt = tomorrow;
+      votingRound._votingEndsAt = tomorrow;
 
       // Act
       const result = votingRound.status;
@@ -174,7 +174,7 @@ describe('VotingRound', () => {
     it('should return true when voting start date is in the past', () => {
       // Arrange
       const votingRound = new VotingRound();
-      votingRound._startsAt = yesterday;
+      votingRound._votingStartsAt = yesterday;
 
       // Act
       const result = votingRound.hasVotingPeriodStarted;
@@ -186,7 +186,7 @@ describe('VotingRound', () => {
     it('should return false when voting start date is in the future', () => {
       // Arrange
       const votingRound = new VotingRound();
-      votingRound._startsAt = tomorrow;
+      votingRound._votingStartsAt = tomorrow;
 
       // Act
       const result = votingRound.hasVotingPeriodStarted;
@@ -579,8 +579,8 @@ describe('VotingRound', () => {
 
       // Assert
       expect(votingRound._name).toBe('name');
-      expect(votingRound._endsAt).toBe(endsAt);
-      expect(votingRound._startsAt).toBe(startsAt);
+      expect(votingRound._votingEndsAt).toBe(endsAt);
+      expect(votingRound._votingStartsAt).toBe(startsAt);
       expect(votingRound._publisher).toBe(publisher);
       expect(votingRound._areVotesPrivate).toBe(false);
       expect(votingRound._collaborators).toHaveLength(2);
@@ -952,7 +952,7 @@ describe('VotingRound', () => {
     it('should throw when voting round is not yet completed', () => {
       // Arrange
       const votingRound = new VotingRound();
-      votingRound._endsAt = tomorrow;
+      votingRound._votingEndsAt = tomorrow;
 
       // Act
       const _validateCanLink = () => votingRound['_validateCanLink']();
@@ -966,7 +966,7 @@ describe('VotingRound', () => {
     it('should throw when voting round has no votes', () => {
       // Arrange
       const votingRound = new VotingRound();
-      votingRound._endsAt = yesterday;
+      votingRound._votingEndsAt = yesterday;
 
       // Act
       const _validateCanLink = () => votingRound['_validateCanLink']();
@@ -1082,7 +1082,7 @@ describe('VotingRound', () => {
     it('should throw when voting period has started', () => {
       // Arrange
       const votingRound = new VotingRound();
-      votingRound._startsAt = yesterday;
+      votingRound._votingStartsAt = yesterday;
       votingRound._nominations = [new Nomination()];
 
       // Act
@@ -1098,7 +1098,7 @@ describe('VotingRound', () => {
     it('should throw if receiver is not a nomination', () => {
       // Arrange
       const votingRound = new VotingRound();
-      votingRound._startsAt = tomorrow;
+      votingRound._votingStartsAt = tomorrow;
       votingRound._nominations = [
         {
           receiver: {
@@ -1127,7 +1127,7 @@ describe('VotingRound', () => {
     it('should set the status of the nominations', () => {
       // Arrange
       const votingRound = new VotingRound();
-      votingRound._startsAt = tomorrow;
+      votingRound._votingStartsAt = tomorrow;
       votingRound._nominations = [
         {
           receiver: {

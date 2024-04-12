@@ -14,18 +14,21 @@ export default class VotingRoundMapper implements IVotingRoundMapper {
   mapToDto(votingRound: VotingRound): VotingRoundDto {
     const schedule: ScheduleDto = votingRound.hasNominationPeriod
       ? {
-          startsAt: votingRound._startsAt,
-          endsAt: votingRound._endsAt,
-          nominationEndsAt:
-            votingRound._nominationEndsAt || shouldNeverHappen(),
-          nominationStartsAt:
-            votingRound._nominationStartsAt || shouldNeverHappen(),
+          voting: {
+            startsAt: votingRound._votingStartsAt,
+            endsAt: votingRound._votingEndsAt,
+          },
+          nomination: {
+            endsAt: votingRound._nominationEndsAt || shouldNeverHappen(),
+            startsAt: votingRound._nominationStartsAt || shouldNeverHappen(),
+          },
         }
       : {
-          startsAt: votingRound._startsAt,
-          endsAt: votingRound._endsAt,
-          nominationStartsAt: undefined,
-          nominationEndsAt: undefined,
+          voting: {
+            startsAt: votingRound._votingStartsAt,
+            endsAt: votingRound._votingEndsAt,
+          },
+          nomination: undefined,
         };
 
     const nominationPeriod = votingRound.hasNominationPeriod

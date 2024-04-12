@@ -93,7 +93,11 @@ export async function main(): Promise<void> {
   );
 
   const getCollaboratorByAddressEndpoint = new GetCollaboratorByAddressEndpoint(
-    new GetCollaboratorByAddressUseCase(votingRoundRepository),
+    new GetCollaboratorByAddressUseCase(
+      votingRoundRepository,
+      auth,
+      receiverMapper,
+    ),
   );
 
   const castVoteEndpoint = new CastVoteEndpoint(

@@ -35,11 +35,11 @@ export enum VotingRoundStatus {
   name: 'VotingRounds',
 })
 export default class VotingRound extends BaseEntity implements IAggregateRoot {
-  @Column('timestamptz', { nullable: false, name: 'startsAt' })
-  public _startsAt!: Date;
+  @Column('timestamptz', { nullable: false, name: 'votingStartsAt' })
+  public _votingStartsAt!: Date;
 
-  @Column('timestamptz', { nullable: false, name: 'endsAt' })
-  public _endsAt!: Date;
+  @Column('timestamptz', { nullable: false, name: 'votingEndsAt' })
+  public _votingEndsAt!: Date;
 
   @Column('timestamptz', { nullable: true, name: 'nominationStartsAt' })
   public _nominationStartsAt: Date | undefined;
@@ -115,7 +115,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       return VotingRoundStatus.Linked;
     }
 
-    if (this._endsAt.getTime() < NOW_IN_MILLIS) {
+    if (this._votingEndsAt.getTime() < NOW_IN_MILLIS) {
       return VotingRoundStatus.Completed;
     }
 
@@ -139,7 +139,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   }
 
   get hasVotingPeriodStarted(): boolean {
-    return NOW_IN_MILLIS >= this._startsAt.getTime();
+    return NOW_IN_MILLIS >= this._votingStartsAt.getTime();
   }
 
   public static create(
@@ -233,8 +233,8 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     const votingRound = new VotingRound();
 
-    votingRound._startsAt = startsAt;
-    votingRound._endsAt = endsAt;
+    votingRound._votingStartsAt = startsAt;
+    votingRound._votingEndsAt = endsAt;
     votingRound._publisher = publisher;
     votingRound._dripListId = dripListId;
     votingRound._name = name;

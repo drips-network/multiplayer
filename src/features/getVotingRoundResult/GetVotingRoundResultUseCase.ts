@@ -38,9 +38,9 @@ export default class GetVotingRoundResultUseCase
   }
 
   public async execute(
-    request: GetVotingRoundResultCommand,
+    command: GetVotingRoundResultCommand,
   ): Promise<GetVotingRoundResultResponse> {
-    const { votingRoundId, date, signature } = request;
+    const { votingRoundId, date, signature } = command;
 
     const votingRound = await this._repository.getById(votingRoundId);
 

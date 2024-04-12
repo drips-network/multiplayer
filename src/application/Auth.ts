@@ -286,3 +286,6 @@ export const CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE = (
 
   return `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
 };
+
+export const REVEAL_VOTE = (votingRoundId: UUID, currentTime: Date) =>
+  `Reveal my vote for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;

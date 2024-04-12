@@ -2,7 +2,7 @@ import { body, param } from 'express-validator';
 
 export const setNominationsStatusesRequestValidators = [
   param('votingRoundId').isUUID().escape(),
-  body('date').isISO8601(),
+  body('date').isISO8601().toDate(),
   body('signature').isString().not().isEmpty().escape(),
   body('nominations').isArray().not().isEmpty().isLength({ max: 200 }),
   body('nominations.*.status')
