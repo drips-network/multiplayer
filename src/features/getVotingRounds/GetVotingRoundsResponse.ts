@@ -7,13 +7,13 @@ export type GetVotingRoundsResponse = {
         id: UUID;
         startsAt: Date;
         endsAt: Date;
-        dripListId: string | undefined;
-        name: string | undefined;
-        description: string | undefined;
+        dripListId: string | null;
+        name: string | null;
+        description: string | null;
         publisherAddress: string;
         status: 'started' | 'completed' | 'deleted' | 'linked';
         privateVotes: boolean;
-        linkedAt: Date | undefined;
+        linkedAt: Date | null;
         result: ReceiverDto[] | null; // `null` if the voting round is private or noon has voted yet.
         votes:
           | {
@@ -23,5 +23,5 @@ export type GetVotingRoundsResponse = {
             }[]
           | null; // `null` if the voting round is private or noon has voted yet.
       }[]
-    | undefined;
+    | null;
 };

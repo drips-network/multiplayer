@@ -29,12 +29,12 @@ export default class GetVotingRoundByIdUseCase
       startsAt: votingRound._startsAt,
       endsAt: votingRound._endsAt,
       status: votingRound.status,
-      dripListId: votingRound._dripListId,
-      name: votingRound._name,
-      description: votingRound._description,
+      dripListId: votingRound._dripListId || null,
+      name: votingRound._name || null,
+      description: votingRound._description || null,
       publisherAddress: votingRound._publisher._address,
       privateVotes: votingRound._privateVotes,
-      linkedAt: votingRound.linkedAt,
+      linkedAt: votingRound.linkedAt || null,
       result:
         (votingRound._privateVotes &&
           votingRound.status !== VotingRoundStatus.Completed &&
