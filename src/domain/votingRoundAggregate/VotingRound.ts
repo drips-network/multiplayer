@@ -472,8 +472,12 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     }
   }
 
-  private createLink(dripListId: DripListId): void {
-    const link = Link.create(dripListId, this);
+  private createLink(
+    dripListId: DripListId,
+    safeTransactionHash?: string,
+  ): void {
+    const link = Link.create(dripListId, this, safeTransactionHash);
+
     this._link = link;
     this._dripListId = dripListId;
   }

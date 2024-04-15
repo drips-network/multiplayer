@@ -43,6 +43,7 @@ describe('LinkUseCase', () => {
         useCase.execute({
           votingRoundId: randomUUID(),
           dripListId: 'dripListId' as DripListId,
+          safeTransactionHash: undefined,
         });
 
       // Assert
@@ -67,6 +68,7 @@ describe('LinkUseCase', () => {
       useCase.execute({
         votingRoundId: randomUUID(),
         dripListId: 'dripListId' as DripListId,
+        safeTransactionHash: undefined,
       });
 
     // Assert
@@ -90,6 +92,7 @@ describe('LinkUseCase', () => {
       useCase.execute({
         votingRoundId: randomUUID(),
         dripListId: undefined,
+        safeTransactionHash: undefined,
       });
 
     // Assert
@@ -118,6 +121,7 @@ describe('LinkUseCase', () => {
     await useCase.execute({
       votingRoundId,
       dripListId: undefined,
+      safeTransactionHash: undefined,
     });
 
     // Assert
@@ -153,9 +157,10 @@ describe('LinkUseCase', () => {
     await useCase.execute({
       votingRoundId,
       dripListId,
+      safeTransactionHash: 'safeTransactionHash',
     });
 
-    // Assert
+    // Assertnk
     expect(authMock.verifyDripListOwnership).toHaveBeenCalledWith(
       votingRound,
       toDripListId(dripListId),

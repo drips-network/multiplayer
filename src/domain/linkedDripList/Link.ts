@@ -21,11 +21,24 @@ export default class Link extends BaseEntity implements IAggregateRoot {
   })
   public _votingRound!: VotingRound;
 
-  public static create(dripListId: DripListId, votingRound: VotingRound): Link {
+  // create a property for a transaction hash
+  @Column('varchar', {
+    nullable: true,
+    length: DataSchemaConstants.TRANSACTION_HASH_LENGTH,
+    name: 'safeTransactionHash',
+  })
+  public _safeTransactionHash: string | undefined;
+
+  public static create(
+    dripListId: DripListId,
+    votingRound: VotingRound,
+    safeTransactionHash: string | undefined,
+  ): Link {
     const link = new Link();
 
     link._dripListId = dripListId;
     link._votingRound = votingRound;
+    link._safeTransactionHash = safeTransactionHash;
 
     return link;
   }
