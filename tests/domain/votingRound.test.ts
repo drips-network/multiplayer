@@ -877,7 +877,7 @@ describe('VotingRound', () => {
 
       // Assert
       expect(linkToDripList).rejects.toThrow(
-        `Cannot link a voting round that is not completed. Status: ${votingRound.status}.`,
+        `Cannot link a voting round that is in '${votingRound.status}' status.`,
       );
     });
 

@@ -461,7 +461,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     if (this.status !== VotingRoundStatus.Completed) {
       throw new InvalidVotingRoundOperationError(
-        `Cannot link a voting round that is not completed. Status: ${this.status}.`,
+        `Cannot link a voting round that is in '${this.status}' status.`,
       );
     }
 
