@@ -234,7 +234,7 @@ describe('VotingRound', () => {
       // Arrange
       const startsAt = tomorrow;
       const endsAt = twoDaysAfter;
-      const nominationStartsAt = now;
+      const nominationStartsAt = tomorrow;
 
       // Act
       const create = () =>
@@ -288,7 +288,7 @@ describe('VotingRound', () => {
       // Arrange
       const startsAt = twoDaysAfter;
       const endsAt = twoDaysAfter;
-      const nominationStartsAt = now;
+      const nominationStartsAt = tomorrow;
       const nominationEndsAt = tomorrow;
 
       // Act
@@ -366,10 +366,12 @@ describe('VotingRound', () => {
 
     it('should throw when nomination end date is after voting start date', () => {
       // Arrange
-      const startsAt = now;
+      const startsAt = tomorrow;
       const endsAt = twoDaysAfter;
-      const nominationStartsAt = now;
-      const nominationEndsAt = tomorrow;
+      const nominationStartsAt = tomorrow;
+      const nominationEndsAt = new Date(
+        tomorrow.getTime() + 1000 * 60 * 60 * 24 * 2,
+      );
 
       // Act
       const create = () =>
@@ -396,7 +398,7 @@ describe('VotingRound', () => {
       // Arrange
       const startsAt = tomorrow;
       const endsAt = twoDaysAfter;
-      const nominationStartsAt = now;
+      const nominationStartsAt = tomorrow;
       const nominationEndsAt = tomorrow;
 
       // Act
@@ -422,7 +424,7 @@ describe('VotingRound', () => {
       // Arrange
       const startsAt = tomorrow;
       const endsAt = twoDaysAfter;
-      const nominationStartsAt = now;
+      const nominationStartsAt = tomorrow;
       const nominationEndsAt = tomorrow;
 
       // Act
@@ -450,7 +452,7 @@ describe('VotingRound', () => {
       // Arrange
       const startsAt = tomorrow;
       const endsAt = twoDaysAfter;
-      const nominationStartsAt = now;
+      const nominationStartsAt = tomorrow;
       const nominationEndsAt = tomorrow;
 
       // Act
@@ -476,7 +478,7 @@ describe('VotingRound', () => {
       // Arrange
       const startsAt = tomorrow;
       const endsAt = twoDaysAfter;
-      const nominationStartsAt = now;
+      const nominationStartsAt = tomorrow;
       const nominationEndsAt = tomorrow;
 
       // Act
@@ -504,7 +506,7 @@ describe('VotingRound', () => {
       // Arrange
       const startsAt = tomorrow;
       const endsAt = twoDaysAfter;
-      const nominationStartsAt = now;
+      const nominationStartsAt = tomorrow;
       const nominationEndsAt = tomorrow;
 
       // Act
@@ -537,7 +539,7 @@ describe('VotingRound', () => {
       // Arrange
       const startsAt = tomorrow;
       const endsAt = twoDaysAfter;
-      const nominationStartsAt = now;
+      const nominationStartsAt = tomorrow;
       const nominationEndsAt = tomorrow;
       const publisher = new Publisher();
 

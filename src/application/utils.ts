@@ -21,3 +21,5 @@ export function isValidHttpsUrl(url: string) {
   const pattern = /^https:\/\/[^\s$.?#].[^\s]*$/;
   return pattern.test(url);
 }
+
+export const nowInMillis = () => new Date().getTime();

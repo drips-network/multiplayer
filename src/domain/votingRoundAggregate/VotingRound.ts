@@ -20,10 +20,11 @@ import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Publisher from '../publisherAggregate/Publisher';
 import type { SafeTx } from '../linkedDripList/Link';
 import Link, { LinkStatus } from '../linkedDripList/Link';
-import { NOW_IN_MILLIS, TOTAL_VOTE_WEIGHT } from '../constants';
+import { TOTAL_VOTE_WEIGHT } from '../constants';
 import Vote from './Vote';
 import type Nomination from './Nomination';
 import { NominationStatus } from './Nomination';
+import { nowInMillis } from '../../application/utils';
 
 export enum VotingRoundStatus {
   Started = 'Started',
@@ -125,7 +126,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       return VotingRoundStatus.PendingLinkCompletion;
     }
 
-    if (this._votingEndsAt.getTime() < NOW_IN_MILLIS) {
+    if (this._votingEndsAt.getTime() < nowInMillis()) {
       return VotingRoundStatus.Completed;
     }
 
@@ -138,14 +139,14 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       isOpen: Boolean(
         this._nominationStartsAt &&
           this._nominationEndsAt &&
-          NOW_IN_MILLIS <= this._nominationEndsAt.getTime(),
+          nowInMillis() <= this._nominationEndsAt.getTime(),
       ),
     };
   }
 
   public get votingPeriod() {
     return {
-      hasStarted: NOW_IN_MILLIS >= this._votingStartsAt.getTime(),
+      hasStarted: nowInMillis() >= this._votingStartsAt.getTime(),
     };
   }
 
@@ -168,7 +169,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       throw new InvalidArgumentError('Start date must be before end date.');
     }
 
-    if (startsAtTime < NOW_IN_MILLIS) {
+    if (startsAtTime < nowInMillis()) {
       throw new InvalidArgumentError('Start date must be in the future.');
     }
 
@@ -183,7 +184,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     if (
       nominationStartsAt &&
-      new Date(nominationStartsAt).getTime() < NOW_IN_MILLIS
+      new Date(nominationStartsAt).getTime() < nowInMillis()
     ) {
       throw new InvalidArgumentError(
         'Nomination start date must be in the future.',
