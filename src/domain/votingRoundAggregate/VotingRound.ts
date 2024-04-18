@@ -18,17 +18,19 @@ import type { Receiver } from './Vote';
 import type { AccountId, Address, DripListId } from '../typeUtils';
 import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 import type Publisher from '../publisherAggregate/Publisher';
-import Link from '../linkedDripList/Link';
+import type { SafeTx } from '../linkedDripList/Link';
+import Link, { LinkStatus } from '../linkedDripList/Link';
 import { NOW_IN_MILLIS, TOTAL_VOTE_WEIGHT } from '../constants';
 import Vote from './Vote';
 import type Nomination from './Nomination';
 import { NominationStatus } from './Nomination';
 
 export enum VotingRoundStatus {
-  Started = 'started',
-  Completed = 'completed',
-  Deleted = 'deleted',
-  Linked = 'linked',
+  Started = 'Started',
+  Completed = 'Completed',
+  Deleted = 'Deleted',
+  Linked = 'Linked',
+  PendingLinkCompletion = 'PendingLinkCompletion',
 }
 
 @Entity({
@@ -103,16 +105,24 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     nullable: true,
     cascade: ['insert', 'update'],
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'linkId' })
   public _link: Link | undefined;
+
+  public get publisherAddress() {
+    return this._publisher._address;
+  }
 
   public get status(): VotingRoundStatus {
     if (this._deletedAt) {
       return VotingRoundStatus.Deleted;
     }
 
-    if (this.linkedAt) {
+    if (this._link?.status === LinkStatus.Completed) {
       return VotingRoundStatus.Linked;
+    }
+
+    if (this._link?.status === LinkStatus.AwaitingSafeTxExecution) {
+      return VotingRoundStatus.PendingLinkCompletion;
     }
 
     if (this._votingEndsAt.getTime() < NOW_IN_MILLIS) {
@@ -122,24 +132,21 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return VotingRoundStatus.Started;
   }
 
-  get linkedAt(): Date | undefined {
-    return this._link?._updatedAt;
+  public get nominationPeriod() {
+    return {
+      isSet: Boolean(this._nominationStartsAt && this._nominationEndsAt),
+      isOpen: Boolean(
+        this._nominationStartsAt &&
+          this._nominationEndsAt &&
+          NOW_IN_MILLIS <= this._nominationEndsAt.getTime(),
+      ),
+    };
   }
 
-  get hasNominationPeriod(): boolean {
-    return Boolean(this._nominationStartsAt && this._nominationEndsAt);
-  }
-
-  get isOpenForNominations(): boolean {
-    return Boolean(
-      this._nominationStartsAt &&
-        this._nominationEndsAt &&
-        NOW_IN_MILLIS <= this._nominationEndsAt.getTime(),
-    );
-  }
-
-  get hasVotingPeriodStarted(): boolean {
-    return NOW_IN_MILLIS >= this._votingStartsAt.getTime();
+  public get votingPeriod() {
+    return {
+      hasStarted: NOW_IN_MILLIS >= this._votingStartsAt.getTime(),
+    };
   }
 
   public static create(
@@ -364,13 +371,15 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   }
 
   public nominate(nomination: Nomination): void {
-    if (!this.hasNominationPeriod) {
+    const { isSet, isOpen } = this.nominationPeriod;
+
+    if (!isSet) {
       throw new InvalidVotingRoundOperationError(
         'This voting round does not accept nominations.',
       );
     }
 
-    if (!this.isOpenForNominations) {
+    if (!isOpen) {
       throw new InvalidVotingRoundOperationError(
         'Nomination period is closed.',
       );
@@ -417,7 +426,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       );
     }
 
-    if (this.hasVotingPeriodStarted) {
+    if (this.votingPeriod.hasStarted) {
       throw new InvalidVotingRoundOperationError(
         'Cannot accept nominations after the voting period has started.',
       );
@@ -439,44 +448,29 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     });
   }
 
-  public linkToNewDripList(dripListId: DripListId): void {
-    this._validateCanLink();
-    this.createLink(dripListId);
-  }
-
-  public linkToExistingDripList(): void {
-    if (!this._dripListId) {
-      throw new InvalidArgumentError('There is no Drip List to link to.');
-    }
-    this._validateCanLink();
-    this.createLink(this._dripListId);
-  }
-
-  private _validateCanLink(): void {
-    if (this._link) {
-      throw new InvalidArgumentError(
-        'Cannot link a voting round that is already linked.',
+  public async linkToDripList(
+    dripListId: DripListId,
+    safeTx: SafeTx | undefined = undefined,
+  ): Promise<void> {
+    if (this._dripListId && this._dripListId !== dripListId) {
+      throw new InvalidVotingRoundOperationError(
+        'A Drip List ID is already set for this voting round and the provided Drip List ID does not match.',
       );
     }
 
     if (this.status !== VotingRoundStatus.Completed) {
-      throw new InvalidArgumentError(
+      throw new InvalidVotingRoundOperationError(
         `Cannot link a voting round that is not completed. Status: ${this.status}.`,
       );
     }
 
     if (!this._votes?.length) {
-      throw new InvalidArgumentError(
+      throw new InvalidVotingRoundOperationError(
         'Cannot link a Drip List to a voting round with no votes.',
       );
     }
-  }
 
-  private createLink(
-    dripListId: DripListId,
-    safeTransactionHash?: string,
-  ): void {
-    const link = Link.create(dripListId, this, safeTransactionHash);
+    const link = Link.create(dripListId, this, safeTx);
 
     this._link = link;
     this._dripListId = dripListId;

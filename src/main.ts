@@ -1,4 +1,5 @@
 import { GraphQLClient } from 'graphql-request';
+import SafeApiKit from '@safe-global/api-kit';
 import ApiServer from './ApiServer';
 import 'reflect-metadata';
 import logger from './infrastructure/logger';
@@ -39,6 +40,7 @@ import provider from './application/provider';
 import SetNominationsStatusesEndpoint from './features/setNominationsStatuses/SetNominationsStatusesEndpoint';
 import SetNominationsStatusesUseCase from './features/setNominationsStatuses/SetNominationsStatusesUseCase';
 import VotingRoundMapper from './application/VotingRoundMapper';
+import SafeService from './application/SafeService';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -56,18 +58,17 @@ export async function main(): Promise<void> {
     collaboratorRepository,
   );
 
+  const graphQlClient = new GraphQLClient(appSettings.graphQlUrl, {
+    headers: {
+      authorization: `Bearer ${appSettings.graphQlToken}`,
+    },
+  });
+
   let auth: IAuthStrategy;
   if (appSettings.authStrategy === 'dev') {
     auth = new DevAuth();
   } else if (appSettings.authStrategy === 'signature') {
-    auth = new Auth(
-      logger,
-      new GraphQLClient(appSettings.graphQlUrl, {
-        headers: {
-          authorization: `Bearer ${appSettings.graphQlToken}`,
-        },
-      }),
-    );
+    auth = new Auth(logger, graphQlClient);
   } else {
     throw new Error(`Unknown auth strategy: ${appSettings.authStrategy}`);
   }
@@ -82,6 +83,18 @@ export async function main(): Promise<void> {
 
   const votingRoundMapper = new VotingRoundMapper(receiverMapper);
 
+  const safeApiKit = new SafeApiKit({
+    chainId: BigInt(appSettings.chainId),
+  });
+
+  const safeService = new SafeService(
+    graphQlClient,
+    auth,
+    votingRoundRepository,
+    safeApiKit,
+    logger,
+  );
+
   const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
     new StartVotingRoundUseCase(logger, votingRoundService, auth),
   );
@@ -89,7 +102,11 @@ export async function main(): Promise<void> {
     new SoftDeleteVotingRoundUseCase(logger, votingRoundRepository, auth),
   );
   const getVotingRoundByIdEndpoint = new GetVotingRoundByIdEndpoint(
-    new GetVotingRoundByIdUseCase(votingRoundRepository, votingRoundMapper),
+    new GetVotingRoundByIdUseCase(
+      votingRoundRepository,
+      votingRoundMapper,
+      safeService,
+    ),
   );
 
   const getCollaboratorByAddressEndpoint = new GetCollaboratorByAddressEndpoint(
@@ -111,11 +128,15 @@ export async function main(): Promise<void> {
   );
 
   const getVotingRoundsEndpoint = new GetVotingRoundsEndpoint(
-    new GetVotingRoundsUseCase(votingRoundRepository, votingRoundMapper),
+    new GetVotingRoundsUseCase(
+      votingRoundRepository,
+      votingRoundMapper,
+      safeService,
+    ),
   );
 
   const linkEndpoint = new LinkEndpoint(
-    new LinkUseCase(logger, votingRoundRepository, auth),
+    new LinkUseCase(logger, votingRoundRepository, safeService),
   );
 
   const getVotingRoundVotesEndpoint = new GetVotingRoundVotesEndpoint(

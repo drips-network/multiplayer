@@ -72,10 +72,11 @@ export type NominationInfoDto =
   | DripListNominationInfoDto;
 
 export type VotingRoundStatusDto =
-  | 'started'
-  | 'completed'
-  | 'deleted'
-  | 'linked';
+  | 'Started'
+  | 'Completed'
+  | 'Linked'
+  | 'Deleted'
+  | 'PendingLinkCompletion';
 
 type NominationPeriodDto =
   | {

@@ -1,4 +1,8 @@
-export type LinkRequest = {
-  dripListId: string | undefined;
-  safeTransactionHash: string | undefined;
-};
+export type LinkRequest =
+  | {
+      dripListId: string | undefined;
+    }
+  | {
+      dripListId: string;
+      safeTransactionHash: string;
+    };

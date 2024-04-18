@@ -7,6 +7,7 @@ import logger from './infrastructure/logger';
 import { NotFoundError, UnauthorizedError } from './application/errors';
 import {
   InvalidArgumentError,
+  InvalidLinkOperationError,
   InvalidVotingRoundOperationError,
 } from './domain/errors';
 
@@ -47,7 +48,8 @@ export default class ApiServer {
         // 400 Bad Request
         if (
           error instanceof InvalidArgumentError ||
-          error instanceof InvalidVotingRoundOperationError
+          error instanceof InvalidVotingRoundOperationError ||
+          error instanceof InvalidLinkOperationError
         ) {
           logger.info(`${error.message}`);
           return res.status(400).json({ error: error.message });

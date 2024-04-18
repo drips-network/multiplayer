@@ -6,7 +6,8 @@ import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVoti
 import { BadRequestError, NotFoundError } from '../../application/errors';
 import { toDripListId } from '../../domain/typeUtils';
 import shouldNeverHappen from '../../application/shouldNeverHappen';
-import type { IAuthStrategy } from '../../application/Auth';
+import type ISafeService from '../../application/interfaces/ISafeService';
+import type { SafeTx } from '../../domain/linkedDripList/Link';
 
 export type LinkCommand = LinkRequest & {
   votingRoundId: UUID;
@@ -14,21 +15,26 @@ export type LinkCommand = LinkRequest & {
 
 export default class LinkUseCase implements UseCase<LinkCommand> {
   private readonly _logger: Logger;
-  private readonly _auth: IAuthStrategy;
+  private readonly _safeService: ISafeService;
   private readonly _votingRoundRepository: IVotingRoundRepository;
 
   public constructor(
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
-    auth: IAuthStrategy,
+    safeService: ISafeService,
   ) {
-    this._auth = auth;
     this._logger = logger;
+    this._safeService = safeService;
     this._votingRoundRepository = votingRoundRepository;
   }
 
   public async execute(request: LinkCommand): Promise<void> {
     const { votingRoundId, dripListId } = request;
+
+    const safeTransactionHash =
+      'safeTransactionHash' in request
+        ? request.safeTransactionHash
+        : undefined;
 
     this._logger.info(`Linking voting round '${votingRoundId}'...`);
 
@@ -39,38 +45,44 @@ export default class LinkUseCase implements UseCase<LinkCommand> {
       throw new NotFoundError(`voting round not found.`);
     }
 
-    if (votingRound._dripListId && dripListId) {
+    if (safeTransactionHash && !dripListId) {
       throw new BadRequestError(
-        `Voting round already connected to a DripList. Do not provide a Drip List ID for an existing Drip List.`,
+        `Drip List ID is required when providing a safe transaction hash.`,
       );
     }
 
     if (!votingRound._dripListId && !dripListId) {
-      throw new BadRequestError(`Missing Drip List ID.`);
+      throw new BadRequestError(
+        `A Drip List ID is not set for the voting round and not provided in the request.`,
+      );
     }
 
-    if (votingRound._dripListId) {
-      await this._auth.verifyDripListOwnership(
-        votingRound,
-        votingRound._dripListId,
+    if (
+      votingRound._dripListId &&
+      dripListId &&
+      votingRound._dripListId !== toDripListId(dripListId)
+    ) {
+      throw new BadRequestError(
+        'A Drip List ID is already set for this voting round and the provided Drip List ID does not match.',
       );
-
-      votingRound.linkToExistingDripList();
-    } else if (dripListId) {
-      await this._auth.verifyDripListOwnership(
-        votingRound,
-        toDripListId(dripListId),
-      );
-
-      votingRound.linkToNewDripList(toDripListId(dripListId));
-    } else {
-      shouldNeverHappen();
     }
+
+    const dlId = dripListId
+      ? toDripListId(dripListId)
+      : votingRound._dripListId ||
+        shouldNeverHappen('Found no Drip List ID while linking.');
+
+    let safeTx: SafeTx | undefined;
+    if (safeTransactionHash) {
+      safeTx = await this._safeService.getSafeTransaction(safeTransactionHash);
+    }
+
+    await votingRound.linkToDripList(dlId, safeTx);
 
     await this._votingRoundRepository.save(votingRound);
 
     this._logger.info(
-      `voting round '${votingRoundId}' linked to DripList '${votingRound._dripListId}'.`,
+      `Voting round '${votingRoundId}' ${safeTransactionHash ? '(pending Safe tx)' : ''} linked to DripList '${votingRound._dripListId}'.`,
     );
   }
 }

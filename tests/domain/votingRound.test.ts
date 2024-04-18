@@ -1,9 +1,13 @@
 /* eslint-disable dot-notation */
 import Collaborator from '../../src/domain/collaboratorAggregate/Collaborator';
 import { TOTAL_VOTE_WEIGHT } from '../../src/domain/constants';
-import Link from '../../src/domain/linkedDripList/Link';
+import Link, { LinkStatus } from '../../src/domain/linkedDripList/Link';
 import Publisher from '../../src/domain/publisherAggregate/Publisher';
-import type { AccountId, DripListId } from '../../src/domain/typeUtils';
+import type {
+  AccountId,
+  Address,
+  DripListId,
+} from '../../src/domain/typeUtils';
 import type { Receiver } from '../../src/domain/votingRoundAggregate/Vote';
 import VotingRound, {
   VotingRoundStatus,
@@ -35,12 +39,11 @@ describe('VotingRound', () => {
       expect(result).toBe(VotingRoundStatus.Deleted);
     });
 
-    it('should return Linked when linkedAt is set', () => {
+    it('should return Linked when link status is Completed', () => {
       // Arrange
       const votingRound = new VotingRound();
 
       const link = new Link();
-      link._updatedAt = now;
 
       votingRound._link = link;
 
@@ -49,6 +52,23 @@ describe('VotingRound', () => {
 
       // Assert
       expect(result).toBe(VotingRoundStatus.Linked);
+    });
+
+    it('should return PendingLinkCompletion when link status is AwaitingSafeTxExecution', () => {
+      // Arrange
+      const votingRound = new VotingRound();
+
+      const link = new Link();
+
+      votingRound._link = link;
+      link._safeTransactionHash = 'safeTransactionHash';
+      link._isSafeTransactionExecuted = false;
+
+      // Act
+      const result = votingRound.status;
+
+      // Assert
+      expect(result).toBe(VotingRoundStatus.PendingLinkCompletion);
     });
 
     it('should return Completed when end date is in the past', () => {
@@ -63,7 +83,7 @@ describe('VotingRound', () => {
       expect(result).toBe(VotingRoundStatus.Completed);
     });
 
-    it('should return Started deletedAt and linkedAt are not set and end date is in future', () => {
+    it('should return Started when voting round has not a link and it is not completed', () => {
       // Arrange
       const votingRound = new VotingRound();
       votingRound._votingEndsAt = tomorrow;
@@ -76,123 +96,88 @@ describe('VotingRound', () => {
     });
   });
 
-  describe('linkedAt', () => {
-    it("should return the Link's updatedAt date when the Voting Round is linked", () => {
-      // Arrange
-      const votingRound = new VotingRound();
+  describe('nominationPeriod', () => {
+    describe('isSet', () => {
+      it('should return true when nomination start and end dates are set', () => {
+        // Arrange
+        const votingRound = new VotingRound();
+        votingRound._nominationStartsAt = yesterday;
+        votingRound._nominationEndsAt = tomorrow;
 
-      const link = new Link();
-      link._updatedAt = yesterday;
+        // Act
+        const result = votingRound.nominationPeriod.isSet;
 
-      votingRound._link = link;
+        // Assert
+        expect(result).toBe(true);
+      });
 
-      // Act
-      const result = votingRound.linkedAt;
+      it('should return false when nomination start date is not set', () => {
+        // Arrange
+        const votingRound = new VotingRound();
+        votingRound._nominationEndsAt = tomorrow;
 
-      // Assert
-      expect(result).toBe(link._updatedAt);
+        // Act
+        const result = votingRound.nominationPeriod.isSet;
+
+        // Assert
+        expect(result).toBe(false);
+      });
+
+      it('should return false when nomination end date is not set', () => {
+        // Arrange
+        const votingRound = new VotingRound();
+        votingRound._nominationStartsAt = yesterday;
+
+        // Act
+        const result = votingRound.nominationPeriod.isSet;
+
+        // Assert
+        expect(result).toBe(false);
+      });
     });
 
-    it('should return undefined when the Voting Round is not linked', () => {
-      // Arrange
-      const votingRound = new VotingRound();
+    describe('isOpen', () => {
+      it('should return true when nomination start and end dates are set and end date is in the future', () => {
+        // Arrange
+        const votingRound = new VotingRound();
+        votingRound._nominationStartsAt = yesterday;
+        votingRound._nominationEndsAt = tomorrow;
 
-      // Act
-      const result = votingRound.linkedAt;
+        // Act
+        const result = votingRound.nominationPeriod.isOpen;
 
-      // Assert
-      expect(result).toBeUndefined();
-    });
-  });
+        // Assert
+        expect(result).toBe(true);
+      });
 
-  describe('hasNominationPeriod', () => {
-    it('should return true when the nomination period is set', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-      votingRound._nominationStartsAt = twoDaysAgo;
-      votingRound._nominationEndsAt = yesterday;
+      it('should return false when nomination start and end dates are set and end date is in the past', () => {
+        // Arrange
+        const votingRound = new VotingRound();
+        votingRound._nominationStartsAt = twoDaysAgo;
+        votingRound._nominationEndsAt = yesterday;
 
-      // Act
-      const result = votingRound.hasNominationPeriod;
+        // Act
+        const result = votingRound.nominationPeriod.isOpen;
 
-      // Assert
-      expect(result).toBe(true);
-    });
-
-    it('should return false when the nomination period is not set', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-
-      // Act
-      const result = votingRound.hasNominationPeriod;
-
-      // Assert
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('isOpenForNominations', () => {
-    it('should return true when the nomination period is set and nomination period end date is in the future', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-      votingRound._nominationStartsAt = yesterday;
-      votingRound._nominationEndsAt = tomorrow;
-
-      // Act
-      const result = votingRound.isOpenForNominations;
-
-      // Assert
-      expect(result).toBe(true);
-    });
-
-    it('should return true when the nomination period is set and nomination period end date is in the past', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-      votingRound._nominationStartsAt = twoDaysAgo;
-      votingRound._nominationEndsAt = yesterday;
-
-      // Act
-      const result = votingRound.isOpenForNominations;
-
-      // Assert
-      expect(result).toBe(false);
-    });
-
-    it('should return false when the nomination period is not set', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-
-      // Act
-      const result = votingRound.isOpenForNominations;
-
-      // Assert
-      expect(result).toBe(false);
+        // Assert
+        expect(result).toBe(false);
+      });
     });
   });
 
-  describe('hasVotingPeriodStarted', () => {
-    it('should return true when voting start date is in the past', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-      votingRound._votingStartsAt = yesterday;
+  describe('votingPeriod', () => {
+    describe('hasStarted', () => {
+      it('should return true when voting start date is in the past', () => {
+        // Arrange
+        const votingRound = new VotingRound();
+        votingRound._votingStartsAt = yesterday;
 
-      // Act
-      const result = votingRound.hasVotingPeriodStarted;
+        // Act
+        const result = votingRound.votingPeriod.hasStarted;
 
-      // Assert
-      expect(result).toBe(true);
-    });
-
-    it('should return false when voting start date is in the future', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-      votingRound._votingStartsAt = tomorrow;
-
-      // Act
-      const result = votingRound.hasVotingPeriodStarted;
-
-      // Assert
-      expect(result).toBe(false);
+        // Assert
+        expect(result).toBe(true);
+      });
     });
   });
 
@@ -863,117 +848,99 @@ describe('VotingRound', () => {
     });
   });
 
-  describe('linkToNewDripList', () => {
-    it('should call validateCanLink', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-      votingRound['_validateCanLink'] = jest.fn();
-
-      // Act
-      votingRound.linkToNewDripList('dripListId' as DripListId);
-
-      // Assert
-      expect(votingRound['_validateCanLink']).toHaveBeenCalled();
-    });
-
-    it('should call createLink', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-      votingRound['createLink'] = jest.fn();
-      votingRound['_validateCanLink'] = jest.fn();
-
-      // Act
-      votingRound.linkToNewDripList('dripListId' as DripListId);
-
-      // Assert
-      expect(votingRound['createLink']).toHaveBeenCalledWith('dripListId');
-    });
-  });
-
-  describe('linkToExistingDripList', () => {
-    it('should throw if dripListId is not defined', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-
-      // Act
-      const linkToExistingDripList = () => votingRound.linkToExistingDripList();
-
-      // Assert
-      expect(linkToExistingDripList).toThrow(
-        'There is no Drip List to link to.',
-      );
-    });
-
-    it('should call validateCanLink', () => {
+  describe('linkToDripList', () => {
+    it('should throw when voting round has a Drip List ID set and the provided Drip List ID is different', () => {
       // Arrange
       const votingRound = new VotingRound();
       votingRound._dripListId = 'dripListId' as DripListId;
-      votingRound['_validateCanLink'] = jest.fn();
 
       // Act
-      votingRound.linkToExistingDripList();
+      const linkToDripList = () =>
+        votingRound.linkToDripList('otherDripListId' as DripListId);
 
       // Assert
-      expect(votingRound['_validateCanLink']).toHaveBeenCalled();
-    });
-
-    it('should call createLink', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-      votingRound._dripListId = 'dripListId' as DripListId;
-      votingRound['createLink'] = jest.fn();
-      votingRound['_validateCanLink'] = jest.fn();
-
-      // Act
-      votingRound.linkToExistingDripList();
-
-      // Assert
-      expect(votingRound['createLink']).toHaveBeenCalledWith(
-        votingRound._dripListId,
-      );
-    });
-  });
-
-  describe('_validateCanLink', () => {
-    it('should throw when voting round is already linked', () => {
-      // Arrange
-      const votingRound = new VotingRound();
-      votingRound._link = new Link();
-
-      // Act
-      const _validateCanLink = () => votingRound['_validateCanLink']();
-
-      // Assert
-      expect(_validateCanLink).toThrow(
-        'Cannot link a voting round that is already linked.',
+      expect(linkToDripList).rejects.toThrow(
+        'A Drip List ID is already set for this voting round and the provided Drip List ID does not match.',
       );
     });
 
-    it('should throw when voting round is not yet completed', () => {
+    it('should throw when voting round is not completed', () => {
       // Arrange
       const votingRound = new VotingRound();
       votingRound._votingEndsAt = tomorrow;
 
       // Act
-      const _validateCanLink = () => votingRound['_validateCanLink']();
+      const linkToDripList = () =>
+        votingRound.linkToDripList('dripListId' as DripListId);
 
       // Assert
-      expect(_validateCanLink).toThrow(
+      expect(linkToDripList).rejects.toThrow(
         `Cannot link a voting round that is not completed. Status: ${votingRound.status}.`,
       );
     });
 
     it('should throw when voting round has no votes', () => {
       // Arrange
-      const votingRound = new VotingRound();
+      const votingRound = VotingRound.create(
+        tomorrow,
+        twoDaysAfter,
+        null as any,
+        null as any,
+        'name',
+        'description',
+        [],
+        false,
+        null as any,
+        null as any,
+      );
       votingRound._votingEndsAt = yesterday;
 
       // Act
-      const _validateCanLink = () => votingRound['_validateCanLink']();
+      const linkToDripList = () =>
+        votingRound.linkToDripList('dripListId' as DripListId);
 
       // Assert
-      expect(_validateCanLink).toThrow(
+      expect(linkToDripList).rejects.toThrow(
         'Cannot link a Drip List to a voting round with no votes.',
+      );
+    });
+
+    it('should create link when all parameters are valid', async () => {
+      // Arrange
+      const votingRound = new VotingRound();
+      votingRound._votes = [{} as Vote];
+      votingRound._votingEndsAt = yesterday;
+
+      // Act
+      await votingRound.linkToDripList('dripListId' as DripListId);
+
+      // Assert
+      expect(votingRound._dripListId).toBe('dripListId');
+      expect(votingRound._link!.status).toBe(LinkStatus.Completed);
+    });
+
+    it('should create pending link when all parameters are valid', async () => {
+      // Arrange
+      const votingRound = new VotingRound();
+
+      votingRound._votes = [{} as Vote];
+      votingRound._votingEndsAt = yesterday;
+      votingRound._publisher = {
+        _address: 'publisherAddress',
+      } as unknown as Publisher;
+
+      // Act
+      await votingRound.linkToDripList('dripListId' as DripListId, {
+        transactionHash: 'transactionHash',
+        isExecuted: false,
+        isSuccessful: undefined,
+        safeAddress: 'publisherAddress' as Address,
+      });
+
+      // Assert
+      expect(votingRound._dripListId).toBe('dripListId');
+      expect(votingRound._link!.status).toBe(
+        LinkStatus.AwaitingSafeTxExecution,
       );
     });
   });

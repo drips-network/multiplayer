@@ -5,18 +5,23 @@ import type { GetVotingRoundsResponse } from './GetVotingRoundsResponse';
 import type { Address, DripListId } from '../../domain/typeUtils';
 import { assertIsAddress, toDripListId } from '../../domain/typeUtils';
 import type IVotingRoundMapper from '../../application/interfaces/IVotingRoundMapper';
+import type ISafeService from '../../application/interfaces/ISafeService';
+import { LinkStatus } from '../../domain/linkedDripList/Link';
 
 export default class GetVotingRoundsUseCase
   implements UseCase<GetVotingRoundsRequest, GetVotingRoundsResponse>
 {
+  private readonly _safeService: ISafeService;
   private readonly _repository: IVotingRoundRepository;
   private readonly _votingRoundMapper: IVotingRoundMapper;
 
   public constructor(
     repository: IVotingRoundRepository,
     votingRoundMapper: IVotingRoundMapper,
+    safeService: ISafeService,
   ) {
     this._repository = repository;
+    this._safeService = safeService;
     this._votingRoundMapper = votingRoundMapper;
   }
 
@@ -41,6 +46,17 @@ export default class GetVotingRoundsUseCase
       publisherAddress,
       dripListId,
     });
+
+    const votingRoundsWithPendingLinks = votingRounds.filter(
+      (votingRound) =>
+        votingRound._link?.status === LinkStatus.AwaitingSafeTxExecution,
+    );
+
+    await Promise.all(
+      votingRoundsWithPendingLinks.map((votingRound) =>
+        this._safeService.checkSafeTxAndLinkPending(votingRound),
+      ),
+    );
 
     return {
       votingRounds: votingRounds.map((votingRound) =>

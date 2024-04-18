@@ -3,6 +3,7 @@ import type IReceiverMapper from './interfaces/IReceiverMapper';
 import type IVotingRoundMapper from './interfaces/IVotingRoundMapper';
 import shouldNeverHappen from './shouldNeverHappen';
 import type VotingRound from '../domain/votingRoundAggregate/VotingRound';
+import { VotingRoundStatus } from '../domain/votingRoundAggregate/VotingRound';
 
 export default class VotingRoundMapper implements IVotingRoundMapper {
   private readonly _receiverMapper: IReceiverMapper;
@@ -12,7 +13,7 @@ export default class VotingRoundMapper implements IVotingRoundMapper {
   }
 
   mapToDto(votingRound: VotingRound): VotingRoundDto {
-    const schedule: ScheduleDto = votingRound.hasNominationPeriod
+    const schedule: ScheduleDto = votingRound.nominationPeriod.isSet
       ? {
           voting: {
             startsAt: votingRound._votingStartsAt,
@@ -31,9 +32,9 @@ export default class VotingRoundMapper implements IVotingRoundMapper {
           nomination: undefined,
         };
 
-    const nominationPeriod = votingRound.hasNominationPeriod
+    const nominationPeriod = votingRound.nominationPeriod.isSet
       ? {
-          isOpen: votingRound.isOpenForNominations,
+          isOpen: votingRound.nominationPeriod.isOpen,
           nominations:
             votingRound._nominations?.map((n) =>
               this._receiverMapper.mapToNominationInfoDto(n),
@@ -50,11 +51,11 @@ export default class VotingRoundMapper implements IVotingRoundMapper {
       description: votingRound._description || null,
       publisherAddress: votingRound._publisher._address,
       areVotesPrivate: votingRound._areVotesPrivate,
-      linkedAt: votingRound.linkedAt || null,
+      linkedAt: votingRound._link?.linkedAt || null,
       result:
         (votingRound._areVotesPrivate &&
-          votingRound.status !== 'completed' &&
-          votingRound.status !== 'linked') ||
+          votingRound.status !== VotingRoundStatus.Completed &&
+          votingRound.status !== VotingRoundStatus.Linked) ||
         !votingRound._votes?.length
           ? null
           : votingRound
@@ -72,7 +73,7 @@ export default class VotingRoundMapper implements IVotingRoundMapper {
                 this._receiverMapper.mapToReceiverDto(receiver),
               ) || null,
           })),
-      hasVotingPeriodStarted: votingRound.hasVotingPeriodStarted,
+      hasVotingPeriodStarted: votingRound.votingPeriod.hasStarted,
       nominationPeriod,
     };
   }

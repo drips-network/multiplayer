@@ -97,13 +97,14 @@ export class Auth implements IAuthStrategy {
         throw new UnauthorizedError('Invalid signature.');
       }
     } else {
-      this._logger.info(`Signer '${signerAddress}' is a multisig.`);
+      this._logger.info(`Signer '${signerAddress}' is a Safe.`);
 
       const hash = hashMessage(message);
+      this._logger.info(`Hashed message: ${hash}`);
 
       const ethAdapter = new EthersAdapter({
         ethers,
-        signerOrProvider: await provider.getSigner(0),
+        signerOrProvider: provider,
       });
 
       const safeSdk: Safe = await Safe.create({
@@ -111,15 +112,15 @@ export class Auth implements IAuthStrategy {
         safeAddress: signerAddress,
       });
 
-      const isValid = await safeSdk.isValidSignature(hash, '0x');
+      const isValid = await safeSdk.isValidSignature(hash, signature);
 
       if (isValid) {
         this._logger.info(
-          `Signature '${signature}' is valid for signer '${signerAddress}' using Safe.`,
+          `Signature '${signature}' is valid for Safe '${signerAddress}'.`,
         );
       } else {
         this._logger.error(
-          `Signature '${signature}' is not valid for signer '${signerAddress}' using Safe.`,
+          `Signature '${signature}' is not valid for Safe '${signerAddress}'.`,
         );
 
         throw new UnauthorizedError('Invalid signature.');

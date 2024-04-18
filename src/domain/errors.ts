@@ -5,6 +5,13 @@ export class InvalidVotingRoundOperationError extends Error {
   }
 }
 
+export class InvalidLinkOperationError extends Error {
+  public constructor(message: string = 'Invalid operation on Link.') {
+    super(message);
+    this.name = 'InvalidLinkOperationError';
+  }
+}
+
 export class InvalidArgumentError extends Error {
   public constructor(message: string = 'Invalid argument.') {
     super(message);
