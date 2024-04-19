@@ -8,7 +8,7 @@ export const linkRequestValidators = [
     .isLength({ min: 36 })
     .escape(),
   body('safeTransactionHash')
-    .if((_, { req }) => req.body.dripListId)
+    .if((_, { req }) => req.body.safeTransactionHash)
     .isString()
     .isLength({ min: 66, max: 66 })
     .escape(),
