@@ -68,9 +68,16 @@ export default class SafeService implements ISafeService {
         'Missing Drip List ID while linking pending voting round.',
       );
 
-    const safeTx = await this.getSafeTransaction(safeTransactionHash);
+    const { isExecuted, isSuccessful, safeAddress } =
+      await this.getSafeTransaction(safeTransactionHash);
 
-    if (safeTx.isExecuted) {
+    if (safeAddress !== votingRound.publisherAddress) {
+      throw new Error(
+        'Error while trying to complete link: Safe transaction does not belong to the voting round publisher.',
+      );
+    }
+
+    if (isExecuted && isSuccessful) {
       this._logger.info(
         `Safe transaction '${safeTransactionHash}' for voting round '${votingRound._id}' is executed. Marking link as completed...`,
       );
