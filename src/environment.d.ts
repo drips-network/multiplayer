@@ -16,6 +16,7 @@ declare global {
       ADDRESS_DRIVER_ADDRESS: string;
       REPO_DRIVER_ADDRESS: string;
       AUTH_STRATEGY: 'signature' | 'dev';
+      API_KEY: string;
     }
   }
 }

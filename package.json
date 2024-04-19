@@ -10,7 +10,7 @@
     "lint": "prettier --check . && eslint src/**/*.ts",
     "dev:local": "NODE_ENV=local AUTH_STRATEGY=signature npx nodemon",
     "dev:local:no-auth": "NODE_ENV=local AUTH_STRATEGY=dev npx nodemon",
-    "start:sepolia": "NODE_ENV=sepolia npx nodemon",
+    "dev:sepolia": "NODE_ENV=sepolia npx nodemon",
     "check": "tsc --noEmit",
     "build": "npm run build:contracts && tsc",
     "build:contracts": "typechain --target=ethers-v6 --out-dir ./src/generated/contracts ./src/abi/**.json",

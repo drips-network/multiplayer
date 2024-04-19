@@ -18,6 +18,21 @@ export default class ApiServer {
   ): Promise<void> {
     const app = express();
 
+    const authenticateApiKey = (
+      req: express.Request,
+      res: express.Response,
+      next: express.NextFunction,
+    ) => {
+      const apiKey = req.headers.authorization;
+      if (apiKey && apiKey === `Bearer ${process.env.API_KEY}`) {
+        next();
+      } else {
+        res.status(401).json({ message: 'Unauthorized' });
+      }
+    };
+
+    app.use(authenticateApiKey);
+
     app.use(express.json());
 
     ApiServer.mapEndpoints(app, endpoints);
