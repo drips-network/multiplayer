@@ -72,7 +72,7 @@ export default class SafeService implements ISafeService {
       await this.getSafeTransaction(safeTransactionHash);
 
     if (safeAddress !== votingRound.publisherAddress) {
-      throw new Error(
+      shouldNeverHappen(
         'Error while trying to complete link: Safe transaction does not belong to the voting round publisher.',
       );
     }
