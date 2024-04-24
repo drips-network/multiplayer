@@ -22,7 +22,4 @@ export function isValidHttpsUrl(url: string) {
   return pattern.test(url);
 }
 
-// Remove milliseconds to avoid failing "now" comparisons.
-// TODO: refactor.
-export const nowInMillis = () =>
-  new Date(new Date().setMilliseconds(0)).getTime();
+export const nowInMillis = () => new Date().getTime();

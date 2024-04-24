@@ -1,13 +1,8 @@
-import {
-  ethers,
-  verifyMessage as ethersVerifyMessage,
-  hashMessage,
-} from 'ethers';
+import { verifyMessage as ethersVerifyMessage } from 'ethers';
 import type { UUID } from 'crypto';
 import type { GraphQLClient } from 'graphql-request';
 import { gql } from 'graphql-request';
 import type { Logger } from 'winston';
-import Safe, { EthersAdapter } from '@safe-global/protocol-kit';
 import type { AccountId, Address, DripListId } from '../domain/typeUtils';
 import { BadRequestError, UnauthorizedError } from './errors';
 import type { DripList } from '../domain/DripList';
@@ -19,11 +14,11 @@ import type {
 } from '../domain/votingRoundAggregate/Vote';
 import shouldNeverHappen from './shouldNeverHappen';
 import type VotingRound from '../domain/votingRoundAggregate/VotingRound';
-import provider from './provider';
 import type {
   NominationReceiver,
   NominationStatus,
 } from '../domain/votingRoundAggregate/Nomination';
+import type ISafeAdapter from './interfaces/ISafeAdapter';
 
 const GNOSIS_API_SAFES_BASE: { [chainId: number]: string } = {
   11155111: 'https://safe-transaction-sepolia.safe.global/',
@@ -64,12 +59,18 @@ export class DevAuth implements IAuthStrategy {
 }
 
 export class Auth implements IAuthStrategy {
+  private readonly _safeAdapter: ISafeAdapter;
   private readonly _logger: Logger;
   private readonly _client: GraphQLClient;
 
-  public constructor(logger: Logger, client: GraphQLClient) {
+  public constructor(
+    logger: Logger,
+    client: GraphQLClient,
+    safe: ISafeAdapter,
+  ) {
     this._logger = logger;
     this._client = client;
+    this._safeAdapter = safe;
   }
 
   public async verifyMessage(
@@ -99,20 +100,11 @@ export class Auth implements IAuthStrategy {
     } else {
       this._logger.info(`Signer '${signerAddress}' is a Safe.`);
 
-      const hash = hashMessage(message);
-      this._logger.info(`Hashed message: ${hash}`);
-
-      const ethAdapter = new EthersAdapter({
-        ethers,
-        signerOrProvider: provider,
-      });
-
-      const safeSdk: Safe = await Safe.create({
-        ethAdapter,
-        safeAddress: signerAddress,
-      });
-
-      const isValid = await safeSdk.isValidSignature(hash, signature);
+      const isValid = await this._safeAdapter.isValidSignature(
+        message,
+        signature,
+        signerAddress,
+      );
 
       if (isValid) {
         this._logger.info(

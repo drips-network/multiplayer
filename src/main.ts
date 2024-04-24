@@ -1,5 +1,4 @@
 import { GraphQLClient } from 'graphql-request';
-import SafeApiKit from '@safe-global/api-kit';
 import ApiServer from './ApiServer';
 import 'reflect-metadata';
 import logger from './infrastructure/logger';
@@ -41,6 +40,12 @@ import SetNominationsStatusesEndpoint from './features/setNominationsStatuses/Se
 import SetNominationsStatusesUseCase from './features/setNominationsStatuses/SetNominationsStatusesUseCase';
 import VotingRoundMapper from './application/VotingRoundMapper';
 import SafeService from './application/SafeService';
+import { safeUnsupportedNetworks } from './application/networks';
+import {
+  SafeAdapter,
+  UnsupportedSafeOperationsAdapter,
+} from './application/SafeAdapter';
+import type ISafeAdapter from './application/interfaces/ISafeAdapter';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -64,11 +69,18 @@ export async function main(): Promise<void> {
     },
   });
 
+  let safeAdapter: ISafeAdapter;
+  if (safeUnsupportedNetworks.includes(appSettings.network as any)) {
+    safeAdapter = new UnsupportedSafeOperationsAdapter();
+  } else {
+    safeAdapter = new SafeAdapter();
+  }
+
   let auth: IAuthStrategy;
   if (appSettings.authStrategy === 'dev') {
     auth = new DevAuth();
   } else if (appSettings.authStrategy === 'signature') {
-    auth = new Auth(logger, graphQlClient);
+    auth = new Auth(logger, graphQlClient, safeAdapter);
   } else {
     throw new Error(`Unknown auth strategy: ${appSettings.authStrategy}`);
   }
@@ -76,24 +88,20 @@ export async function main(): Promise<void> {
     logger.warn('⛔️ AUTHENTICATION IS DISABLED ⛔️');
   }
 
+  const safeService = new SafeService(
+    graphQlClient,
+    auth,
+    votingRoundRepository,
+    safeAdapter,
+    logger,
+  );
+
   const receiverMapper = new ReceiverMapper(
     RepoDriver__factory.connect(appSettings.repoDriverAddress, provider),
     AddressDriver__factory.connect(appSettings.addressDriverAddress, provider),
   );
 
   const votingRoundMapper = new VotingRoundMapper(receiverMapper);
-
-  const safeApiKit = new SafeApiKit({
-    chainId: BigInt(appSettings.chainId),
-  });
-
-  const safeService = new SafeService(
-    graphQlClient,
-    auth,
-    votingRoundRepository,
-    safeApiKit,
-    logger,
-  );
 
   const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
     new StartVotingRoundUseCase(logger, votingRoundService, auth),

@@ -24,6 +24,7 @@ import type { AddressNominationReceiver } from '../../src/domain/votingRoundAggr
 import { NominationStatus } from '../../src/domain/votingRoundAggregate/Nomination';
 import type { Receiver } from '../../src/domain/votingRoundAggregate/Vote';
 import type VotingRound from '../../src/domain/votingRoundAggregate/VotingRound';
+import type { SafeAdapter } from '../../src/application/SafeAdapter';
 
 jest.mock('@safe-global/protocol-kit');
 
@@ -51,6 +52,9 @@ jest.mock('../../src/application/Auth', () => {
 
 describe('Auth', () => {
   const loggerMock = { info: jest.fn(), error: jest.fn() } as any;
+  const safeAdapterMock = {
+    getTransaction: jest.fn(),
+  } as unknown as jest.Mocked<SafeAdapter>;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -70,7 +74,7 @@ describe('Auth', () => {
         }),
       );
 
-      const auth = new Auth(loggerMock, null as any);
+      const auth = new Auth(loggerMock, null as any, safeAdapterMock);
 
       // Act
       const verify = () =>
@@ -92,7 +96,7 @@ describe('Auth', () => {
         }),
       );
 
-      const auth = new Auth(loggerMock, null as any);
+      const auth = new Auth(loggerMock, null as any, safeAdapterMock);
 
       // Act
       const verify = () =>
@@ -121,7 +125,7 @@ describe('Auth', () => {
         isValidSignature: jest.fn().mockReturnValueOnce(false),
       });
 
-      const auth = new Auth(loggerMock, null as any);
+      const auth = new Auth(loggerMock, null as any, safeAdapterMock);
 
       // Act
       const verify = () =>
@@ -149,7 +153,7 @@ describe('Auth', () => {
         isValidSignature: jest.fn().mockReturnValueOnce(true),
       });
 
-      const auth = new Auth(loggerMock, null as any);
+      const auth = new Auth(loggerMock, null as any, safeAdapterMock);
 
       // Act
       const verify = () =>
@@ -171,7 +175,7 @@ describe('Auth', () => {
         }),
       );
 
-      const auth = new Auth(loggerMock, null as any);
+      const auth = new Auth(loggerMock, null as any, safeAdapterMock);
 
       // Act
       const verify = () =>
@@ -188,7 +192,7 @@ describe('Auth', () => {
       const dripListId = 'dripListId' as DripListId;
       const votingRound = { _dripListId: 'otherDripListId' } as any;
 
-      const auth = new Auth(loggerMock, null as any);
+      const auth = new Auth(loggerMock, null as any, safeAdapterMock);
 
       // Act
       const verifyDripListOwnership = () =>
@@ -209,7 +213,7 @@ describe('Auth', () => {
         request: jest.fn(),
       } as unknown as jest.Mocked<GraphQLClient>;
 
-      const auth = new Auth(loggerMock, clientMock);
+      const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
 
       // Act
       const verifyDripListOwnership = () =>
@@ -239,7 +243,7 @@ describe('Auth', () => {
         },
       });
 
-      const auth = new Auth(loggerMock, clientMock);
+      const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
 
       // Act
       const verifyDripListOwnership = () =>
@@ -274,7 +278,7 @@ describe('Auth', () => {
         },
       });
 
-      const auth = new Auth(loggerMock, clientMock);
+      const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
 
       // Act
       const verifyDripListOwnership = () =>
@@ -309,7 +313,7 @@ describe('Auth', () => {
         },
       });
 
-      const auth = new Auth(loggerMock, clientMock);
+      const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
 
       // Act
       const verifyDripListOwnership = () =>

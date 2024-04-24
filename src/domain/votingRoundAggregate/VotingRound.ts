@@ -38,6 +38,8 @@ export enum VotingRoundStatus {
   name: 'VotingRounds',
 })
 export default class VotingRound extends BaseEntity implements IAggregateRoot {
+  private static readonly TIME_BUFFER_MS = 1000; // 1 second buffer.
+
   @Column('timestamptz', { nullable: false, name: 'votingStartsAt' })
   public _votingStartsAt!: Date;
 
@@ -169,7 +171,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       throw new InvalidArgumentError('Start date must be before end date.');
     }
 
-    if (startsAtTime < nowInMillis()) {
+    if (startsAtTime < nowInMillis() - this.TIME_BUFFER_MS) {
       throw new InvalidArgumentError('Start date must be in the future.');
     }
 
@@ -184,7 +186,8 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
     if (
       nominationStartsAt &&
-      new Date(nominationStartsAt).getTime() < nowInMillis()
+      new Date(nominationStartsAt).getTime() <
+        nowInMillis() - this.TIME_BUFFER_MS
     ) {
       throw new InvalidArgumentError(
         'Nomination start date must be in the future.',
