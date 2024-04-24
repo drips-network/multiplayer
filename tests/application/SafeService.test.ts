@@ -1,9 +1,9 @@
 import type { Logger } from 'winston';
 import type { GraphQLClient } from 'graphql-request';
-import type SafeApiKit from '@safe-global/api-kit';
 import type IVotingRoundRepository from '../../src/domain/votingRoundAggregate/IVotingRoundRepository';
 import type { IAuthStrategy } from '../../src/application/Auth';
 import SafeService from '../../src/application/SafeService';
+import type { SafeAdapter } from '../../src/application/SafeAdapter';
 
 jest.mock('@safe-global/protocol-kit');
 
@@ -25,14 +25,14 @@ describe('SafeService', () => {
   const graphqlClientMock = {
     request: jest.fn(),
   } as unknown as jest.Mocked<GraphQLClient>;
-  const safeApiKitMock = {
+  const safeAdapterMock = {
     getTransaction: jest.fn(),
-  } as unknown as jest.Mocked<SafeApiKit>;
+  } as unknown as jest.Mocked<SafeAdapter>;
 
   describe('getSafeTransaction', () => {
     it('should throw when transaction was executed but not successful', async () => {
       // Arrange
-      safeApiKitMock.getTransaction.mockResolvedValue({
+      safeAdapterMock.getTransaction.mockResolvedValue({
         safe: 'safe',
         isExecuted: true,
         isSuccessful: false,
@@ -42,7 +42,7 @@ describe('SafeService', () => {
         graphqlClientMock,
         authMock,
         votingRoundRepositoryMock,
-        safeApiKitMock,
+        safeAdapterMock,
         loggerMock,
       );
 
@@ -58,7 +58,7 @@ describe('SafeService', () => {
 
     it('should return safe transaction', async () => {
       // Arrange
-      safeApiKitMock.getTransaction.mockResolvedValue({
+      safeAdapterMock.getTransaction.mockResolvedValue({
         safe: 'safe',
         isExecuted: false,
         isSuccessful: undefined,
@@ -68,7 +68,7 @@ describe('SafeService', () => {
         graphqlClientMock,
         authMock,
         votingRoundRepositoryMock,
-        safeApiKitMock,
+        safeAdapterMock,
         loggerMock,
       );
 
@@ -97,7 +97,7 @@ describe('SafeService', () => {
         _dripListId: 'dripListId',
         publisherAddress: 'publisherAddress',
       } as any;
-      safeApiKitMock.getTransaction.mockResolvedValue({
+      safeAdapterMock.getTransaction.mockResolvedValue({
         safe: 'safe',
         isExecuted: false,
         isSuccessful: undefined,
@@ -107,7 +107,7 @@ describe('SafeService', () => {
         graphqlClientMock,
         authMock,
         votingRoundRepositoryMock,
-        safeApiKitMock,
+        safeAdapterMock,
         loggerMock,
       );
 
@@ -133,7 +133,7 @@ describe('SafeService', () => {
         publisherAddress: 'publisherAddress',
         _id: 'votingRoundId',
       } as any;
-      safeApiKitMock.getTransaction.mockResolvedValue({
+      safeAdapterMock.getTransaction.mockResolvedValue({
         safe: 'publisherAddress',
         isExecuted: true,
         isSuccessful: true,
@@ -148,7 +148,7 @@ describe('SafeService', () => {
         graphqlClientMock,
         authMock,
         votingRoundRepositoryMock,
-        safeApiKitMock,
+        safeAdapterMock,
         loggerMock,
       );
 

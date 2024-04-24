@@ -1,4 +1,3 @@
-import type SafeApiKit from '@safe-global/api-kit';
 import type { GraphQLClient } from 'graphql-request';
 import { gql } from 'graphql-request';
 import type { Logger } from 'winston';
@@ -10,19 +9,20 @@ import type { Address } from '../domain/typeUtils';
 import type { DripList } from '../domain/DripList';
 import type ISafeService from './interfaces/ISafeService';
 import type { SafeTx } from '../domain/linkedDripList/Link';
+import type ISafeApiKit from './interfaces/ISafeAdapter';
 
 export default class SafeService implements ISafeService {
   private readonly _logger: Logger;
   private readonly _auth: IAuthStrategy;
   private readonly _client: GraphQLClient;
-  private readonly _safeApiKit: SafeApiKit;
+  private readonly _safeApiKit: ISafeApiKit;
   private readonly _votingRoundRepository: IVotingRoundRepository;
 
   public constructor(
     client: GraphQLClient,
     auth: IAuthStrategy,
     votingRoundRepository: IVotingRoundRepository,
-    safeApiKit: SafeApiKit,
+    safeApiKit: ISafeApiKit,
     logger: Logger,
   ) {
     this._auth = auth;

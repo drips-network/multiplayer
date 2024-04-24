@@ -3,7 +3,7 @@ declare global {
     interface ProcessEnv {
       NODE_ENV: 'local' | 'goerli' | 'mainnet';
       PORT: string;
-      NETWORK: 'sepolia' | 'mainnet';
+      NETWORK: 'sepolia' | 'mainnet' | 'optimism-sepolia';
       DB_HOST: string;
       DB_PORT: string;
       DB_USER: string;
