@@ -7,5 +7,5 @@ export const getCollaboratorByAddressRequestValidators = [
     .isLength({ min: 42, max: 42 })
     .escape(),
   query('signature').optional().isString().escape(),
-  query('date').optional().isISO8601().escape(),
+  query('date').optional().isISO8601().toDate(),
 ];
