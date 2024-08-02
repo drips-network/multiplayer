@@ -27,6 +27,11 @@ export type ReceiverDto =
   | ProjectReceiverDto
   | DripListReceiverDto;
 
+export type AllowedReceiverDto =
+  | Omit<AddressReceiverDto, 'weight'>
+  | Omit<ProjectReceiverDto, 'weight'>
+  | Omit<DripListReceiverDto, 'weight'>;
+
 export type AddressNominationDto = Omit<AddressReceiverDto, 'weight'>;
 export type ProjectNominationDto = Omit<ProjectReceiverDto, 'weight'>;
 export type DripListNominationDto = Omit<DripListReceiverDto, 'weight'>;
@@ -36,24 +41,26 @@ export type NominationDto =
   | ProjectNominationDto
   | DripListNominationDto;
 
-export type ScheduleDto =
-  | {
-      voting: {
-        startsAt: Date;
-        endsAt: Date;
-      };
-      nomination: {
-        startsAt: Date;
-        endsAt: Date;
-      };
-    }
-  | {
-      voting: {
-        startsAt: Date | undefined;
-        endsAt: Date;
-      };
-      nomination: undefined;
-    };
+export type ScheduleWithoutNomination = {
+  voting: {
+    startsAt: Date | undefined;
+    endsAt: Date;
+  };
+  nomination: undefined;
+};
+
+export type ScheduleWithNomination = {
+  voting: {
+    startsAt: Date;
+    endsAt: Date;
+  };
+  nomination: {
+    startsAt: Date;
+    endsAt: Date;
+  };
+};
+
+export type ScheduleDto = ScheduleWithNomination | ScheduleWithoutNomination;
 
 export type ImpactMetricDto = {
   key: string;

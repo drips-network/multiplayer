@@ -22,12 +22,14 @@ import type {
 import type Nomination from '../domain/votingRoundAggregate/Nomination';
 import type {
   AddressNominationInfoDto,
+  AllowedReceiverDto,
   DripListNominationInfoDto,
   NominationDto,
   NominationInfoDto,
   ProjectNominationInfoDto,
   ReceiverDto,
 } from './dtos';
+import type { AllowedReceiverData } from '../domain/allowedReceiver/AllowedReceiver';
 
 export default class ReceiverMapper implements IReceiverMapper {
   private readonly _repoDriver: RepoDriver;
@@ -36,6 +38,38 @@ export default class ReceiverMapper implements IReceiverMapper {
   public constructor(repoDriver: RepoDriver, addressDriver: AddressDriver) {
     this._repoDriver = repoDriver;
     this._addressDriver = addressDriver;
+  }
+
+  public async mapToAllowedReceiver(
+    receiverDto: AllowedReceiverDto,
+  ): Promise<AllowedReceiverData> {
+    if ('address' in receiverDto) {
+      return {
+        ...receiverDto,
+        accountId: (
+          await this._addressDriver.calcAccountId(receiverDto.address)
+        ).toString() as AddressDriverId,
+      };
+    }
+    if ('url' in receiverDto) {
+      const { username, repoName } = parseGitHubUrl(receiverDto.url);
+      const projectName = `${username}/${repoName}`;
+      return {
+        ...receiverDto,
+        accountId: (
+          await this._repoDriver.calcAccountId(
+            0,
+            hexlify(toUtf8Bytes(`${projectName}`)),
+          )
+        ).toString() as ProjectId,
+      };
+    }
+
+    assertIsAccountId(receiverDto.accountId);
+    return {
+      accountId: receiverDto.accountId,
+      type: 'dripList',
+    };
   }
 
   public async mapToReceiver(receiverDto: ReceiverDto): Promise<Receiver> {

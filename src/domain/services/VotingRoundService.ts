@@ -1,4 +1,3 @@
-import type { UUID } from 'crypto';
 import type IVotingRoundRepository from '../votingRoundAggregate/IVotingRoundRepository';
 import { InvalidVotingRoundOperationError } from '../errors';
 import type ICollaboratorRepository from '../collaboratorAggregate/ICollaboratorRepository';
@@ -34,7 +33,7 @@ export default class VotingRoundService {
     areVotesPrivate: boolean,
     nominationStartsAt: Date | undefined = undefined,
     nominationEndsAt: Date | undefined = undefined,
-  ): Promise<UUID> {
+  ): Promise<VotingRound> {
     if (!collaborators?.length) {
       throw new InvalidVotingRoundOperationError('Collaborators are missing.');
     }
@@ -84,6 +83,6 @@ export default class VotingRoundService {
 
     await this._votingRoundRepository.save(newVotingRound);
 
-    return newVotingRound._id;
+    return newVotingRound;
   }
 }

@@ -46,6 +46,7 @@ import {
   UnsupportedSafeOperationsAdapter,
 } from './application/SafeAdapter';
 import type ISafeAdapter from './application/interfaces/ISafeAdapter';
+import AllowedReceiversRepository from './infrastructure/repositories/AllowedReceiversRepository';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -56,6 +57,9 @@ export async function main(): Promise<void> {
   const publisherRepository = new PublisherRepository(AppDataSource);
   const votingRoundRepository = new VotingRoundRepository(AppDataSource);
   const collaboratorRepository = new CollaboratorRepository(AppDataSource);
+  const allowedReceiversRepository = new AllowedReceiversRepository(
+    AppDataSource,
+  );
 
   const votingRoundService = new VotingRoundService(
     publisherRepository,
@@ -104,7 +108,13 @@ export async function main(): Promise<void> {
   const votingRoundMapper = new VotingRoundMapper(receiverMapper);
 
   const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
-    new StartVotingRoundUseCase(logger, votingRoundService, auth),
+    new StartVotingRoundUseCase(
+      logger,
+      votingRoundService,
+      auth,
+      allowedReceiversRepository,
+      receiverMapper,
+    ),
   );
   const softDeleteVotingRoundEndpoint = new SoftDeleteVotingRoundEndpoint(
     new SoftDeleteVotingRoundUseCase(logger, votingRoundRepository, auth),

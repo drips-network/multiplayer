@@ -70,7 +70,7 @@ export default class GetCollaboratorByAddressUseCase
     const hasVoted =
       votingRound._votes?.filter(
         (v) => v._collaborator._address === collaboratorAddress,
-      ).length === 1;
+      )?.length !== 0;
 
     return {
       isCollaborator,

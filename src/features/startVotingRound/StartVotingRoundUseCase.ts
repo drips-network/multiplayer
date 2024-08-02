@@ -13,22 +13,32 @@ import {
   CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE,
   START_VOTING_ROUND_MESSAGE_TEMPLATE,
 } from '../../application/Auth';
+import type IAllowedReceiversRepository from '../../domain/allowedReceiver/IAllowedReceiversRepository';
+import type { AllowedReceiverData } from '../../domain/allowedReceiver/AllowedReceiver';
+import AllowedReceiver from '../../domain/allowedReceiver/AllowedReceiver';
+import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 
 export default class StartVotingRoundUseCase
   implements UseCase<StartVotingRoundRequest, StartVotingRoundResponse>
 {
   private readonly _logger: Logger;
   private readonly _auth: IAuthStrategy;
+  private readonly _receiverMapper: IReceiverMapper;
   private readonly _votingRoundService: VotingRoundService;
+  private readonly _allowedReceiversRepository: IAllowedReceiversRepository;
 
   public constructor(
     logger: Logger,
     votingRoundService: VotingRoundService,
     auth: IAuthStrategy,
+    allowedReceiversRepository: IAllowedReceiversRepository,
+    receiverMapper: IReceiverMapper,
   ) {
     this._auth = auth;
     this._logger = logger;
+    this._receiverMapper = receiverMapper;
     this._votingRoundService = votingRoundService;
+    this._allowedReceiversRepository = allowedReceiversRepository;
   }
 
   public async execute(
@@ -52,6 +62,8 @@ export default class StartVotingRoundUseCase
       'description' in request ? request.description : undefined;
     const nominationStartsAt = nomination?.startsAt;
     const nominationEndsAt = nomination?.endsAt;
+    const allowedReceivers =
+      'allowedReceivers' in request ? request.allowedReceivers : undefined;
 
     this._logger.info(
       `Starting a new voting round for ${dripListId ? 'the Drip List with ID' : 'a Draft Drip List'} '${dripListId ?? ''}'.`,
@@ -67,7 +79,7 @@ export default class StartVotingRoundUseCase
       dripListId,
     );
 
-    const newVotingRoundId = await this._votingRoundService.start(
+    const newVotingRound = await this._votingRoundService.start(
       votingStartsAt || new Date(),
       votingEndsAt,
       Publisher.create(publisherAddress),
@@ -80,12 +92,26 @@ export default class StartVotingRoundUseCase
       nominationEndsAt,
     );
 
+    if (allowedReceivers?.length) {
+      const allowedReceiversEntities: AllowedReceiverData[] = await Promise.all(
+        allowedReceivers.map(async (receiverDto) =>
+          this._receiverMapper.mapToAllowedReceiver(receiverDto),
+        ),
+      );
+
+      await this._allowedReceiversRepository.createMany(
+        allowedReceiversEntities.map((receiver) =>
+          AllowedReceiver.create(newVotingRound, receiver),
+        ),
+      );
+    }
+
     this._logger.info(
-      `Started successfully a new voting round with ID '${newVotingRoundId}'.`,
+      `Started successfully a new voting round with ID '${newVotingRound._id}'.`,
     );
 
     return {
-      newVotingRoundId,
+      newVotingRoundId: newVotingRound._id,
     };
   }
 
