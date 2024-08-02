@@ -3,7 +3,7 @@ import { body, param } from 'express-validator';
 
 const isType =
   (type: string): CustomValidator =>
-  (value, { req }) =>
+  (_value, { req }) =>
     req.body.nomination.type === type;
 
 export const nominateRequestValidators = [

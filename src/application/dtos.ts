@@ -1,11 +1,5 @@
 import type { UUID } from 'crypto';
 import type { NominationStatus } from '../domain/votingRoundAggregate/Nomination';
-import type {
-  AddressNominationDto,
-  DripListNominationDto,
-  ImpactMetricDto,
-  ProjectNominationDto,
-} from '../features/nominate/NominateRequest';
 
 export type AddressDto = string;
 export type AccountIdDto = string;
@@ -33,6 +27,15 @@ export type ReceiverDto =
   | ProjectReceiverDto
   | DripListReceiverDto;
 
+export type AddressNominationDto = Omit<AddressReceiverDto, 'weight'>;
+export type ProjectNominationDto = Omit<ProjectReceiverDto, 'weight'>;
+export type DripListNominationDto = Omit<DripListReceiverDto, 'weight'>;
+
+export type NominationDto =
+  | AddressNominationDto
+  | ProjectNominationDto
+  | DripListNominationDto;
+
 export type ScheduleDto =
   | {
       voting: {
@@ -51,6 +54,12 @@ export type ScheduleDto =
       };
       nomination: undefined;
     };
+
+export type ImpactMetricDto = {
+  key: string;
+  value: number;
+  link: string;
+};
 
 type InfoDto = {
   accountId: AccountIdDto;

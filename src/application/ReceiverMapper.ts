@@ -19,11 +19,11 @@ import type {
   NominationReceiver,
   ProjectNominationReceiver,
 } from '../domain/votingRoundAggregate/Nomination';
-import type { NominationDto } from '../features/nominate/NominateRequest';
 import type Nomination from '../domain/votingRoundAggregate/Nomination';
 import type {
   AddressNominationInfoDto,
   DripListNominationInfoDto,
+  NominationDto,
   NominationInfoDto,
   ProjectNominationInfoDto,
   ReceiverDto,
