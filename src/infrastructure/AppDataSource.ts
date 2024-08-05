@@ -31,7 +31,7 @@ export async function initializeAppDataSource() {
       ],
       synchronize: true,
       logging: false,
-      schema: network,
+      schema: network.name,
     });
 
     await AppDataSource.initialize();

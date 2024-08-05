@@ -30,7 +30,7 @@ export class SafeAdapter implements ISafeAdapter {
     safeTransactionHash: string,
   ): Promise<SafeMultisigTransactionResponse> {
     const safeApiKit = new SafeApiKit({
-      chainId: BigInt(appSettings.chainId),
+      chainId: BigInt(appSettings.network.chainId),
     });
 
     return safeApiKit.getTransaction(safeTransactionHash);
@@ -40,13 +40,13 @@ export class SafeAdapter implements ISafeAdapter {
 export class UnsupportedSafeOperationsAdapter implements ISafeAdapter {
   isValidSignature(): Promise<boolean> {
     throw new Error(
-      `Safe operations are not supported on chain ${appSettings.chainId}`,
+      `Safe operations are not supported on chain ${appSettings.network.chainId}`,
     );
   }
 
   getTransaction(): Promise<SafeMultisigTransactionResponse> {
     throw new Error(
-      `Safe operations are not supported on chain ${appSettings.chainId}`,
+      `Safe operations are not supported on chain ${appSettings.network.chainId}`,
     );
   }
 }

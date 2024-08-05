@@ -83,7 +83,7 @@ export class Auth implements IAuthStrategy {
       `Verifying reconstructed message '${message}' with signature '${signature}' for signer '${signerAddress}'...`,
     );
 
-    const isEoa = !(await isSafe(appSettings.chainId, signerAddress));
+    const isEoa = !(await isSafe(appSettings.network.chainId, signerAddress));
 
     if (isEoa) {
       this._logger.info(`Signer '${signerAddress}' is EOA.`);
@@ -197,7 +197,7 @@ export const REVEAL_VOTES_MESSAGE_TEMPLATE = (
   votingRoundId: UUID,
   currentTime: Date,
 ) =>
-  `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+  `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}.`;
 
 export const SET_NOMINATION_STATUS_MESSAGE_TEMPLATE = (
   publisherAddress: Address,
@@ -205,7 +205,7 @@ export const SET_NOMINATION_STATUS_MESSAGE_TEMPLATE = (
   currentTime: Date,
   nominations: { accountId: AccountId; status: NominationStatus }[],
 ) =>
-  `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
+  `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
     nominations,
   )}.`;
 
@@ -215,14 +215,14 @@ export const NOMINATE_MESSAGE_TEMPLATE = (
   currentTime: Date,
   nomination: NominationReceiver,
 ) =>
-  `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`;
+  `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`;
 
 export const REVEAL_RESULT_MESSAGE_TEMPLATE = (
   publisherAddress: Address,
   votingRoundId: UUID,
   currentTime: Date,
 ) =>
-  `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+  `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}.`;
 
 export const VOTE_MESSAGE_TEMPLATE = (
   currentTime: Date,
@@ -249,7 +249,7 @@ export const VOTE_MESSAGE_TEMPLATE = (
     })
     .sort();
 
-  return `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(sortedReceivers)}`;
+  return `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(sortedReceivers)}`;
 };
 
 export const DELETE_VOTING_ROUND_MESSAGE_TEMPLATE = (
@@ -257,7 +257,7 @@ export const DELETE_VOTING_ROUND_MESSAGE_TEMPLATE = (
   publisherAddress: Address,
   votingRoundId: string,
 ) =>
-  `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+  `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}.`;
 
 export const START_VOTING_ROUND_MESSAGE_TEMPLATE = (
   currentTime: Date,
@@ -267,7 +267,7 @@ export const START_VOTING_ROUND_MESSAGE_TEMPLATE = (
 ) => {
   const sortedCollaborators = collaborators.sort();
 
-  return `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
+  return `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
 };
 
 export const CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE = (
@@ -277,8 +277,8 @@ export const CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE = (
 ) => {
   const sortedCollaborators = collaborators.sort();
 
-  return `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
+  return `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
 };
 
 export const REVEAL_VOTE = (votingRoundId: UUID, currentTime: Date) =>
-  `Reveal my vote for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+  `Reveal my vote for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}.`;

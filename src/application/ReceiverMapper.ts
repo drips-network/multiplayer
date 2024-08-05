@@ -12,7 +12,6 @@ import type {
   ProjectReceiver,
   Receiver,
 } from '../domain/votingRoundAggregate/Vote';
-import type { AddressDriver, RepoDriver } from '../generated/contracts';
 import type {
   AddressNominationReceiver,
   DripListNominationReceiver,
@@ -30,12 +29,20 @@ import type {
   ReceiverDto,
 } from './dtos';
 import type { AllowedReceiverData } from '../domain/allowedReceiver/AllowedReceiver';
+import type {
+  AddressDriverRead,
+  OxString,
+  RepoDriverRead,
+} from './contractClients/contractClients';
 
 export default class ReceiverMapper implements IReceiverMapper {
-  private readonly _repoDriver: RepoDriver;
-  private readonly _addressDriver: AddressDriver;
+  private readonly _repoDriver: RepoDriverRead;
+  private readonly _addressDriver: AddressDriverRead;
 
-  public constructor(repoDriver: RepoDriver, addressDriver: AddressDriver) {
+  public constructor(
+    repoDriver: RepoDriverRead,
+    addressDriver: AddressDriverRead,
+  ) {
     this._repoDriver = repoDriver;
     this._addressDriver = addressDriver;
   }
@@ -44,24 +51,29 @@ export default class ReceiverMapper implements IReceiverMapper {
     receiverDto: AllowedReceiverDto,
   ): Promise<AllowedReceiverData> {
     if ('address' in receiverDto) {
+      const accountId = this._addressDriver({
+        functionName: 'calcAccountId',
+        args: [receiverDto.address as OxString],
+      }).toString() as AddressDriverId;
+
       return {
         ...receiverDto,
-        accountId: (
-          await this._addressDriver.calcAccountId(receiverDto.address)
-        ).toString() as AddressDriverId,
+        accountId,
       };
     }
     if ('url' in receiverDto) {
       const { username, repoName } = parseGitHubUrl(receiverDto.url);
       const projectName = `${username}/${repoName}`;
+      const accountId = (
+        await this._repoDriver({
+          functionName: 'calcAccountId',
+          args: [0, hexlify(toUtf8Bytes(`${projectName}`)) as OxString],
+        })
+      ).toString() as ProjectId;
+
       return {
         ...receiverDto,
-        accountId: (
-          await this._repoDriver.calcAccountId(
-            0,
-            hexlify(toUtf8Bytes(`${projectName}`)),
-          )
-        ).toString() as ProjectId,
+        accountId,
       };
     }
 
@@ -74,24 +86,30 @@ export default class ReceiverMapper implements IReceiverMapper {
 
   public async mapToReceiver(receiverDto: ReceiverDto): Promise<Receiver> {
     if ('address' in receiverDto) {
+      const accountId = this._addressDriver({
+        functionName: 'calcAccountId',
+        args: [receiverDto.address as OxString],
+      }).toString() as AddressDriverId;
+
       return {
         ...receiverDto,
-        accountId: (
-          await this._addressDriver.calcAccountId(receiverDto.address)
-        ).toString() as AddressDriverId,
+        accountId,
       } satisfies AddressReceiver;
     }
     if ('url' in receiverDto) {
       const { username, repoName } = parseGitHubUrl(receiverDto.url);
       const projectName = `${username}/${repoName}`;
+
+      const accountId = (
+        await this._repoDriver({
+          functionName: 'calcAccountId',
+          args: [0, hexlify(toUtf8Bytes(`${projectName}`)) as OxString],
+        })
+      ).toString() as ProjectId;
+
       return {
         ...receiverDto,
-        accountId: (
-          await this._repoDriver.calcAccountId(
-            0,
-            hexlify(toUtf8Bytes(`${projectName}`)),
-          )
-        ).toString() as ProjectId,
+        accountId,
       } satisfies ProjectReceiver;
     }
 
@@ -103,24 +121,30 @@ export default class ReceiverMapper implements IReceiverMapper {
     receiverDto: NominationDto,
   ): Promise<NominationReceiver> {
     if ('address' in receiverDto) {
+      const accountId = this._addressDriver({
+        functionName: 'calcAccountId',
+        args: [receiverDto.address as OxString],
+      }).toString() as AddressDriverId;
+
       return {
         ...receiverDto,
-        accountId: (
-          await this._addressDriver.calcAccountId(receiverDto.address)
-        ).toString() as AddressDriverId,
+        accountId,
       } satisfies AddressNominationReceiver;
     }
     if ('url' in receiverDto) {
       const { username, repoName } = parseGitHubUrl(receiverDto.url);
       const projectName = `${username}/${repoName}`;
+
+      const accountId = (
+        await this._repoDriver({
+          functionName: 'calcAccountId',
+          args: [0, hexlify(toUtf8Bytes(`${projectName}`)) as OxString],
+        })
+      ).toString() as ProjectId;
+
       return {
         ...receiverDto,
-        accountId: (
-          await this._repoDriver.calcAccountId(
-            0,
-            hexlify(toUtf8Bytes(`${projectName}`)),
-          )
-        ).toString() as ProjectId,
+        accountId,
       } satisfies ProjectNominationReceiver;
     }
 
