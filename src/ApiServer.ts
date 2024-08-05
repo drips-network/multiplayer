@@ -1,7 +1,6 @@
 import type { Request, Response } from 'express';
 import express from 'express';
 import { validationResult } from 'express-validator';
-import bodyParser from 'body-parser';
 import type { IEndpoint } from './application/interfaces/IEndpoint';
 import appSettings from './appSettings';
 import logger from './infrastructure/logger';
@@ -34,7 +33,7 @@ export default class ApiServer {
 
     app.use(authenticateApiKey);
 
-    bodyParser.json({ limit: '1mb' });
+    app.use(express.json({ limit: '700kb' }));
 
     ApiServer.mapEndpoints(app, endpoints);
 
