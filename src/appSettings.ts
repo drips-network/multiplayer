@@ -1,13 +1,14 @@
 import dotenv from 'dotenv';
 import shouldNeverHappen from './application/shouldNeverHappen';
-import { networks } from './application/networks';
+import type { ChainId } from './application/network';
+import { getNetwork } from './application/network';
+import { getNetworkConfig } from './application/networkConfig';
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const appSettings = {
   port: parseInt(process.env.PORT || '5001', 10),
   nodeEnv: process.env.NODE_ENV,
-  network: process.env.NETWORK,
   dbHost: process.env.DB_HOST,
   dbPort: parseInt(
     process.env.DB_PORT || shouldNeverHappen('Missing database port.'),
@@ -31,13 +32,18 @@ const appSettings = {
   })(),
   graphQlToken: process.env.GRAPHQL_TOKEN,
   rpcUrl: process.env.RPC_URL,
-  chainId: networks[process.env.NETWORK as keyof typeof networks],
-  addressDriverAddress:
-    process.env.ADDRESS_DRIVER_ADDRESS ||
-    shouldNeverHappen(`Missing 'AddressDriver' address.`),
-  repoDriverAddress:
-    process.env.REPO_DRIVER_ADDRESS ||
-    shouldNeverHappen(`Missing RepoDriver address.`),
+  network: getNetwork(
+    parseInt(
+      process.env.CHAIN_ID || shouldNeverHappen('Missing CHAIN_ID'),
+      10,
+    ) as ChainId,
+  ),
+  networkConfig: getNetworkConfig(
+    parseInt(
+      process.env.CHAIN_ID || shouldNeverHappen('Missing CHAIN_ID'),
+      10,
+    ) as ChainId,
+  ),
   authStrategy: process.env.AUTH_STRATEGY || 'signature',
   apiKey: process.env.API_KEY,
 };

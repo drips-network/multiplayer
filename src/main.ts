@@ -26,27 +26,26 @@ import GetVotingRoundVotesEndpoint from './features/getVotingRoundVotes/GetVotin
 import GetVotingRoundVotesUseCase from './features/getVotingRoundVotes/GetVotingRoundVotesUseCase';
 import type { IAuthStrategy } from './application/Auth';
 import { Auth, DevAuth } from './application/Auth';
-import {
-  AddressDriver__factory,
-  RepoDriver__factory,
-} from './generated/contracts';
 import ReceiverMapper from './application/ReceiverMapper';
 import NominateEndpoint from './features/nominate/NominateEndpoint';
 import NominateUseCase from './features/nominate/NominateUseCase';
 import GetCollaboratorByAddressEndpoint from './features/getCollaboratorByAddress/GetCollaboratorByAddressEndpoint';
 import GetCollaboratorByAddressUseCase from './features/getCollaboratorByAddress/GetCollaboratorByAddressUseCase';
-import provider from './application/provider';
 import SetNominationsStatusesEndpoint from './features/setNominationsStatuses/SetNominationsStatusesEndpoint';
 import SetNominationsStatusesUseCase from './features/setNominationsStatuses/SetNominationsStatusesUseCase';
 import VotingRoundMapper from './application/VotingRoundMapper';
 import SafeService from './application/SafeService';
-import { safeUnsupportedNetworks } from './application/networks';
 import {
   SafeAdapter,
   UnsupportedSafeOperationsAdapter,
 } from './application/SafeAdapter';
 import type ISafeAdapter from './application/interfaces/ISafeAdapter';
 import AllowedReceiversRepository from './infrastructure/repositories/AllowedReceiversRepository';
+import { isSafeUnsupportedNetwork } from './application/network';
+import {
+  executeAddressDriverReadMethod,
+  executeRepoDriverReadMethod,
+} from './application/contractClients/contractClients';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -75,7 +74,7 @@ export async function main(): Promise<void> {
   });
 
   let safeAdapter: ISafeAdapter;
-  if (safeUnsupportedNetworks.includes(appSettings.network as any)) {
+  if (isSafeUnsupportedNetwork(appSettings.network.chainId)) {
     safeAdapter = new UnsupportedSafeOperationsAdapter();
   } else {
     safeAdapter = new SafeAdapter();
@@ -102,8 +101,8 @@ export async function main(): Promise<void> {
   );
 
   const receiverMapper = new ReceiverMapper(
-    RepoDriver__factory.connect(appSettings.repoDriverAddress, provider),
-    AddressDriver__factory.connect(appSettings.addressDriverAddress, provider),
+    executeRepoDriverReadMethod,
+    executeAddressDriverReadMethod,
   );
 
   const votingRoundMapper = new VotingRoundMapper(receiverMapper);

@@ -338,7 +338,7 @@ describe('Auth', () => {
 
         // Assert
         expect(message).toBe(
-          `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
+          `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}.`,
         );
       });
     });
@@ -366,7 +366,7 @@ describe('Auth', () => {
 
         // Assert
         expect(message).toBe(
-          `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
+          `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
             nominations,
           )}.`,
         );
@@ -395,7 +395,7 @@ describe('Auth', () => {
 
         // Assert
         expect(message).toBe(
-          `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`,
+          `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`,
         );
       });
     });
@@ -416,7 +416,7 @@ describe('Auth', () => {
 
         // Assert
         expect(message).toBe(
-          `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
+          `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}.`,
         );
       });
     });
@@ -440,7 +440,7 @@ describe('Auth', () => {
           ['project', 'c', 2],
         ];
 
-        const expectedMessage = `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(expectedSortedReceivers)}`;
+        const expectedMessage = `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(expectedSortedReceivers)}`;
 
         // Act
         const message = VOTE_MESSAGE_TEMPLATE(
@@ -471,7 +471,7 @@ describe('Auth', () => {
 
         // Assert
         expect(message).toBe(
-          `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
+          `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}.`,
         );
       });
     });
@@ -486,7 +486,7 @@ describe('Auth', () => {
 
         const sortedCollaborators = ['a', 'b', 'c'];
 
-        const expectedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
+        const expectedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
 
         // Act
         const message = START_VOTING_ROUND_MESSAGE_TEMPLATE(
@@ -510,7 +510,7 @@ describe('Auth', () => {
 
         const sortedCollaborators = ['a', 'b', 'c'];
 
-        const expectedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
+        const expectedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.network.chainId}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
 
         // Act
         const message = CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
