@@ -75,6 +75,8 @@ export default class VotingRoundMapper implements IVotingRoundMapper {
           })),
       hasVotingPeriodStarted: votingRound.votingPeriod.hasStarted,
       nominationPeriod,
+      allowedReceivers:
+        votingRound._allowedReceivers?.map((r) => r.receiverData) || [],
     };
   }
 }

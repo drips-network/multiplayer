@@ -53,7 +53,7 @@ jest.mock('../../src/application/Auth', () => {
 describe('Auth', () => {
   const loggerMock = { info: jest.fn(), error: jest.fn() } as any;
   const safeAdapterMock = {
-    getTransaction: jest.fn(),
+    isValidSignature: jest.fn(),
   } as unknown as jest.Mocked<SafeAdapter>;
 
   beforeEach(() => {
@@ -149,9 +149,7 @@ describe('Auth', () => {
 
       (EthersAdapter as any as jest.Mock) = jest.fn();
 
-      (Safe.create as jest.Mock).mockResolvedValueOnce({
-        isValidSignature: jest.fn().mockReturnValueOnce(true),
-      });
+      safeAdapterMock.isValidSignature.mockResolvedValueOnce(true);
 
       const auth = new Auth(loggerMock, null as any, safeAdapterMock);
 
@@ -184,345 +182,346 @@ describe('Auth', () => {
       // Assert
       expect(verify).rejects.toThrow('Vote is outdated.');
     });
-  });
+    // });
 
-  describe('verifyDripListOwnership', () => {
-    it('should throw when the Drip List ID does not match the stored Drip List ID', async () => {
-      // Arrange
-      const dripListId = 'dripListId' as DripListId;
-      const votingRound = { _dripListId: 'otherDripListId' } as any;
+    describe('verifyDripListOwnership', () => {
+      it('should throw when the Drip List ID does not match the stored Drip List ID', async () => {
+        // Arrange
+        const dripListId = 'dripListId' as DripListId;
+        const votingRound = { _dripListId: 'otherDripListId' } as any;
 
-      const auth = new Auth(loggerMock, null as any, safeAdapterMock);
+        const auth = new Auth(loggerMock, null as any, safeAdapterMock);
 
-      // Act
-      const verifyDripListOwnership = () =>
-        auth.verifyDripListOwnership(votingRound, dripListId);
+        // Act
+        const verifyDripListOwnership = () =>
+          auth.verifyDripListOwnership(votingRound, dripListId);
 
-      // Assert
-      expect(verifyDripListOwnership).rejects.toThrow(
-        `The provided Drip List ID does not match the voting round's Drip List ID.`,
-      );
-    });
-
-    it('should throw when the Drip List is not found', async () => {
-      // Arrange
-      const dripListId = 'dripListId' as DripListId;
-      const votingRound = { _dripListId: dripListId } as any;
-
-      const clientMock = {
-        request: jest.fn(),
-      } as unknown as jest.Mocked<GraphQLClient>;
-
-      const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
-
-      // Act
-      const verifyDripListOwnership = () =>
-        auth.verifyDripListOwnership(votingRound, dripListId);
-
-      // Assert
-      expect(verifyDripListOwnership).rejects.toThrow(`Drip List not found.`);
-    });
-
-    it('should throw when the publisher is not the owner of the Drip List', async () => {
-      // Arrange
-      const dripListId = 'dripListId' as DripListId;
-      const votingRound = {
-        _dripListId: dripListId,
-        _publisher: { _address: Wallet.createRandom().address },
-      } as unknown as VotingRound;
-
-      const clientMock = {
-        request: jest.fn(),
-      } as unknown as jest.Mocked<GraphQLClient>;
-
-      clientMock.request.mockResolvedValueOnce({
-        dripList: {
-          owner: {
-            address: Wallet.createRandom().address,
-          },
-        },
+        // Assert
+        expect(verifyDripListOwnership).rejects.toThrow(
+          `The provided Drip List ID does not match the voting round's Drip List ID.`,
+        );
       });
 
-      const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
+      it('should throw when the Drip List is not found', async () => {
+        // Arrange
+        const dripListId = 'dripListId' as DripListId;
+        const votingRound = { _dripListId: dripListId } as any;
 
-      // Act
-      const verifyDripListOwnership = () =>
-        auth.verifyDripListOwnership(votingRound, dripListId);
+        const clientMock = {
+          request: jest.fn(),
+        } as unknown as jest.Mocked<GraphQLClient>;
 
-      // Assert
-      expect(verifyDripListOwnership).rejects.toThrow(
-        `Unauthorized: The publisher is not the owner of the Drip List.`,
-      );
-    });
+        const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
 
-    it('should throw when the provided voting round is not the latest one.', async () => {
-      // Arrange
-      const { address } = Wallet.createRandom();
-      const dripListId = 'dripListId' as DripListId;
-      const votingRound = {
-        _id: randomUUID(),
-        _dripListId: dripListId,
-        _publisher: { _address: address },
-      } as unknown as VotingRound;
+        // Act
+        const verifyDripListOwnership = () =>
+          auth.verifyDripListOwnership(votingRound, dripListId);
 
-      const clientMock = {
-        request: jest.fn(),
-      } as unknown as jest.Mocked<GraphQLClient>;
-
-      clientMock.request.mockResolvedValueOnce({
-        dripList: {
-          latestVotingRoundId: randomUUID(),
-          owner: {
-            address,
-          },
-        },
+        // Assert
+        expect(verifyDripListOwnership).rejects.toThrow(`Drip List not found.`);
       });
 
-      const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
+      it('should throw when the publisher is not the owner of the Drip List', async () => {
+        // Arrange
+        const dripListId = 'dripListId' as DripListId;
+        const votingRound = {
+          _dripListId: dripListId,
+          _publisher: { _address: Wallet.createRandom().address },
+        } as unknown as VotingRound;
 
-      // Act
-      const verifyDripListOwnership = () =>
-        auth.verifyDripListOwnership(votingRound, dripListId);
+        const clientMock = {
+          request: jest.fn(),
+        } as unknown as jest.Mocked<GraphQLClient>;
 
-      // Assert
-      expect(verifyDripListOwnership).rejects.toThrow(
-        `The provided voting round is not the latest one.`,
-      );
-    });
-
-    it('should not throw when ownership is verified', async () => {
-      // Arrange
-      const { address } = Wallet.createRandom();
-      const dripListId = 'dripListId' as DripListId;
-      const votingRound = {
-        _id: randomUUID(),
-        _dripListId: dripListId,
-        _publisher: { _address: address },
-      } as unknown as VotingRound;
-
-      const clientMock = {
-        request: jest.fn(),
-      } as unknown as jest.Mocked<GraphQLClient>;
-
-      clientMock.request.mockResolvedValueOnce({
-        dripList: {
-          latestVotingRoundId: votingRound._id,
-          owner: {
-            address,
+        clientMock.request.mockResolvedValueOnce({
+          dripList: {
+            owner: {
+              address: Wallet.createRandom().address,
+            },
           },
-        },
+        });
+
+        const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
+
+        // Act
+        const verifyDripListOwnership = () =>
+          auth.verifyDripListOwnership(votingRound, dripListId);
+
+        // Assert
+        expect(verifyDripListOwnership).rejects.toThrow(
+          `Unauthorized: The publisher is not the owner of the Drip List.`,
+        );
       });
 
-      const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
+      it('should throw when the provided voting round is not the latest one.', async () => {
+        // Arrange
+        const { address } = Wallet.createRandom();
+        const dripListId = 'dripListId' as DripListId;
+        const votingRound = {
+          _id: randomUUID(),
+          _dripListId: dripListId,
+          _publisher: { _address: address },
+        } as unknown as VotingRound;
 
-      // Act
-      const verifyDripListOwnership = () =>
-        auth.verifyDripListOwnership(votingRound, dripListId);
+        const clientMock = {
+          request: jest.fn(),
+        } as unknown as jest.Mocked<GraphQLClient>;
 
-      // Assert
-      expect(verifyDripListOwnership).not.toThrow();
+        clientMock.request.mockResolvedValueOnce({
+          dripList: {
+            latestVotingRoundId: randomUUID(),
+            owner: {
+              address,
+            },
+          },
+        });
+
+        const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
+
+        // Act
+        const verifyDripListOwnership = () =>
+          auth.verifyDripListOwnership(votingRound, dripListId);
+
+        // Assert
+        expect(verifyDripListOwnership).rejects.toThrow(
+          `The provided voting round is not the latest one.`,
+        );
+      });
+
+      it('should not throw when ownership is verified', async () => {
+        // Arrange
+        const { address } = Wallet.createRandom();
+        const dripListId = 'dripListId' as DripListId;
+        const votingRound = {
+          _id: randomUUID(),
+          _dripListId: dripListId,
+          _publisher: { _address: address },
+        } as unknown as VotingRound;
+
+        const clientMock = {
+          request: jest.fn(),
+        } as unknown as jest.Mocked<GraphQLClient>;
+
+        clientMock.request.mockResolvedValueOnce({
+          dripList: {
+            latestVotingRoundId: votingRound._id,
+            owner: {
+              address,
+            },
+          },
+        });
+
+        const auth = new Auth(loggerMock, clientMock, safeAdapterMock);
+
+        // Act
+        const verifyDripListOwnership = () =>
+          auth.verifyDripListOwnership(votingRound, dripListId);
+
+        // Assert
+        expect(verifyDripListOwnership).not.toThrow();
+      });
     });
-  });
 
-  describe('REVEAL_VOTES_MESSAGE_TEMPLATE', () => {
-    it('should return the expected message', () => {
-      // Arrange
-      const currentTime = new Date();
-      const publisherAddress = Wallet.createRandom().address;
-      const votingRoundId = randomUUID();
+    describe('REVEAL_VOTES_MESSAGE_TEMPLATE', () => {
+      it('should return the expected message', () => {
+        // Arrange
+        const currentTime = new Date();
+        const publisherAddress = Wallet.createRandom().address;
+        const votingRoundId = randomUUID();
 
-      // Act
-      const message = REVEAL_VOTES_MESSAGE_TEMPLATE(
-        publisherAddress as Address,
-        votingRoundId,
-        currentTime,
-      );
+        // Act
+        const message = REVEAL_VOTES_MESSAGE_TEMPLATE(
+          publisherAddress as Address,
+          votingRoundId,
+          currentTime,
+        );
 
-      // Assert
-      expect(message).toBe(
-        `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
-      );
+        // Assert
+        expect(message).toBe(
+          `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
+        );
+      });
     });
-  });
 
-  describe('SET_NOMINATION_STATUS_MESSAGE_TEMPLATE', () => {
-    it('should return the expected message', () => {
-      // Arrange
-      const currentTime = new Date();
-      const publisherAddress = Wallet.createRandom().address;
-      const votingRoundId = randomUUID();
-      const nominations = [
-        {
-          accountId: 'accountId' as AccountId,
-          status: NominationStatus.Accepted,
-        },
-      ];
+    describe('SET_NOMINATION_STATUS_MESSAGE_TEMPLATE', () => {
+      it('should return the expected message', () => {
+        // Arrange
+        const currentTime = new Date();
+        const publisherAddress = Wallet.createRandom().address;
+        const votingRoundId = randomUUID();
+        const nominations = [
+          {
+            accountId: 'accountId' as AccountId,
+            status: NominationStatus.Accepted,
+          },
+        ];
 
-      // Act
-      const message = SET_NOMINATION_STATUS_MESSAGE_TEMPLATE(
-        publisherAddress as Address,
-        votingRoundId,
-        currentTime,
-        nominations,
-      );
-
-      // Assert
-      expect(message).toBe(
-        `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
+        // Act
+        const message = SET_NOMINATION_STATUS_MESSAGE_TEMPLATE(
+          publisherAddress as Address,
+          votingRoundId,
+          currentTime,
           nominations,
-        )}.`,
-      );
+        );
+
+        // Assert
+        expect(message).toBe(
+          `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
+            nominations,
+          )}.`,
+        );
+      });
     });
-  });
 
-  describe('NOMINATE_MESSAGE_TEMPLATE', () => {
-    it('should return the expected message', () => {
-      // Arrange
-      const nominatedBy = Wallet.createRandom().address as Address;
-      const votingRoundId = randomUUID();
-      const currentTime = new Date();
-      const nomination = {
-        address: Wallet.createRandom().address,
-        accountId: 'accountId' as AccountId,
-        type: 'address',
-      } as AddressNominationReceiver;
+    describe('NOMINATE_MESSAGE_TEMPLATE', () => {
+      it('should return the expected message', () => {
+        // Arrange
+        const nominatedBy = Wallet.createRandom().address as Address;
+        const votingRoundId = randomUUID();
+        const currentTime = new Date();
+        const nomination = {
+          address: Wallet.createRandom().address,
+          accountId: 'accountId' as AccountId,
+          type: 'address',
+        } as AddressNominationReceiver;
 
-      // Act
-      const message = NOMINATE_MESSAGE_TEMPLATE(
-        nominatedBy,
-        votingRoundId,
-        currentTime,
-        nomination,
-      );
+        // Act
+        const message = NOMINATE_MESSAGE_TEMPLATE(
+          nominatedBy,
+          votingRoundId,
+          currentTime,
+          nomination,
+        );
 
-      // Assert
-      expect(message).toBe(
-        `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`,
-      );
+        // Assert
+        expect(message).toBe(
+          `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`,
+        );
+      });
     });
-  });
 
-  describe('REVEAL_RESULT_MESSAGE_TEMPLATE', () => {
-    it('should return the expected message', () => {
-      // Arrange
-      const publisherAddress = Wallet.createRandom().address as Address;
-      const votingRoundId = randomUUID();
-      const currentTime = new Date();
+    describe('REVEAL_RESULT_MESSAGE_TEMPLATE', () => {
+      it('should return the expected message', () => {
+        // Arrange
+        const publisherAddress = Wallet.createRandom().address as Address;
+        const votingRoundId = randomUUID();
+        const currentTime = new Date();
 
-      // Act
-      const message = REVEAL_RESULT_MESSAGE_TEMPLATE(
-        publisherAddress,
-        votingRoundId,
-        currentTime,
-      );
+        // Act
+        const message = REVEAL_RESULT_MESSAGE_TEMPLATE(
+          publisherAddress,
+          votingRoundId,
+          currentTime,
+        );
 
-      // Assert
-      expect(message).toBe(
-        `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
-      );
+        // Assert
+        expect(message).toBe(
+          `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
+        );
+      });
     });
-  });
 
-  describe('VOTE_MESSAGE_TEMPLATE', () => {
-    it('should return the expected message', () => {
-      // Arrange
-      const currentTime = new Date('2024-01-01T00:00:00Z');
-      const voterAddress = '0xVoterAddress';
-      const votingRoundId = 'votingRound123';
+    describe('VOTE_MESSAGE_TEMPLATE', () => {
+      it('should return the expected message', () => {
+        // Arrange
+        const currentTime = new Date('2024-01-01T00:00:00Z');
+        const voterAddress = '0xVoterAddress';
+        const votingRoundId = 'votingRound123';
 
-      const receivers = [
-        { type: 'dripList', accountId: 'b', weight: 3 },
-        { type: 'address', address: 'a', weight: 1 },
-        { type: 'project', url: 'c', weight: 2 },
-      ] as Receiver[];
+        const receivers = [
+          { type: 'dripList', accountId: 'b', weight: 3 },
+          { type: 'address', address: 'a', weight: 1 },
+          { type: 'project', url: 'c', weight: 2 },
+        ] as Receiver[];
 
-      const expectedSortedReceivers = [
-        ['address', 'a', 1],
-        ['drip-list', 'b', 3],
-        ['project', 'c', 2],
-      ];
+        const expectedSortedReceivers = [
+          ['address', 'a', 1],
+          ['drip-list', 'b', 3],
+          ['project', 'c', 2],
+        ];
 
-      const expectedMessage = `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(expectedSortedReceivers)}`;
+        const expectedMessage = `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(expectedSortedReceivers)}`;
 
-      // Act
-      const message = VOTE_MESSAGE_TEMPLATE(
-        currentTime,
-        voterAddress,
-        votingRoundId,
-        receivers,
-      );
+        // Act
+        const message = VOTE_MESSAGE_TEMPLATE(
+          currentTime,
+          voterAddress,
+          votingRoundId,
+          receivers,
+        );
 
-      // Assert
-      expect(message).toEqual(expectedMessage);
+        // Assert
+        expect(message).toEqual(expectedMessage);
+      });
     });
-  });
 
-  describe('DELETE_VOTING_ROUND_MESSAGE_TEMPLATE', () => {
-    it('should return the expected message', () => {
-      // Arrange
-      const publisherAddress = Wallet.createRandom().address as Address;
-      const votingRoundId = randomUUID();
-      const currentTime = new Date();
+    describe('DELETE_VOTING_ROUND_MESSAGE_TEMPLATE', () => {
+      it('should return the expected message', () => {
+        // Arrange
+        const publisherAddress = Wallet.createRandom().address as Address;
+        const votingRoundId = randomUUID();
+        const currentTime = new Date();
 
-      // Act
-      const message = DELETE_VOTING_ROUND_MESSAGE_TEMPLATE(
-        currentTime,
-        publisherAddress,
-        votingRoundId,
-      );
+        // Act
+        const message = DELETE_VOTING_ROUND_MESSAGE_TEMPLATE(
+          currentTime,
+          publisherAddress,
+          votingRoundId,
+        );
 
-      // Assert
-      expect(message).toBe(
-        `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
-      );
+        // Assert
+        expect(message).toBe(
+          `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
+        );
+      });
     });
-  });
 
-  describe('START_VOTING_ROUND_MESSAGE_TEMPLATE', () => {
-    it('should return the expected message', () => {
-      // Arrange
-      const currentTime = new Date();
-      const publisherAddress = Wallet.createRandom().address as Address;
-      const dripListId = 'dripListId' as DripListId;
-      const collaborators = ['b' as Address, 'c' as Address, 'a' as Address];
+    describe('START_VOTING_ROUND_MESSAGE_TEMPLATE', () => {
+      it('should return the expected message', () => {
+        // Arrange
+        const currentTime = new Date();
+        const publisherAddress = Wallet.createRandom().address as Address;
+        const dripListId = 'dripListId' as DripListId;
+        const collaborators = ['b' as Address, 'c' as Address, 'a' as Address];
 
-      const sortedCollaborators = ['a', 'b', 'c'];
+        const sortedCollaborators = ['a', 'b', 'c'];
 
-      const expectedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
+        const expectedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
 
-      // Act
-      const message = START_VOTING_ROUND_MESSAGE_TEMPLATE(
-        currentTime,
-        publisherAddress,
-        dripListId,
-        collaborators,
-      );
+        // Act
+        const message = START_VOTING_ROUND_MESSAGE_TEMPLATE(
+          currentTime,
+          publisherAddress,
+          dripListId,
+          collaborators,
+        );
 
-      // Assert
-      expect(message).toEqual(expectedMessage);
+        // Assert
+        expect(message).toEqual(expectedMessage);
+      });
     });
-  });
 
-  describe('CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE', () => {
-    it('should return the expected message', () => {
-      // Arrange
-      const currentTime = new Date();
-      const publisherAddress = Wallet.createRandom().address as Address;
-      const collaborators = ['b' as Address, 'c' as Address, 'a' as Address];
+    describe('CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE', () => {
+      it('should return the expected message', () => {
+        // Arrange
+        const currentTime = new Date();
+        const publisherAddress = Wallet.createRandom().address as Address;
+        const collaborators = ['b' as Address, 'c' as Address, 'a' as Address];
 
-      const sortedCollaborators = ['a', 'b', 'c'];
+        const sortedCollaborators = ['a', 'b', 'c'];
 
-      const expectedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
+        const expectedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
 
-      // Act
-      const message = CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
-        currentTime,
-        publisherAddress,
-        collaborators,
-      );
+        // Act
+        const message = CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
+          currentTime,
+          publisherAddress,
+          collaborators,
+        );
 
-      // Assert
-      expect(message).toEqual(expectedMessage);
+        // Assert
+        expect(message).toEqual(expectedMessage);
+      });
     });
   });
 });

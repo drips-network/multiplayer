@@ -8,9 +8,11 @@ import {
 } from '../../src/application/Auth';
 import type { StartVotingRoundRequest } from '../../src/features/startVotingRound/StartVotingRoundRequest';
 import StartVotingRoundUseCase from '../../src/features/startVotingRound/StartVotingRoundUseCase';
-import type { Address } from '../../src/domain/typeUtils';
+import type { AccountId, Address } from '../../src/domain/typeUtils';
 import Publisher from '../../src/domain/publisherAggregate/Publisher';
 import Collaborator from '../../src/domain/collaboratorAggregate/Collaborator';
+import type IReceiverMapper from '../../src/application/interfaces/IReceiverMapper';
+import type VotingRound from '../../src/domain/votingRoundAggregate/VotingRound';
 
 jest.mock('../../src/application/Auth');
 
@@ -25,6 +27,9 @@ describe('StartVotingRoundUseCase', () => {
   const authMock = {
     verifyMessage: jest.fn(),
   } as unknown as jest.Mocked<IAuthStrategy>;
+  const receiverMapperMock = {
+    mapToAllowedReceiver: jest.fn(),
+  } as unknown as jest.Mocked<IReceiverMapper>;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -37,7 +42,12 @@ describe('StartVotingRoundUseCase', () => {
         loggerMock,
         votingRoundServiceMock,
         authMock,
+        receiverMapperMock,
       );
+
+      votingRoundServiceMock.start.mockResolvedValueOnce({
+        _id: 'newVotingRoundId',
+      } as unknown as VotingRound);
 
       const request: StartVotingRoundRequest = {
         schedule: {
@@ -87,6 +97,7 @@ describe('StartVotingRoundUseCase', () => {
         loggerMock,
         votingRoundServiceMock,
         authMock,
+        receiverMapperMock,
       );
 
       const request: StartVotingRoundRequest = {
@@ -108,6 +119,10 @@ describe('StartVotingRoundUseCase', () => {
         name: 'name',
         description: 'description',
       };
+
+      votingRoundServiceMock.start.mockResolvedValueOnce({
+        _id: 'newVotingRoundId',
+      } as unknown as VotingRound);
 
       (CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE as jest.Mock).mockReturnValue(
         'message',
@@ -136,7 +151,22 @@ describe('StartVotingRoundUseCase', () => {
         loggerMock,
         votingRoundServiceMock,
         authMock,
+        receiverMapperMock,
       );
+
+      const receiverData = {
+        address: Wallet.createRandom().address,
+        type: 'address' as const,
+        accountId: '1' as AccountId,
+      };
+
+      receiverMapperMock.mapToAllowedReceiver.mockResolvedValueOnce(
+        receiverData,
+      );
+
+      votingRoundServiceMock.start.mockResolvedValueOnce({
+        _id: 'newVotingRoundId',
+      } as unknown as VotingRound);
 
       const request: StartVotingRoundRequest = {
         schedule: {
@@ -156,6 +186,12 @@ describe('StartVotingRoundUseCase', () => {
         areVotesPrivate: false,
         name: 'name',
         description: 'description',
+        allowedReceivers: [
+          {
+            address: Wallet.createRandom().address,
+            type: 'address',
+          },
+        ],
       };
 
       // Act
@@ -167,14 +203,15 @@ describe('StartVotingRoundUseCase', () => {
         request.schedule.voting.endsAt,
         Publisher.create(request.publisherAddress),
         undefined,
-        request.name,
-        request.description,
+        (request as any).name,
+        (request as any).description,
         request.collaborators.map((c) =>
           Collaborator.create(getAddress(c) as Address),
         ),
         request.areVotesPrivate,
         request.schedule.nomination!.startsAt,
         request.schedule.nomination!.endsAt,
+        [receiverData],
       );
     });
   });

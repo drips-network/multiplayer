@@ -125,4 +125,5 @@ export type VotingRoundDto = {
   nominationPeriod: NominationPeriodDto;
   name: string | null;
   description: string | null;
+  allowedReceivers: AllowedReceiverDto[] | null;
 };

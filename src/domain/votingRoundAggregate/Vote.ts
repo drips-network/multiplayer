@@ -83,6 +83,26 @@ export default class Vote extends BaseEntity {
       throw new InvalidArgumentError('Invalid receivers.');
     }
 
+    if (votingRound._allowedReceivers?.length) {
+      const allowedReceiverAccountIds = votingRound._allowedReceivers.map(
+        (allowedReceiver) => allowedReceiver.receiverData.accountId,
+      );
+
+      const receiverAccountIds = receivers.map(
+        (receiver) => receiver.accountId,
+      );
+
+      if (
+        !receiverAccountIds.every((receiverAccountId) =>
+          allowedReceiverAccountIds.includes(receiverAccountId),
+        )
+      ) {
+        throw new InvalidArgumentError(
+          'Receiver is not specified in allowed receivers.',
+        );
+      }
+    }
+
     const sum = receivers.reduce((a, b) => {
       if (
         !(

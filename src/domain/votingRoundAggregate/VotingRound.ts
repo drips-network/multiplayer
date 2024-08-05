@@ -25,6 +25,7 @@ import Vote from './Vote';
 import type Nomination from './Nomination';
 import { NominationStatus } from './Nomination';
 import { nowInMillis } from '../../application/utils';
+import type AllowedReceiver from '../allowedReceiver/AllowedReceiver';
 
 export enum VotingRoundStatus {
   Started = 'Started',
@@ -103,6 +104,16 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     },
   )
   public _nominations: Nomination[] | undefined;
+
+  @OneToMany(
+    'AllowedReceivers',
+    (allowedReceiver: AllowedReceiver) => allowedReceiver._votingRound,
+    {
+      nullable: true,
+      cascade: true,
+    },
+  )
+  public _allowedReceivers: AllowedReceiver[] | undefined;
 
   @OneToOne('Link', (link: Link) => link._votingRound, {
     nullable: true,

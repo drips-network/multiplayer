@@ -7,6 +7,8 @@ import VotingRoundService from '../../src/domain/services/VotingRoundService';
 import type { DripListId } from '../../src/domain/typeUtils';
 import type IVotingRoundRepository from '../../src/domain/votingRoundAggregate/IVotingRoundRepository';
 import VotingRound from '../../src/domain/votingRoundAggregate/VotingRound';
+import type IAllowedReceiversRepository from '../../src/domain/allowedReceiver/IAllowedReceiversRepository';
+import type { AllowedReceiverData } from '../../src/domain/allowedReceiver/AllowedReceiver';
 
 jest.mock('../../src/domain/votingRoundAggregate/VotingRound');
 
@@ -23,6 +25,9 @@ describe('VotingRoundService', () => {
     getById: jest.fn(),
     getByAddress: jest.fn(),
   } as unknown as jest.Mocked<IPublisherRepository>;
+  const allowedReceiversRepositoryMock = {
+    createMany: jest.fn(),
+  } as unknown as jest.Mocked<IAllowedReceiversRepository>;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -46,6 +51,7 @@ describe('VotingRoundService', () => {
         publisherRepositoryMock,
         votingRoundRepositoryMock,
         collaboratorRepositoryMock,
+        allowedReceiversRepositoryMock,
       );
 
       // Act
@@ -92,6 +98,7 @@ describe('VotingRoundService', () => {
         publisherRepositoryMock,
         votingRoundRepositoryMock,
         collaboratorRepositoryMock,
+        allowedReceiversRepositoryMock,
       );
 
       (VotingRound.create as jest.Mock).mockReturnValue({
@@ -138,6 +145,7 @@ describe('VotingRoundService', () => {
         publisherRepositoryMock,
         votingRoundRepositoryMock,
         collaboratorRepositoryMock,
+        allowedReceiversRepositoryMock,
       );
 
       (VotingRound.create as jest.Mock).mockReturnValue({
@@ -160,7 +168,62 @@ describe('VotingRoundService', () => {
 
       // Assert
       expect(votingRoundRepositoryMock.save).toHaveBeenCalled();
-      expect(result).toBe('newVotingRoundId');
+      expect(result._id).toBe('newVotingRoundId');
+    });
+
+    it('should set allowed receivers if specified', async () => {
+      // Arrange
+      const collaborators = [
+        {
+          _address: Wallet.createRandom().address,
+        },
+      ] as Collaborator[];
+
+      collaboratorRepositoryMock.getManyByAddresses.mockResolvedValue([]);
+
+      votingRoundRepositoryMock.getActiveVotingRoundsByPublisher.mockResolvedValue(
+        [],
+      );
+
+      const service = new VotingRoundService(
+        publisherRepositoryMock,
+        votingRoundRepositoryMock,
+        collaboratorRepositoryMock,
+        allowedReceiversRepositoryMock,
+      );
+
+      (VotingRound.create as jest.Mock).mockReturnValue({
+        _id: 'newVotingRoundId',
+      });
+
+      const allowedReceiversData = [
+        {
+          address: Wallet.createRandom().address,
+          accountId: '1',
+          type: 'address',
+        } as AllowedReceiverData,
+      ];
+
+      // Act
+      await service.start(
+        new Date(),
+        new Date(),
+        {
+          _address: Wallet.createRandom().address,
+        } as unknown as Publisher,
+        undefined,
+        'name',
+        'description',
+        collaborators,
+        true,
+        undefined,
+        undefined,
+        allowedReceiversData,
+      );
+
+      // Assert
+      expect(allowedReceiversRepositoryMock.createMany).toHaveBeenCalled();
+      expect(votingRoundRepositoryMock.save).toHaveBeenCalledTimes(2);
     });
   });
 });

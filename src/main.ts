@@ -65,6 +65,7 @@ export async function main(): Promise<void> {
     publisherRepository,
     votingRoundRepository,
     collaboratorRepository,
+    allowedReceiversRepository,
   );
 
   const graphQlClient = new GraphQLClient(appSettings.graphQlUrl, {
@@ -112,7 +113,6 @@ export async function main(): Promise<void> {
       logger,
       votingRoundService,
       auth,
-      allowedReceiversRepository,
       receiverMapper,
     ),
   );

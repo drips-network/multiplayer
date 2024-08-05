@@ -27,6 +27,7 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
         '_publisher',
         '_link',
         '_nominations',
+        '_allowedReceivers',
       ],
     });
   }
