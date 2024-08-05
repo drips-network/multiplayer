@@ -34,8 +34,6 @@ export default class ApiServer {
 
     app.use(authenticateApiKey);
 
-    app.use(express.json());
-
     bodyParser.json({ limit: '1mb' });
 
     ApiServer.mapEndpoints(app, endpoints);
