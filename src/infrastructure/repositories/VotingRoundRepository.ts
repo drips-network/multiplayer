@@ -17,7 +17,7 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
 
   public async getById(
     votingRoundId: UUID,
-    withRelations: boolean = false,
+    withRelations: boolean = true,
   ): Promise<VotingRound | null> {
     return this._repository.findOne({
       where: {
