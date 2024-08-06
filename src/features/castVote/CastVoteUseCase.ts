@@ -42,8 +42,10 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       `Casting a vote for voting round '${votingRoundId}' and collaborator '${collaboratorAddress}'...`,
     );
 
-    const votingRound =
-      await this._votingRoundRepository.getById(votingRoundId);
+    const votingRound = await this._votingRoundRepository.getById(
+      votingRoundId,
+      false,
+    );
 
     if (!votingRound) {
       throw new NotFoundError(`voting round not found.`);

@@ -263,22 +263,14 @@ export const START_VOTING_ROUND_MESSAGE_TEMPLATE = (
   currentTime: Date,
   publisherAddress: Address,
   dripListId: string,
-  collaborators: Address[],
-) => {
-  const sortedCollaborators = collaborators.sort();
-
-  return `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
-};
+) =>
+  `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
 
 export const CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE = (
   currentTime: Date,
   publisherAddress: Address,
-  collaborators: string[],
-) => {
-  const sortedCollaborators = collaborators.sort();
-
-  return `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
-};
+) =>
+  `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
 
 export const REVEAL_VOTE = (votingRoundId: UUID, currentTime: Date) =>
   `Reveal my vote for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;

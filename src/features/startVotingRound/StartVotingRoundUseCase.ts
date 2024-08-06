@@ -66,13 +66,7 @@ export default class StartVotingRoundUseCase
 
     assertIsAddress(publisherAddress);
 
-    await this._verifyMessage(
-      publisherAddress,
-      collaborators.map((c) => c as Address),
-      date,
-      signature,
-      dripListId,
-    );
+    await this._verifyMessage(publisherAddress, date, signature, dripListId);
 
     let allowedReceiversData: AllowedReceiverData[] = [];
     if (allowedReceivers?.length) {
@@ -108,7 +102,6 @@ export default class StartVotingRoundUseCase
 
   private async _verifyMessage(
     publisherAddress: Address,
-    collaborators: Address[],
     currentTime: Date,
     signature: string,
     dripListId: string | undefined,
@@ -121,7 +114,6 @@ export default class StartVotingRoundUseCase
         currentTime,
         publisherAddress,
         dripListId,
-        collaborators,
       );
     }
     // Draft Drip List.
@@ -129,7 +121,6 @@ export default class StartVotingRoundUseCase
       reconstructedMessage = CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
         currentTime,
         publisherAddress,
-        collaborators,
       );
     }
 

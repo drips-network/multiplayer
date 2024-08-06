@@ -4,7 +4,10 @@ import type { Address, DripListId } from '../typeUtils';
 import type Publisher from '../publisherAggregate/Publisher';
 
 export default interface IVotingRoundRepository {
-  getById(votingRoundId: UUID): Promise<VotingRound | null>;
+  getById(
+    votingRoundId: UUID,
+    withRelations?: boolean,
+  ): Promise<VotingRound | null>;
   getByFilter(filter: {
     dripListId: DripListId | undefined;
     publisherAddress: Address | undefined;

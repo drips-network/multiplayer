@@ -87,7 +87,6 @@ describe('StartVotingRoundUseCase', () => {
         request.date,
         request.publisherAddress,
         request.dripListId,
-        request.collaborators,
       );
     });
 
@@ -141,7 +140,6 @@ describe('StartVotingRoundUseCase', () => {
       expect(CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE).toHaveBeenCalledWith(
         request.date,
         request.publisherAddress,
-        request.collaborators,
       );
     });
 

@@ -482,18 +482,14 @@ describe('Auth', () => {
         const currentTime = new Date();
         const publisherAddress = Wallet.createRandom().address as Address;
         const dripListId = 'dripListId' as DripListId;
-        const collaborators = ['b' as Address, 'c' as Address, 'a' as Address];
 
-        const sortedCollaborators = ['a', 'b', 'c'];
-
-        const expectedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this round are: ${JSON.stringify(sortedCollaborators)}`;
+        const expectedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
 
         // Act
         const message = START_VOTING_ROUND_MESSAGE_TEMPLATE(
           currentTime,
           publisherAddress,
           dripListId,
-          collaborators,
         );
 
         // Assert
@@ -506,17 +502,13 @@ describe('Auth', () => {
         // Arrange
         const currentTime = new Date();
         const publisherAddress = Wallet.createRandom().address as Address;
-        const collaborators = ['b' as Address, 'c' as Address, 'a' as Address];
 
-        const sortedCollaborators = ['a', 'b', 'c'];
-
-        const expectedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The voters for this list are: ${JSON.stringify(sortedCollaborators)}`;
+        const expectedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
 
         // Act
         const message = CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
           currentTime,
           publisherAddress,
-          collaborators,
         );
 
         // Assert

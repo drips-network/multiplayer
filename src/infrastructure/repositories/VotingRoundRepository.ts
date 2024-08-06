@@ -15,20 +15,25 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
     this._repository = dataSource.getRepository(VotingRound);
   }
 
-  public async getById(votingRoundId: UUID): Promise<VotingRound | null> {
+  public async getById(
+    votingRoundId: UUID,
+    withRelations: boolean = false,
+  ): Promise<VotingRound | null> {
     return this._repository.findOne({
       where: {
         _id: votingRoundId ?? shouldNeverHappen(),
       },
-      relations: [
-        '_collaborators',
-        '_votes',
-        '_votes._collaborator',
-        '_publisher',
-        '_link',
-        '_nominations',
-        '_allowedReceivers',
-      ],
+      relations: withRelations
+        ? [
+            '_collaborators',
+            '_votes',
+            '_votes._collaborator',
+            '_publisher',
+            '_link',
+            '_nominations',
+            '_allowedReceivers',
+          ]
+        : undefined,
     });
   }
 
