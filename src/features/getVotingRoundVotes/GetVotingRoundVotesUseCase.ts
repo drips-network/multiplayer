@@ -70,7 +70,7 @@ export default class GetVotingRoundVotesUseCase
 
     return {
       votes: votingRound.getLatestVotes().map((collaboratorsWithVotes) => ({
-        collaboratorAddress: collaboratorsWithVotes.collaborator._address,
+        collaboratorAddress: collaboratorsWithVotes.collaborator,
         latestVote:
           collaboratorsWithVotes.latestVote?.receivers?.map((receiver) =>
             this._receiverMapper.mapToReceiverDto(receiver),

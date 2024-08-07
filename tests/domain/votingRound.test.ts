@@ -1,5 +1,5 @@
 /* eslint-disable dot-notation */
-import Collaborator from '../../src/domain/collaboratorAggregate/Collaborator';
+import { Wallet } from 'ethers';
 import { TOTAL_VOTE_WEIGHT } from '../../src/domain/constants';
 import Link, { LinkStatus } from '../../src/domain/linkedDripList/Link';
 import Publisher from '../../src/domain/publisherAggregate/Publisher';
@@ -518,14 +518,7 @@ describe('VotingRound', () => {
           null as any,
           'name',
           'description',
-          [
-            {
-              _address: 'address',
-            } as unknown as Collaborator,
-            {
-              _address: 'address',
-            } as unknown as Collaborator,
-          ],
+          ['address' as unknown as Address, 'address' as unknown as Address],
           null as any,
           nominationStartsAt,
           nominationEndsAt,
@@ -551,14 +544,7 @@ describe('VotingRound', () => {
         null as any,
         'name',
         'description',
-        [
-          {
-            _address: 'address1',
-          } as unknown as Collaborator,
-          {
-            _address: 'address2',
-          } as unknown as Collaborator,
-        ],
+        ['address1' as Address, 'address2' as Address],
         false,
         nominationStartsAt,
         nominationEndsAt,
@@ -573,8 +559,8 @@ describe('VotingRound', () => {
       expect(votingRound._collaborators).toHaveLength(2);
       expect(votingRound._description).toBe('description');
       expect(votingRound._nominationEndsAt).toBe(nominationEndsAt);
-      expect(votingRound._collaborators![0]._address).toBe('address1');
-      expect(votingRound._collaborators![1]._address).toBe('address2');
+      expect(votingRound._collaborators![0]).toBe('address1');
+      expect(votingRound._collaborators![1]).toBe('address2');
       expect(votingRound._nominationStartsAt).toBe(nominationStartsAt);
     });
   });
@@ -586,14 +572,15 @@ describe('VotingRound', () => {
       votingRound._collaborators = [
         {
           _address: 'address1',
-        } as unknown as Collaborator,
+        } as unknown as Address,
         {
           _address: 'address2',
-        } as unknown as Collaborator,
+        } as unknown as Address,
       ];
 
       // Act
-      const castVote = () => votingRound.castVote(new Collaborator(), []);
+      const castVote = () =>
+        votingRound.castVote(Wallet.createRandom().address as Address, []);
 
       // Assert
       expect(castVote).toThrow('Collaborator is not part of the voting round.');
@@ -605,10 +592,10 @@ describe('VotingRound', () => {
       votingRound._collaborators = [
         {
           _address: 'address1',
-        } as unknown as Collaborator,
+        } as unknown as Address,
         {
           _address: 'address2',
-        } as unknown as Collaborator,
+        } as unknown as Address,
       ];
 
       // Act
@@ -630,10 +617,10 @@ describe('VotingRound', () => {
       votingRound._collaborators = [
         {
           _address: 'address1',
-        } as unknown as Collaborator,
+        } as unknown as Address,
         {
           _address: 'address2',
-        } as unknown as Collaborator,
+        } as unknown as Address,
       ];
 
       // Act
@@ -656,10 +643,10 @@ describe('VotingRound', () => {
       votingRound._collaborators = [
         {
           _address: 'address1',
-        } as unknown as Collaborator,
+        } as unknown as Address,
         {
           _address: 'address2',
-        } as unknown as Collaborator,
+        } as unknown as Address,
       ];
 
       // Act
@@ -682,20 +669,14 @@ describe('VotingRound', () => {
       // Arrange
       const votingRound = new VotingRound();
       votingRound._collaborators = [
-        {
-          _address: 'collaborator1',
-        } as unknown as Collaborator,
-        {
-          _address: 'collaborator2',
-        } as unknown as Collaborator,
+        'collaborator1' as unknown as Address,
+        'collaborator2' as unknown as Address,
       ];
 
       votingRound._votes = [
         {
           _votingRound: votingRound,
-          _collaborator: {
-            _address: 'collaborator1',
-          },
+          _collaborator: 'collaborator1' as Address,
           _updatedAt: twoDaysAgo,
           _receiversJson: JSON.stringify([
             {
@@ -714,9 +695,7 @@ describe('VotingRound', () => {
         } as unknown as Vote,
         {
           _votingRound: votingRound,
-          _collaborator: {
-            _address: 'collaborator1',
-          },
+          _collaborator: 'collaborator1' as Address,
           _updatedAt: yesterday,
           _receiversJson: JSON.stringify([
             {
@@ -729,9 +708,7 @@ describe('VotingRound', () => {
         } as unknown as Vote,
         {
           _votingRound: votingRound,
-          _collaborator: {
-            _address: 'collaborator2',
-          },
+          _collaborator: 'collaborator2' as Address,
           _updatedAt: yesterday,
           _receiversJson: JSON.stringify([
             {
@@ -749,7 +726,7 @@ describe('VotingRound', () => {
 
       // Assert
       expect(result).toHaveLength(2);
-      expect(result[0].collaborator._address).toBe('collaborator1');
+      expect(result[0].collaborator).toBe('collaborator1');
       expect(result[0].latestVote?._receiversJson).toBe(
         JSON.stringify([
           {
@@ -760,7 +737,7 @@ describe('VotingRound', () => {
           },
         ]),
       );
-      expect(result[1].collaborator._address).toBe('collaborator2');
+      expect(result[1].collaborator).toBe('collaborator2');
       expect(result[1].latestVote?._receiversJson).toBe(
         JSON.stringify([
           {
@@ -781,10 +758,10 @@ describe('VotingRound', () => {
       votingRound._collaborators = [
         {
           _address: 'collaborator1',
-        } as unknown as Collaborator,
+        } as unknown as Address,
         {
           _address: 'collaborator2',
-        } as unknown as Collaborator,
+        } as unknown as Address,
       ];
 
       const [collaborator1, collaborator2] = votingRound._collaborators;

@@ -10,7 +10,6 @@ import type { StartVotingRoundRequest } from '../../src/features/startVotingRoun
 import StartVotingRoundUseCase from '../../src/features/startVotingRound/StartVotingRoundUseCase';
 import type { AccountId, Address } from '../../src/domain/typeUtils';
 import Publisher from '../../src/domain/publisherAggregate/Publisher';
-import Collaborator from '../../src/domain/collaboratorAggregate/Collaborator';
 import type IReceiverMapper from '../../src/application/interfaces/IReceiverMapper';
 import type VotingRound from '../../src/domain/votingRoundAggregate/VotingRound';
 
@@ -203,9 +202,7 @@ describe('StartVotingRoundUseCase', () => {
         undefined,
         (request as any).name,
         (request as any).description,
-        request.collaborators.map((c) =>
-          Collaborator.create(getAddress(c) as Address),
-        ),
+        request.collaborators.map((c) => getAddress(c) as Address),
         request.areVotesPrivate,
         request.schedule.nomination!.startsAt,
         request.schedule.nomination!.endsAt,

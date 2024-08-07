@@ -66,7 +66,7 @@ export default class VotingRoundMapper implements IVotingRoundMapper {
       votes: votingRound._areVotesPrivate
         ? null
         : votingRound.getLatestVotes().map((collaboratorsWithVotes) => ({
-            collaboratorAddress: collaboratorsWithVotes.collaborator._address,
+            collaboratorAddress: collaboratorsWithVotes.collaborator,
             votedAt: collaboratorsWithVotes.latestVote?._updatedAt || null,
             latestVote:
               collaboratorsWithVotes.latestVote?.receivers?.map((receiver) =>

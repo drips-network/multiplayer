@@ -1,10 +1,10 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import type Collaborator from '../collaboratorAggregate/Collaborator';
 import { InvalidArgumentError } from '../errors';
 import BaseEntity from '../BaseEntity';
-import type { AccountId } from '../typeUtils';
+import type { AccountId, Address } from '../typeUtils';
 import { TOTAL_VOTE_WEIGHT } from '../constants';
 import type VotingRound from './VotingRound';
+import DataSchemaConstants from '../../infrastructure/DataSchemaConstants';
 
 export type AddressReceiver = {
   address: string;
@@ -40,17 +40,12 @@ export default class Vote extends BaseEntity {
   })
   public _votingRound!: VotingRound;
 
-  @ManyToOne(
-    'Collaborator',
-    (collaborator: Collaborator) => collaborator._votes,
-    {
-      nullable: false,
-    },
-  )
-  @JoinColumn({
-    name: 'collaboratorId',
+  @Column({
+    length: DataSchemaConstants.ADDRESS_LENGTH,
+    nullable: false,
+    name: 'collaborator',
   })
-  public _collaborator!: Collaborator;
+  public _collaborator!: Address;
 
   @Column('json', { nullable: false, name: 'receivers' })
   public _receiversJson!: string;
@@ -68,7 +63,7 @@ export default class Vote extends BaseEntity {
 
   public static create(
     votingRound: VotingRound,
-    collaborator: Collaborator,
+    collaborator: Address,
     receivers: Receiver[],
   ): Vote {
     if (!votingRound) {

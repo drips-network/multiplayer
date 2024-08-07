@@ -1,10 +1,8 @@
 import { Wallet } from 'ethers';
-import type Collaborator from '../../src/domain/collaboratorAggregate/Collaborator';
-import type ICollaboratorRepository from '../../src/domain/collaboratorAggregate/ICollaboratorRepository';
 import type IPublisherRepository from '../../src/domain/publisherAggregate/IPublisherRepository';
 import type Publisher from '../../src/domain/publisherAggregate/Publisher';
 import VotingRoundService from '../../src/domain/services/VotingRoundService';
-import type { DripListId } from '../../src/domain/typeUtils';
+import type { Address, DripListId } from '../../src/domain/typeUtils';
 import type IVotingRoundRepository from '../../src/domain/votingRoundAggregate/IVotingRoundRepository';
 import VotingRound from '../../src/domain/votingRoundAggregate/VotingRound';
 import type IAllowedReceiversRepository from '../../src/domain/allowedReceiver/IAllowedReceiversRepository';
@@ -17,10 +15,6 @@ describe('VotingRoundService', () => {
     getActiveVotingRoundsByPublisher: jest.fn(),
     save: jest.fn(),
   } as unknown as jest.Mocked<IVotingRoundRepository>;
-  const collaboratorRepositoryMock = {
-    getManyByAddresses: jest.fn(),
-    createMany: jest.fn(),
-  } as unknown as jest.Mocked<ICollaboratorRepository>;
   const publisherRepositoryMock = {
     getById: jest.fn(),
     getByAddress: jest.fn(),
@@ -50,7 +44,6 @@ describe('VotingRoundService', () => {
       const service = new VotingRoundService(
         publisherRepositoryMock,
         votingRoundRepositoryMock,
-        collaboratorRepositoryMock,
         allowedReceiversRepositoryMock,
       );
 
@@ -65,7 +58,7 @@ describe('VotingRoundService', () => {
           dripListId as DripListId,
           'name',
           'description',
-          [{ _address: Wallet.createRandom().address } as Collaborator],
+          [Wallet.createRandom().address as Address],
           true,
         );
 
@@ -78,17 +71,9 @@ describe('VotingRoundService', () => {
     it('should create new collaborators', async () => {
       // Arrange
       const collaborators = [
-        {
-          _address: Wallet.createRandom().address,
-        },
-        {
-          _address: Wallet.createRandom().address,
-        },
-      ] as Collaborator[];
-
-      collaboratorRepositoryMock.getManyByAddresses.mockResolvedValue([
-        collaborators[0],
-      ]);
+        Wallet.createRandom().address,
+        Wallet.createRandom().address,
+      ] as Address[];
 
       votingRoundRepositoryMock.getActiveVotingRoundsByPublisher.mockResolvedValue(
         [],
@@ -97,16 +82,16 @@ describe('VotingRoundService', () => {
       const service = new VotingRoundService(
         publisherRepositoryMock,
         votingRoundRepositoryMock,
-        collaboratorRepositoryMock,
         allowedReceiversRepositoryMock,
       );
 
       (VotingRound.create as jest.Mock).mockReturnValue({
         _id: 'newVotingRoundId',
+        _collaborators: collaborators,
       });
 
       // Act
-      await service.start(
+      const votingRound = await service.start(
         new Date(),
         new Date(),
         {
@@ -120,22 +105,14 @@ describe('VotingRoundService', () => {
       );
 
       // Assert
-      expect(collaboratorRepositoryMock.createMany).toHaveBeenCalledWith([
-        {
-          _address: collaborators[1]._address,
-        },
-      ]);
+      expect(votingRound._collaborators).toHaveLength(2);
+      expect(votingRound._collaborators[0]).toBe(collaborators[0]);
+      expect(votingRound._collaborators[1]).toBe(collaborators[1]);
     });
 
     it('should start a voting round', async () => {
       // Arrange
-      const collaborators = [
-        {
-          _address: Wallet.createRandom().address,
-        },
-      ] as Collaborator[];
-
-      collaboratorRepositoryMock.getManyByAddresses.mockResolvedValue([]);
+      const collaborators = [Wallet.createRandom().address] as Address[];
 
       votingRoundRepositoryMock.getActiveVotingRoundsByPublisher.mockResolvedValue(
         [],
@@ -144,7 +121,6 @@ describe('VotingRoundService', () => {
       const service = new VotingRoundService(
         publisherRepositoryMock,
         votingRoundRepositoryMock,
-        collaboratorRepositoryMock,
         allowedReceiversRepositoryMock,
       );
 
@@ -173,13 +149,7 @@ describe('VotingRoundService', () => {
 
     it('should set allowed receivers if specified', async () => {
       // Arrange
-      const collaborators = [
-        {
-          _address: Wallet.createRandom().address,
-        },
-      ] as Collaborator[];
-
-      collaboratorRepositoryMock.getManyByAddresses.mockResolvedValue([]);
+      const collaborators = [Wallet.createRandom().address] as Address[];
 
       votingRoundRepositoryMock.getActiveVotingRoundsByPublisher.mockResolvedValue(
         [],
@@ -188,7 +158,6 @@ describe('VotingRoundService', () => {
       const service = new VotingRoundService(
         publisherRepositoryMock,
         votingRoundRepositoryMock,
-        collaboratorRepositoryMock,
         allowedReceiversRepositoryMock,
       );
 

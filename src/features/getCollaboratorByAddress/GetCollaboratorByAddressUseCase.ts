@@ -63,14 +63,12 @@ export default class GetCollaboratorByAddressUseCase
     }
 
     const isCollaborator =
-      votingRound._collaborators?.filter(
-        (c) => c._address === collaboratorAddress,
-      ).length === 1;
+      votingRound._collaborators?.filter((c) => c === collaboratorAddress)
+        .length === 1;
 
     const hasVoted =
-      votingRound._votes?.filter(
-        (v) => v._collaborator._address === collaboratorAddress,
-      )?.length !== 0;
+      votingRound._votes?.filter((v) => v._collaborator === collaboratorAddress)
+        ?.length !== 0;
 
     return {
       isCollaborator,
@@ -81,8 +79,7 @@ export default class GetCollaboratorByAddressUseCase
               .getLatestVotes()
               .filter(
                 (collaboratorsWithVotes) =>
-                  collaboratorsWithVotes.collaborator._address ===
-                  collaboratorAddress,
+                  collaboratorsWithVotes.collaborator === collaboratorAddress,
               )
               .map((collaborator) =>
                 collaborator.latestVote?.receivers?.map((receiver) =>

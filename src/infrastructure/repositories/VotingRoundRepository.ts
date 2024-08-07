@@ -25,9 +25,8 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
       },
       relations: withRelations
         ? [
-            '_collaborators',
             '_votes',
-            '_votes._collaborator',
+            '_votes._votingRound',
             '_publisher',
             '_link',
             '_nominations',
@@ -56,9 +55,8 @@ export default class VotingRoundRepository implements IVotingRoundRepository {
     return this._repository.find({
       where,
       relations: [
-        '_collaborators',
         '_votes',
-        '_votes._collaborator',
+        '_votes._votingRound',
         '_publisher',
         '_link',
         '_nominations',

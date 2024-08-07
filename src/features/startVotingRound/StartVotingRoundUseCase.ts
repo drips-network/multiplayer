@@ -7,7 +7,6 @@ import type VotingRoundService from '../../domain/services/VotingRoundService';
 import Publisher from '../../domain/publisherAggregate/Publisher';
 import type { Address } from '../../domain/typeUtils';
 import { assertIsAddress, toDripListId } from '../../domain/typeUtils';
-import Collaborator from '../../domain/collaboratorAggregate/Collaborator';
 import type { IAuthStrategy } from '../../application/Auth';
 import {
   CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE,
@@ -61,7 +60,7 @@ export default class StartVotingRoundUseCase
       'allowedReceivers' in request ? request.allowedReceivers : undefined;
 
     this._logger.info(
-      `Starting a new voting round for ${dripListId ? 'the Drip List with ID' : 'a Draft Drip List'} '${dripListId ?? ''}'.`,
+      `Starting a new voting round for ${dripListId ? `Drip List '${dripListId}'` : `Drip List '${name}'`}...`,
     );
 
     assertIsAddress(publisherAddress);
@@ -84,7 +83,7 @@ export default class StartVotingRoundUseCase
       dripListId ? toDripListId(dripListId) : undefined,
       name,
       description,
-      collaborators.map((c) => Collaborator.create(getAddress(c) as Address)),
+      collaborators.map(getAddress) as Address[],
       areVotesPrivate,
       nominationStartsAt,
       nominationEndsAt,

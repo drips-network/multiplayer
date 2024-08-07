@@ -4,7 +4,6 @@ import type UseCase from '../../application/interfaces/IUseCase';
 import type { CastVoteRequest } from './CastVoteRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import { NotFoundError, UnauthorizedError } from '../../application/errors';
-import type ICollaboratorRepository from '../../domain/collaboratorAggregate/ICollaboratorRepository';
 import { assertIsAddress } from '../../domain/typeUtils';
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 import type { IAuthStrategy } from '../../application/Auth';
@@ -18,12 +17,10 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
   private readonly _auth: IAuthStrategy;
   private readonly _receiverMapper: IReceiverMapper;
   private readonly _votingRoundRepository: IVotingRoundRepository;
-  private readonly _collaboratorRepository: ICollaboratorRepository;
 
   public constructor(
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
-    collaboratorRepository: ICollaboratorRepository,
     receiverMapper: IReceiverMapper,
     auth: IAuthStrategy,
   ) {
@@ -31,7 +28,6 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
     this._logger = logger;
     this._receiverMapper = receiverMapper;
     this._votingRoundRepository = votingRoundRepository;
-    this._collaboratorRepository = collaboratorRepository;
   }
 
   public async execute(command: CastVoteCommand): Promise<void> {
@@ -44,7 +40,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
 
     const votingRound = await this._votingRoundRepository.getById(
       votingRoundId,
-      false,
+      true,
     );
 
     if (!votingRound) {
@@ -52,11 +48,12 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
     }
 
     assertIsAddress(collaboratorAddress);
-    const collaborator =
-      await this._collaboratorRepository.getByAddress(collaboratorAddress);
+    const collaborator = votingRound._collaborators.find(
+      (c) => c === collaboratorAddress,
+    );
 
     if (!collaborator) {
-      throw new NotFoundError(`collaborator not found.`);
+      throw new NotFoundError(`Collaborator not found.`);
     }
 
     const receiverEntities: Receiver[] = await Promise.all(
@@ -87,7 +84,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       date,
     );
 
-    collaborator._votes
+    votingRound._votes
       ?.filter((v) => v._votingRound._id === votingRoundId)
       .forEach((vote) => {
         if (vote._updatedAt > date) {

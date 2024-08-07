@@ -2,13 +2,11 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
 } from 'typeorm';
 import BaseEntity from '../BaseEntity';
-import type Collaborator from '../collaboratorAggregate/Collaborator';
 import {
   InvalidArgumentError,
   InvalidVotingRoundOperationError,
@@ -78,16 +76,13 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   @Column('bool', { nullable: false, name: 'areVotesPrivate' })
   public _areVotesPrivate!: boolean;
 
-  @ManyToMany(
-    'Collaborator',
-    (collaborator: Collaborator) => collaborator._votingRounds,
-    {
-      nullable: true,
-      orphanedRowAction: 'soft-delete',
-      cascade: ['insert', 'update'],
-    },
-  )
-  public _collaborators: Collaborator[] | undefined;
+  @Column('varchar', {
+    array: true,
+    nullable: false,
+    name: 'collaborators',
+    length: DataSchemaConstants.ADDRESS_LENGTH,
+  })
+  public _collaborators!: Address[];
 
   @OneToMany('Vote', (vote: Vote) => vote._votingRound, {
     nullable: true,
@@ -170,7 +165,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     dripListId: DripListId | undefined,
     name: string | undefined,
     description: string | undefined,
-    collaborators: Collaborator[],
+    collaborators: Address[],
     areVotesPrivate: boolean,
     nominationStartsAt: Date | undefined,
     nominationEndsAt: Date | undefined,
@@ -244,13 +239,13 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     }
 
     const seen = new Set();
-    for (const item of collaborators) {
-      if (seen.has(item._address)) {
+    for (const address of collaborators) {
+      if (seen.has(address)) {
         throw new InvalidArgumentError(
           `Collaborators cannot contain duplicates.`,
         );
       }
-      seen.add(item._address);
+      seen.add(address);
     }
 
     const votingRound = new VotingRound();
@@ -269,10 +264,8 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     return votingRound;
   }
 
-  public castVote(collaborator: Collaborator, receivers: Receiver[]): void {
-    if (
-      !this._collaborators?.find((c) => c._address === collaborator._address)
-    ) {
+  public castVote(collaborator: Address, receivers: Receiver[]): void {
+    if (!this._collaborators?.find((c) => c === collaborator)) {
       throw new InvalidArgumentError(
         'Collaborator is not part of the voting round.',
       );
@@ -303,11 +296,11 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
   }
 
   public getLatestVotes(): {
-    collaborator: Collaborator;
+    collaborator: Address;
     latestVote: Vote | null;
   }[] {
     const collaboratorVotes: {
-      collaborator: Collaborator;
+      collaborator: Address;
       latestVote: Vote | null;
     }[] =
       this._collaborators?.map((collaborator) => ({
@@ -323,14 +316,14 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       const latestVoteMap = new Map<Address, Vote>();
 
       this._votes.forEach((vote) => {
-        const collaboratorAddressId = vote._collaborator._address;
+        const collaboratorAddressId = vote._collaborator;
         if (!latestVoteMap.has(collaboratorAddressId)) {
           latestVoteMap.set(collaboratorAddressId, vote);
         }
       });
 
       collaboratorVotes.forEach((cv) => {
-        const latestVote = latestVoteMap.get(cv.collaborator._address);
+        const latestVote = latestVoteMap.get(cv.collaborator);
         // eslint-disable-next-line no-param-reassign
         cv.latestVote = latestVote || null;
       });

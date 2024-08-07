@@ -4,16 +4,15 @@ import type { Logger } from 'winston';
 import type { CastVoteCommand } from '../../src/features/castVote/CastVoteUseCase';
 import CastVoteUseCase from '../../src/features/castVote/CastVoteUseCase';
 import type IVotingRoundRepository from '../../src/domain/votingRoundAggregate/IVotingRoundRepository';
-import type ICollaboratorRepository from '../../src/domain/collaboratorAggregate/ICollaboratorRepository';
 import type IReceiverMapper from '../../src/application/interfaces/IReceiverMapper';
 import {
   VOTE_MESSAGE_TEMPLATE,
   type IAuthStrategy,
 } from '../../src/application/Auth';
 import type VotingRound from '../../src/domain/votingRoundAggregate/VotingRound';
-import type Collaborator from '../../src/domain/collaboratorAggregate/Collaborator';
 import type { Receiver } from '../../src/domain/votingRoundAggregate/Vote';
 import { yesterday } from '../testUtils';
+import type { Address } from '../../src/domain/typeUtils';
 
 jest.mock('../../src/application/Auth');
 
@@ -26,10 +25,6 @@ describe('CastVoteUseCase', () => {
     getById: jest.fn(),
     save: jest.fn(),
   } as unknown as jest.Mocked<IVotingRoundRepository>;
-  const collaboratorRepositoryMock = {
-    getById: jest.fn(),
-    getByAddress: jest.fn(),
-  } as unknown as jest.Mocked<ICollaboratorRepository>;
   const receiverMapperMock = {
     mapToReceiver: jest.fn(),
   } as unknown as jest.Mocked<IReceiverMapper>;
@@ -49,7 +44,6 @@ describe('CastVoteUseCase', () => {
       const useCase = new CastVoteUseCase(
         loggerMock,
         votingRoundRepositoryMock,
-        collaboratorRepositoryMock,
         receiverMapperMock,
         authMock,
       );
@@ -74,14 +68,12 @@ describe('CastVoteUseCase', () => {
 
       votingRoundRepositoryMock.getById.mockResolvedValue({
         _id: votingRoundId,
+        _collaborators: [],
       } as unknown as VotingRound);
-
-      collaboratorRepositoryMock.getByAddress.mockResolvedValue(null);
 
       const useCase = new CastVoteUseCase(
         loggerMock,
         votingRoundRepositoryMock,
-        collaboratorRepositoryMock,
         receiverMapperMock,
         authMock,
       );
@@ -97,26 +89,23 @@ describe('CastVoteUseCase', () => {
         });
 
       // Assert
-      await expect(execute).rejects.toThrow('collaborator not found.');
+      await expect(execute).rejects.toThrow('Collaborator not found.');
     });
 
     it('should verify signature', async () => {
       // Arrange
       const votingRoundId = randomUUID();
 
+      const collaborator = Wallet.createRandom().address as Address;
       votingRoundRepositoryMock.getById.mockResolvedValue({
         _id: votingRoundId,
+        _collaborators: [collaborator],
         castVote: jest.fn(),
       } as unknown as VotingRound);
-
-      collaboratorRepositoryMock.getByAddress.mockResolvedValue({
-        _address: Wallet.createRandom().address,
-      } as unknown as Collaborator);
 
       const useCase = new CastVoteUseCase(
         loggerMock,
         votingRoundRepositoryMock,
-        collaboratorRepositoryMock,
         receiverMapperMock,
         authMock,
       );
@@ -129,7 +118,7 @@ describe('CastVoteUseCase', () => {
         receivers: [{} as unknown as Receiver],
         signature: 'signature',
         date: yesterday,
-        collaboratorAddress: Wallet.createRandom().address,
+        collaboratorAddress: collaborator,
       };
 
       (VOTE_MESSAGE_TEMPLATE as jest.Mock).mockReturnValue('message');
@@ -156,28 +145,25 @@ describe('CastVoteUseCase', () => {
   it('should throw when trying to cast an outdated vote', async () => {
     // Arrange
     const votingRoundId = randomUUID();
-    const voteId = randomUUID();
 
-    collaboratorRepositoryMock.getByAddress.mockResolvedValue({
-      _address: Wallet.createRandom().address,
-      _votes: [
-        {
-          _id: voteId,
-          _updatedAt: new Date(),
-          _votingRound: { _id: votingRoundId },
-        },
-      ],
-    } as unknown as Collaborator);
+    const collaborator = Wallet.createRandom().address as Address;
 
     votingRoundRepositoryMock.getById.mockResolvedValue({
       _id: votingRoundId,
+      _collaborators: [collaborator],
+      _votes: [
+        {
+          _votingRound: { _id: votingRoundId },
+          _collaborator: collaborator,
+          _updatedAt: new Date(),
+        },
+      ],
       castVote: jest.fn(),
     } as unknown as VotingRound);
 
     const useCase = new CastVoteUseCase(
       loggerMock,
       votingRoundRepositoryMock,
-      collaboratorRepositoryMock,
       receiverMapperMock,
       authMock,
     );
@@ -187,7 +173,7 @@ describe('CastVoteUseCase', () => {
       receivers: [],
       signature: 'signature',
       date: yesterday,
-      collaboratorAddress: Wallet.createRandom().address,
+      collaboratorAddress: collaborator,
     };
 
     // Act
@@ -200,23 +186,12 @@ describe('CastVoteUseCase', () => {
   it('should cast vote', async () => {
     // Arrange
     const votingRoundId = randomUUID();
-    const voteId = randomUUID();
 
-    const collaborator = {
-      _address: Wallet.createRandom().address,
-      _votes: [
-        {
-          _id: voteId,
-          _updatedAt: new Date(),
-          _votingRound: { _id: randomUUID() },
-        },
-      ],
-    } as unknown as Collaborator;
-
-    collaboratorRepositoryMock.getByAddress.mockResolvedValue(collaborator);
+    const collaborator = Wallet.createRandom().address as Address;
 
     const votingRound = {
       _id: votingRoundId,
+      _collaborators: [collaborator],
       castVote: jest.fn(),
     } as unknown as VotingRound;
 
@@ -228,7 +203,6 @@ describe('CastVoteUseCase', () => {
     const useCase = new CastVoteUseCase(
       loggerMock,
       votingRoundRepositoryMock,
-      collaboratorRepositoryMock,
       receiverMapperMock,
       authMock,
     );
@@ -238,7 +212,7 @@ describe('CastVoteUseCase', () => {
       receivers: [{} as unknown as Receiver],
       signature: 'signature',
       date: yesterday,
-      collaboratorAddress: Wallet.createRandom().address,
+      collaboratorAddress: collaborator,
     };
 
     // Act

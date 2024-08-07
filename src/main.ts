@@ -10,7 +10,6 @@ import SoftDeleteVotingRoundEndpoint from './features/softDeleteVotingRound/Soft
 import SoftDeleteVotingRoundUseCase from './features/softDeleteVotingRound/SoftDeleteVotingVotingRoundUseCase';
 import VotingRoundRepository from './infrastructure/repositories/VotingRoundRepository';
 import VotingRoundService from './domain/services/VotingRoundService';
-import CollaboratorRepository from './infrastructure/repositories/CollaboratorRepository';
 import GetVotingRoundByIdEndpoint from './features/getVotingRoundById/GetVotingRoundByIdEndpoint';
 import GetVotingRoundByIdUseCase from './features/getVotingRoundById/GetVotingRoundByIdUseCase';
 import CastVoteEndpoint from './features/castVote/CastVoteEndpoint';
@@ -56,7 +55,6 @@ export async function main(): Promise<void> {
 
   const publisherRepository = new PublisherRepository(AppDataSource);
   const votingRoundRepository = new VotingRoundRepository(AppDataSource);
-  const collaboratorRepository = new CollaboratorRepository(AppDataSource);
   const allowedReceiversRepository = new AllowedReceiversRepository(
     AppDataSource,
   );
@@ -64,7 +62,6 @@ export async function main(): Promise<void> {
   const votingRoundService = new VotingRoundService(
     publisherRepository,
     votingRoundRepository,
-    collaboratorRepository,
     allowedReceiversRepository,
   );
 
@@ -136,13 +133,7 @@ export async function main(): Promise<void> {
   );
 
   const castVoteEndpoint = new CastVoteEndpoint(
-    new CastVoteUseCase(
-      logger,
-      votingRoundRepository,
-      collaboratorRepository,
-      receiverMapper,
-      auth,
-    ),
+    new CastVoteUseCase(logger, votingRoundRepository, receiverMapper, auth),
   );
 
   const getVotingRoundsEndpoint = new GetVotingRoundsEndpoint(

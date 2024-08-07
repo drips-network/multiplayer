@@ -2,7 +2,6 @@ import { DataSource } from 'typeorm';
 import appSettings from '../appSettings';
 import logger from './logger';
 import VotingRound from '../domain/votingRoundAggregate/VotingRound';
-import Collaborator from '../domain/collaboratorAggregate/Collaborator';
 import Vote from '../domain/votingRoundAggregate/Vote';
 import Publisher from '../domain/publisherAggregate/Publisher';
 import Link from '../domain/linkedDripList/Link';
@@ -22,7 +21,6 @@ export async function initializeAppDataSource() {
       database: dbName,
       entities: [
         VotingRound,
-        Collaborator,
         Vote,
         Publisher,
         Link,

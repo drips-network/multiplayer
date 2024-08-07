@@ -1,3 +1,4 @@
+import { isAddress } from 'ethers';
 import { body } from 'express-validator';
 
 export const startVotingRoundRequestRequestValidators = [
@@ -43,5 +44,9 @@ export const startVotingRoundRequestRequestValidators = [
     .escape(),
   body('publisherAddress').isString().isLength({ min: 42, max: 42 }).escape(),
   body('collaborators').isArray().isLength({ min: 1 }),
-  body('collaborators.*').isString().isLength({ max: 42 }).escape(),
+  body('collaborators.*')
+    .isString()
+    .isLength({ max: 42 })
+    .custom((value) => isAddress(value))
+    .escape(),
 ];

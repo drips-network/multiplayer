@@ -13,7 +13,7 @@ import type { Receiver } from '../../src/domain/votingRoundAggregate/Vote';
 import type { GetVotingRoundVotesCommand } from '../../src/features/getVotingRoundVotes/GetVotingRoundVotesUseCase';
 import GetVotingRoundVotesUseCase from '../../src/features/getVotingRoundVotes/GetVotingRoundVotesUseCase';
 import type Vote from '../../src/domain/votingRoundAggregate/Vote';
-import type Collaborator from '../../src/domain/collaboratorAggregate/Collaborator';
+import type { Address } from '../../src/domain/typeUtils';
 
 jest.mock('../../src/application/Auth');
 
@@ -171,15 +171,13 @@ describe('GetVotingRoundVotesUseCase', () => {
 
       const expectedResult = [
         {
-          collaborator: {
-            _address: Wallet.createRandom().address,
-          },
+          collaborator: Wallet.createRandom().address,
           latestVote: {
             receivers: [receiver],
           },
         },
       ] as {
-        collaborator: Collaborator;
+        collaborator: Address;
         latestVote: Vote | null;
       }[];
 
@@ -196,7 +194,7 @@ describe('GetVotingRoundVotesUseCase', () => {
       expect(votingRound.getLatestVotes).toHaveBeenCalled();
       expect(result.votes).toEqual(
         expectedResult.map((collaboratorsWithVotes) => ({
-          collaboratorAddress: collaboratorsWithVotes.collaborator._address,
+          collaboratorAddress: collaboratorsWithVotes.collaborator,
           latestVote:
             collaboratorsWithVotes.latestVote?.receivers?.map((r) =>
               receiverMapperMock.mapToReceiverDto(r),
