@@ -1,9 +1,9 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      NODE_ENV: 'local' | 'goerli' | 'mainnet';
+      ENV: 'testing' | 'mainnet' | 'sepolia';
       PORT: string;
-      NETWORK: 'sepolia' | 'mainnet' | 'optimism-sepolia';
+      NETWORK: 'mainnet' | 'sepolia';
       DB_HOST: string;
       DB_PORT: string;
       DB_USER: string;

@@ -2,43 +2,43 @@ import dotenv from 'dotenv';
 import shouldNeverHappen from './application/shouldNeverHappen';
 import { networks } from './application/networks';
 
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+dotenv.config({ path: `.env.${process.env.ENV || 'testing'}` });
 
 const appSettings = {
+  env: process.env.ENV || 'testing',
   port: parseInt(process.env.PORT || '5001', 10),
-  nodeEnv: process.env.NODE_ENV,
   network: process.env.NETWORK,
-  dbHost: process.env.DB_HOST,
+
+  dbHost: process.env.DB_HOST || shouldNeverHappen('Missing database host.'),
   dbPort: parseInt(
     process.env.DB_PORT || shouldNeverHappen('Missing database port.'),
     10,
   ),
-  dbUser: process.env.DB_USER,
-  dbPassword: process.env.DB_PASSWORD,
+  dbUser: process.env.DB_USER || shouldNeverHappen('Missing database user.'),
+  dbPassword:
+    process.env.DB_PASSWORD || shouldNeverHappen('Missing database password.'),
   dbName: process.env.DB_NAME,
-  logLevel: process.env.LOG_LEVEL || 'info',
-  graphQlUrl: (() => {
-    if (
-      process.env.NODE_ENV !== 'local' &&
-      !process.env.NODE_ENV!.includes(process.env.NODE_ENV!)
-    ) {
-      throw new Error(
-        '`NODE_ENV` and `GRAPHQL_URL` mismatch. Check your `.env` file.',
-      );
-    }
 
-    return process.env.GRAPHQL_URL || shouldNeverHappen('Missing GraphQL URL.');
-  })(),
-  graphQlToken: process.env.GRAPHQL_TOKEN,
-  rpcUrl: process.env.RPC_URL,
+  logLevel: process.env.LOG_LEVEL || 'info',
+
+  graphQlUrl:
+    process.env.GRAPHQL_URL || shouldNeverHappen('Missing GraphQL URL.'),
+  graphQlToken:
+    process.env.GRAPHQL_TOKEN || shouldNeverHappen('Missing token.'),
+
+  rpcUrl: process.env.RPC_URL || shouldNeverHappen('Missing RPC URL.'),
+
   chainId: networks[process.env.NETWORK as keyof typeof networks],
+
   addressDriverAddress:
     process.env.ADDRESS_DRIVER_ADDRESS ||
     shouldNeverHappen(`Missing 'AddressDriver' address.`),
   repoDriverAddress:
     process.env.REPO_DRIVER_ADDRESS ||
-    shouldNeverHappen(`Missing RepoDriver address.`),
+    shouldNeverHappen(`Missing 'RepoDriver' address.`),
+
   authStrategy: process.env.AUTH_STRATEGY || 'signature',
+
   apiKey: process.env.API_KEY,
 };
 
