@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm';
+import path from 'path';
 import appSettings from '../appSettings';
 import VotingRound from '../domain/votingRoundAggregate/VotingRound';
 import Vote from '../domain/votingRoundAggregate/Vote';
@@ -18,7 +19,9 @@ const AppDataSource = new DataSource({
   database: dbName,
   entities: [VotingRound, Vote, Publisher, Link, Nomination, AllowedReceiver],
   synchronize: false,
-  migrations: ['src/infrastructure/migrations/*.ts'],
+  migrations: [
+    path.join(__dirname, 'src/infrastructure/migrations/**/*.{ts,js}'),
+  ],
   logging: false,
   schema: network,
 });
