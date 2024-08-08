@@ -3,7 +3,7 @@ import ApiServer from './ApiServer';
 import 'reflect-metadata';
 import logger from './infrastructure/logger';
 import appSettings from './appSettings';
-import { initializeAppDataSource } from './infrastructure/AppDataSource';
+import AppDataSource from './infrastructure/AppDataSource';
 import StartVotingRoundEndpoint from './features/startVotingRound/StartVotingRoundEndpoint';
 import StartVotingRoundUseCase from './features/startVotingRound/StartVotingRoundUseCase';
 import SoftDeleteVotingRoundEndpoint from './features/softDeleteVotingRound/SoftDeleteVotingVotingRoundEndpoint';
@@ -51,7 +51,7 @@ export async function main(): Promise<void> {
   logger.info('Starting the application...');
   logger.info(`App Settings: ${JSON.stringify(appSettings, null, 2)}`);
 
-  const AppDataSource = await initializeAppDataSource();
+  await AppDataSource.initialize();
 
   const publisherRepository = new PublisherRepository(AppDataSource);
   const votingRoundRepository = new VotingRoundRepository(AppDataSource);
