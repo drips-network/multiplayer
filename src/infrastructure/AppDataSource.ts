@@ -18,7 +18,6 @@ const AppDataSource = new DataSource({
   database: dbName,
   entities: [VotingRound, Vote, Publisher, Link, Nomination, AllowedReceiver],
   synchronize: false,
-  migrations: ['src/infrastructure/migrations/*.ts'],
   logging: false,
   schema: network,
 });
