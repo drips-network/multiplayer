@@ -180,7 +180,7 @@ export class Auth implements IAuthStrategy {
       );
     }
 
-    if (dripList.latestVotingRoundId !== votingRound._id) {
+    if (dripList.latestVotingRoundId !== votingRound._dripListId) {
       this._logger.error(
         `Latest voting round '${dripList.latestVotingRoundId}' for Drip List '${dripListId}' does not match the voting round '${votingRound._id}'.`,
       );

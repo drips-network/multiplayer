@@ -145,7 +145,7 @@ export async function main(): Promise<void> {
   );
 
   const linkEndpoint = new LinkEndpoint(
-    new LinkUseCase(logger, votingRoundRepository, safeService),
+    new LinkUseCase(logger, votingRoundRepository, safeService, auth),
   );
 
   const getVotingRoundVotesEndpoint = new GetVotingRoundVotesEndpoint(

@@ -8,12 +8,14 @@ import { toDripListId } from '../../domain/typeUtils';
 import shouldNeverHappen from '../../application/shouldNeverHappen';
 import type ISafeService from '../../application/interfaces/ISafeService';
 import type { SafeTx } from '../../domain/linkedDripList/Link';
+import type { IAuthStrategy } from '../../application/Auth';
 
 export type LinkCommand = LinkRequest & {
   votingRoundId: UUID;
 };
 
 export default class LinkUseCase implements UseCase<LinkCommand> {
+  private readonly _auth: IAuthStrategy;
   private readonly _logger: Logger;
   private readonly _safeService: ISafeService;
   private readonly _votingRoundRepository: IVotingRoundRepository;
@@ -22,7 +24,9 @@ export default class LinkUseCase implements UseCase<LinkCommand> {
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
     safeService: ISafeService,
+    auth: IAuthStrategy,
   ) {
+    this._auth = auth;
     this._logger = logger;
     this._safeService = safeService;
     this._votingRoundRepository = votingRoundRepository;
@@ -75,6 +79,8 @@ export default class LinkUseCase implements UseCase<LinkCommand> {
     let safeTx: SafeTx | undefined;
     if (safeTransactionHash) {
       safeTx = await this._safeService.getSafeTransaction(safeTransactionHash);
+    } else {
+      await this._auth.verifyDripListOwnership(votingRound, dlId);
     }
 
     await votingRound.linkToDripList(dlId, safeTx);
