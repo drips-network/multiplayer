@@ -1,14 +1,20 @@
+export const SUPPORTED_NETWORKS = [
+  'mainnet',
+  'sepolia',
+  'localtestnet',
+  'optimism_sepolia',
+  'polygon_amoy',
+  'filecoin',
+] as const;
+
+export type SupportedNetwork = (typeof SUPPORTED_NETWORKS)[number];
+
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      ENV: 'testing' | 'mainnet' | 'sepolia';
       PORT: string;
-      NETWORK: 'mainnet' | 'sepolia';
-      DB_HOST: string;
-      DB_PORT: string;
-      DB_USER: string;
-      DB_PASSWORD: string;
-      DB_NAME: string;
+      NETWORK: SupportedNetwork;
+      POSTGRES_CONNECTION_STRING: string;
       LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error';
       GRAPHQL_URL: string;
       GRAPHQL_TOKEN: string;
