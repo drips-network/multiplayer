@@ -303,7 +303,7 @@ describe('Auth', () => {
 
         clientMock.request.mockResolvedValueOnce({
           dripList: {
-            latestVotingRoundId: votingRound._dripListId,
+            latestVotingRoundId: votingRound._id,
             owner: {
               address,
             },
