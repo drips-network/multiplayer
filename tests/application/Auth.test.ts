@@ -182,7 +182,6 @@ describe('Auth', () => {
       // Assert
       expect(verify).rejects.toThrow('Vote is outdated.');
     });
-    // });
 
     describe('verifyDripListOwnership', () => {
       it('should throw when the Drip List ID does not match the stored Drip List ID', async () => {
@@ -304,7 +303,7 @@ describe('Auth', () => {
 
         clientMock.request.mockResolvedValueOnce({
           dripList: {
-            latestVotingRoundId: votingRound._id,
+            latestVotingRoundId: votingRound._dripListId,
             owner: {
               address,
             },

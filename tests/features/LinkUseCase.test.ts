@@ -6,6 +6,7 @@ import type IVotingRoundRepository from '../../src/domain/votingRoundAggregate/I
 import type VotingRound from '../../src/domain/votingRoundAggregate/VotingRound';
 import type ISafeService from '../../src/application/interfaces/ISafeService';
 import type { SafeTx } from '../../src/domain/linkedDripList/Link';
+import type { IAuthStrategy } from '../../src/application/Auth';
 
 jest.mock('../../src/domain/typeUtils');
 
@@ -21,6 +22,9 @@ describe('LinkUseCase', () => {
   const safeServiceMock = {
     getSafeTransaction: jest.fn(),
   } as unknown as jest.Mocked<ISafeService>;
+  const authMock = {
+    verifyDripListOwnership: jest.fn(),
+  } as unknown as jest.Mocked<IAuthStrategy>;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -35,6 +39,7 @@ describe('LinkUseCase', () => {
         loggerMock,
         votingRoundRepositoryMock,
         safeServiceMock,
+        authMock,
       );
 
       // Act
@@ -58,6 +63,7 @@ describe('LinkUseCase', () => {
       loggerMock,
       votingRoundRepositoryMock,
       safeServiceMock,
+      authMock,
     );
 
     // Act
@@ -82,6 +88,7 @@ describe('LinkUseCase', () => {
       loggerMock,
       votingRoundRepositoryMock,
       safeServiceMock,
+      authMock,
     );
 
     // Act
@@ -108,6 +115,7 @@ describe('LinkUseCase', () => {
       loggerMock,
       votingRoundRepositoryMock,
       safeServiceMock,
+      authMock,
     );
 
     // Act
@@ -142,6 +150,7 @@ describe('LinkUseCase', () => {
       loggerMock,
       votingRoundRepositoryMock,
       safeServiceMock,
+      authMock,
     );
 
     const safeTx = {} as unknown as SafeTx;

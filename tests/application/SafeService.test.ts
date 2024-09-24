@@ -19,15 +19,16 @@ describe('SafeService', () => {
   const authMock = {
     verifyDripListOwnership: jest.fn(),
   } as unknown as jest.Mocked<IAuthStrategy>;
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
   const graphqlClientMock = {
     request: jest.fn(),
   } as unknown as jest.Mocked<GraphQLClient>;
   const safeAdapterMock = {
     getTransaction: jest.fn(),
   } as unknown as jest.Mocked<SafeAdapter>;
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
 
   describe('getSafeTransaction', () => {
     it('should throw when transaction was executed but not successful', async () => {
