@@ -30,6 +30,6 @@ const productionLogger = winston.createLogger({
 });
 
 const logger =
-  appSettings.network.name === 'mainnet' ? productionLogger : developmentLogger;
+  appSettings.network === 'mainnet' ? productionLogger : developmentLogger;
 
 export default logger;

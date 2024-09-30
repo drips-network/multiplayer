@@ -39,13 +39,13 @@ import SetNominationsStatusesEndpoint from './features/setNominationsStatuses/Se
 import SetNominationsStatusesUseCase from './features/setNominationsStatuses/SetNominationsStatusesUseCase';
 import VotingRoundMapper from './application/VotingRoundMapper';
 import SafeService from './application/SafeService';
+import { safeUnsupportedNetworks } from './application/networks';
 import {
   SafeAdapter,
   UnsupportedSafeOperationsAdapter,
 } from './application/SafeAdapter';
 import type ISafeAdapter from './application/interfaces/ISafeAdapter';
 import AllowedReceiversRepository from './infrastructure/repositories/AllowedReceiversRepository';
-import { SAFE_UNSUPPORTED_NETWORKS } from './application/network';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -72,7 +72,7 @@ export async function main(): Promise<void> {
   });
 
   let safeAdapter: ISafeAdapter;
-  if (SAFE_UNSUPPORTED_NETWORKS.includes(appSettings.network as any)) {
+  if (safeUnsupportedNetworks.includes(appSettings.network as any)) {
     safeAdapter = new UnsupportedSafeOperationsAdapter();
   } else {
     safeAdapter = new SafeAdapter();
