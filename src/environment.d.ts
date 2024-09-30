@@ -8,8 +8,6 @@ declare global {
       GRAPHQL_URL: string;
       GQL_ACCESS_TOKEN: string;
       RPC_URL: string;
-      ADDRESS_DRIVER_ADDRESS: string;
-      REPO_DRIVER_ADDRESS: string;
       AUTH_STRATEGY: 'signature' | 'dev';
       API_KEY: string;
     }
