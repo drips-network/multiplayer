@@ -1,19 +1,8 @@
-export const SUPPORTED_NETWORKS = [
-  'mainnet',
-  'sepolia',
-  'localtestnet',
-  'optimism_sepolia',
-  'polygon_amoy',
-  'filecoin',
-] as const;
-
-export type SupportedNetwork = (typeof SUPPORTED_NETWORKS)[number];
-
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
+      CHAIN_ID: string;
       PORT: string;
-      NETWORK: SupportedNetwork;
       POSTGRES_CONNECTION_STRING: string;
       LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error';
       GRAPHQL_URL: string;

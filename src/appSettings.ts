@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
-import { networks } from './application/networks';
+import type { ChainId } from './application/network';
+import { getNetwork } from './application/network';
 
 dotenv.config();
 
@@ -9,7 +10,6 @@ function missingEnvVar(name: string): never {
 
 const appSettings = {
   port: parseInt(process.env.PORT || '5001', 10),
-  network: process.env.NETWORK,
 
   postgresConnectionString: process.env.POSTGRES_CONNECTION_STRING,
 
@@ -21,7 +21,9 @@ const appSettings = {
 
   rpcUrl: process.env.RPC_URL || missingEnvVar('Missing RPC URL.'),
 
-  chainId: networks[process.env.NETWORK as keyof typeof networks],
+  chainId: process.env.CHAIN_ID
+    ? (parseInt(process.env.CHAIN_ID, 10) as ChainId)
+    : missingEnvVar('Missing chain ID.'),
 
   addressDriverAddress:
     process.env.ADDRESS_DRIVER_ADDRESS ||
@@ -33,6 +35,12 @@ const appSettings = {
   authStrategy: process.env.AUTH_STRATEGY || 'signature',
 
   apiKey: process.env.API_KEY,
+
+  network: getNetwork(
+    process.env.CHAIN_ID
+      ? (parseInt(process.env.CHAIN_ID, 10) as ChainId)
+      : missingEnvVar('Missing chain ID.'),
+  ),
 };
 
 export default appSettings;
