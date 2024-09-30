@@ -16,8 +16,8 @@ const appSettings = {
   logLevel: process.env.LOG_LEVEL || 'info',
 
   graphQlUrl: process.env.GRAPHQL_URL || missingEnvVar('Missing GraphQL URL.'),
-  graphQlToken:
-    process.env.GRAPHQL_TOKEN || missingEnvVar('Missing GraphQL token.'),
+  graphQlAccessToken:
+    process.env.GQL_ACCESS_TOKEN || missingEnvVar('Missing GraphQL token.'),
 
   rpcUrl: process.env.RPC_URL || missingEnvVar('Missing RPC URL.'),
 
