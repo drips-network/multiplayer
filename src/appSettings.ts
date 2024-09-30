@@ -25,6 +25,13 @@ const appSettings = {
     ? (parseInt(process.env.CHAIN_ID, 10) as ChainId)
     : missingEnvVar('Missing chain ID.'),
 
+  addressDriverAddress:
+    process.env.ADDRESS_DRIVER_ADDRESS ||
+    missingEnvVar(`Missing 'AddressDriver' address.`),
+  repoDriverAddress:
+    process.env.REPO_DRIVER_ADDRESS ||
+    missingEnvVar(`Missing 'RepoDriver' address.`),
+
   authStrategy: process.env.AUTH_STRATEGY || 'signature',
 
   apiKey: process.env.API_KEY,

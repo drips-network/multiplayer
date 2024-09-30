@@ -99,14 +99,8 @@ export async function main(): Promise<void> {
   );
 
   const receiverMapper = new ReceiverMapper(
-    RepoDriver__factory.connect(
-      appSettings.network.contracts.repoDriverAddress,
-      provider,
-    ),
-    AddressDriver__factory.connect(
-      appSettings.network.contracts.addressDriverAddress,
-      provider,
-    ),
+    RepoDriver__factory.connect(appSettings.repoDriverAddress, provider),
+    AddressDriver__factory.connect(appSettings.addressDriverAddress, provider),
   );
 
   const votingRoundMapper = new VotingRoundMapper(receiverMapper);

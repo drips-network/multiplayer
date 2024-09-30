@@ -10,7 +10,6 @@ import type { DripList } from '../domain/DripList';
 import type ISafeService from './interfaces/ISafeService';
 import type { SafeTx } from '../domain/linkedDripList/Link';
 import type ISafeApiKit from './interfaces/ISafeAdapter';
-import appSettings from '../appSettings';
 
 export default class SafeService implements ISafeService {
   private readonly _logger: Logger;
@@ -85,8 +84,8 @@ export default class SafeService implements ISafeService {
 
       const { dripList } = await this._client.request<{ dripList: DripList }>(
         gql`
-          query DripList($dripListId: ID!, $chain: SupportedChain!) {
-            dripList(id: $dripListId, chain: $chain) {
+          query DripList($dripListId: ID!) {
+            dripList(id: $dripListId) {
               latestVotingRoundId
               owner {
                 address
@@ -96,7 +95,6 @@ export default class SafeService implements ISafeService {
         `,
         {
           dripListId,
-          chain: appSettings.network.gqlName,
         },
       );
 
