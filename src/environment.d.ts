@@ -17,7 +17,7 @@ declare global {
       POSTGRES_CONNECTION_STRING: string;
       LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error';
       GRAPHQL_URL: string;
-      GQL_ACCESS_TOKEN: string;
+      GRAPHQL_TOKEN: string;
       RPC_URL: string;
       ADDRESS_DRIVER_ADDRESS: string;
       REPO_DRIVER_ADDRESS: string;

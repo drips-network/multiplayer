@@ -67,7 +67,7 @@ export async function main(): Promise<void> {
 
   const graphQlClient = new GraphQLClient(appSettings.graphQlUrl, {
     headers: {
-      authorization: `Bearer ${appSettings.graphQlAccessToken}`,
+      authorization: `Bearer ${appSettings.graphQlToken}`,
     },
   });
 
