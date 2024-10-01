@@ -150,8 +150,8 @@ export class Auth implements IAuthStrategy {
 
     const result = await this._client.request<{ dripList: DripList }>(
       gql`
-        query DripList($dripListId: ID!) {
-          dripList(id: $dripListId) {
+        query DripList($dripListId: ID!, $chain: SupportedChain!) {
+          dripList(id: $dripListId, chain: $chain) {
             latestVotingRoundId
             owner {
               address
@@ -159,7 +159,7 @@ export class Auth implements IAuthStrategy {
           }
         }
       `,
-      { dripListId },
+      { dripListId, chain: appSettings.network.gqlName },
     );
 
     if (!result?.dripList) {

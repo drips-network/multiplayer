@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import type { CodegenConfig } from '@graphql-codegen/cli';
 import appSettings from './src/appSettings';
 
@@ -13,11 +12,20 @@ const config: CodegenConfig = {
     },
   ],
   generates: {
-    './src/application/__generated__/graphql/schema.graphql': {
-      plugins: ['schema-ast'],
-    },
     './src/application/__generated__/graphql/base-types.ts': {
-      plugins: ['typescript'],
+      plugins: [
+        {
+          add: {
+            content: '/* eslint-disable */',
+          },
+        },
+        'typescript',
+      ],
+      config: {
+        namingConvention: {
+          enumValues: 'keep',
+        },
+      },
     },
   },
 };

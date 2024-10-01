@@ -15,7 +15,7 @@ const AppDataSource = new DataSource({
   entities: [VotingRound, Vote, Publisher, Link, Nomination, AllowedReceiver],
   synchronize: false,
   logging: false,
-  schema: network,
+  schema: network.name,
 });
 
 export default AppDataSource;
