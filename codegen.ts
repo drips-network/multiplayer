@@ -1,26 +1,19 @@
+import 'dotenv/config';
 import type { CodegenConfig } from '@graphql-codegen/cli';
-import appSettings from './src/appSettings';
 
 const config: CodegenConfig = {
   schema: [
     {
-      [appSettings.graphQlUrl]: {
+      [process.env.GRAPHQL_URL]: {
         headers: {
-          Authorization: `Bearer ${appSettings.graphQlAccessToken}`,
+          Authorization: `Bearer ${process.env.GRAPHQL_ACCESS_TOKEN}`,
         },
       },
     },
   ],
   generates: {
     './src/application/__generated__/graphql/base-types.ts': {
-      plugins: [
-        {
-          add: {
-            content: '/* eslint-disable */',
-          },
-        },
-        'typescript',
-      ],
+      plugins: ['typescript', 'typescript-operations'],
       config: {
         namingConvention: {
           enumValues: 'keep',

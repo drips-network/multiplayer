@@ -39,12 +39,12 @@ const NETWORK_NAMES: ValueForEachSupportedChain<NetworkName> = {
 };
 
 const NETWORK_GQL_NAMES: ValueForEachSupportedChain<SupportedChain> = {
-  1: SupportedChain.Mainnet,
-  80002: SupportedChain.PolygonAmoy,
-  11155420: SupportedChain.OptimismSepolia,
-  11155111: SupportedChain.Sepolia,
-  84532: SupportedChain.BaseSepolia,
-  314: SupportedChain.Filecoin,
+  1: SupportedChain.MAINNET,
+  80002: SupportedChain.POLYGON_AMOY,
+  11155420: SupportedChain.OPTIMISM_SEPOLIA,
+  11155111: SupportedChain.SEPOLIA,
+  84532: SupportedChain.BASE_SEPOLIA,
+  314: SupportedChain.FILECOIN,
 };
 
 const NETWORK_CONTRACTS: ValueForEachSupportedChain<{
