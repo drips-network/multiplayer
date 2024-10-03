@@ -4,7 +4,7 @@ import Safe, { EthersAdapter } from '@safe-global/protocol-kit';
 import { ethers, hashMessage } from 'ethers';
 import type ISafeAdapter from './interfaces/ISafeAdapter';
 import appSettings from '../appSettings';
-import provider from './provider';
+import getProvider from './getProvider';
 
 export class SafeAdapter implements ISafeAdapter {
   async isValidSignature(
@@ -14,7 +14,7 @@ export class SafeAdapter implements ISafeAdapter {
   ): Promise<boolean> {
     const ethAdapter = new EthersAdapter({
       ethers,
-      signerOrProvider: provider,
+      signerOrProvider: getProvider(),
     });
 
     const safeSdk: Safe = await Safe.create({

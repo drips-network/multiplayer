@@ -7,8 +7,10 @@ declare global {
       LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error';
       GRAPHQL_URL: string;
       GRAPHQL_ACCESS_TOKEN: string;
-      RPC_URL: string;
-      RPC_URL_ACCESS_TOKEN: string | undefined;
+      PRIMARY_RPC_URL: string;
+      PRIMARY_RPC_ACCESS_TOKEN: string | undefined;
+      FALLBACK_RPC_URL: string | undefined;
+      FALLBACK_RPC_ACCESS_TOKEN: string | undefined;
       AUTH_STRATEGY: 'signature' | 'dev';
       API_KEY: string;
     }

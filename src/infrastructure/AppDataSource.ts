@@ -13,7 +13,7 @@ const AppDataSource = new DataSource({
   url: postgresConnectionString,
   type: 'postgres',
   entities: [VotingRound, Vote, Publisher, Link, Nomination, AllowedReceiver],
-  synchronize: false,
+  synchronize: true,
   logging: false,
   schema: network.name,
 });

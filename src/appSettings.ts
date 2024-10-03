@@ -20,8 +20,12 @@ const appSettings = {
     process.env.GRAPHQL_ACCESS_TOKEN ||
     missingEnvVar('Missing GraphQL access token.'),
 
-  rpcUrl: process.env.RPC_URL || missingEnvVar('Missing RPC URL.'),
-  rpcUrlAccessToken: process.env.RPC_URL_ACCESS_TOKEN,
+  primaryRpcUrl:
+    process.env.PRIMARY_RPC_URL || missingEnvVar('Missing primary RPC URL.'),
+  primaryRpcAccessToken: process.env.PRIMARY_RPC_ACCESS_TOKEN,
+
+  fallbackRpcUrl: process.env.FALLBACK_RPC_URL,
+  fallbackRpcAccessToken: process.env.FALLBACK_RPC_ACCESS_TOKEN,
 
   chainId: process.env.CHAIN_ID
     ? (parseInt(process.env.CHAIN_ID, 10) as ChainId)

@@ -34,7 +34,6 @@ import NominateEndpoint from './features/nominate/NominateEndpoint';
 import NominateUseCase from './features/nominate/NominateUseCase';
 import GetCollaboratorByAddressEndpoint from './features/getCollaboratorByAddress/GetCollaboratorByAddressEndpoint';
 import GetCollaboratorByAddressUseCase from './features/getCollaboratorByAddress/GetCollaboratorByAddressUseCase';
-import provider from './application/provider';
 import SetNominationsStatusesEndpoint from './features/setNominationsStatuses/SetNominationsStatusesEndpoint';
 import SetNominationsStatusesUseCase from './features/setNominationsStatuses/SetNominationsStatusesUseCase';
 import VotingRoundMapper from './application/VotingRoundMapper';
@@ -46,6 +45,7 @@ import {
 import type ISafeAdapter from './application/interfaces/ISafeAdapter';
 import AllowedReceiversRepository from './infrastructure/repositories/AllowedReceiversRepository';
 import { SAFE_UNSUPPORTED_NETWORKS } from './application/network';
+import getProvider from './application/getProvider';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -101,11 +101,11 @@ export async function main(): Promise<void> {
   const receiverMapper = new ReceiverMapper(
     RepoDriver__factory.connect(
       appSettings.network.contracts.repoDriverAddress,
-      provider,
+      getProvider(),
     ),
     AddressDriver__factory.connect(
       appSettings.network.contracts.addressDriverAddress,
-      provider,
+      getProvider(),
     ),
   );
 
