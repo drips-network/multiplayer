@@ -136,3 +136,5 @@ dist
 # MacOS
 **/.DS_Store
 .env
+
+**/__generated__/

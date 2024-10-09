@@ -39,13 +39,13 @@ import SetNominationsStatusesEndpoint from './features/setNominationsStatuses/Se
 import SetNominationsStatusesUseCase from './features/setNominationsStatuses/SetNominationsStatusesUseCase';
 import VotingRoundMapper from './application/VotingRoundMapper';
 import SafeService from './application/SafeService';
-import { safeUnsupportedNetworks } from './application/networks';
 import {
   SafeAdapter,
   UnsupportedSafeOperationsAdapter,
 } from './application/SafeAdapter';
 import type ISafeAdapter from './application/interfaces/ISafeAdapter';
 import AllowedReceiversRepository from './infrastructure/repositories/AllowedReceiversRepository';
+import { SAFE_UNSUPPORTED_NETWORKS } from './application/network';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -67,12 +67,12 @@ export async function main(): Promise<void> {
 
   const graphQlClient = new GraphQLClient(appSettings.graphQlUrl, {
     headers: {
-      authorization: `Bearer ${appSettings.graphQlToken}`,
+      authorization: `Bearer ${appSettings.graphQlAccessToken}`,
     },
   });
 
   let safeAdapter: ISafeAdapter;
-  if (safeUnsupportedNetworks.includes(appSettings.network as any)) {
+  if (SAFE_UNSUPPORTED_NETWORKS.includes(appSettings.network as any)) {
     safeAdapter = new UnsupportedSafeOperationsAdapter();
   } else {
     safeAdapter = new SafeAdapter();
@@ -99,8 +99,14 @@ export async function main(): Promise<void> {
   );
 
   const receiverMapper = new ReceiverMapper(
-    RepoDriver__factory.connect(appSettings.repoDriverAddress, provider),
-    AddressDriver__factory.connect(appSettings.addressDriverAddress, provider),
+    RepoDriver__factory.connect(
+      appSettings.network.contracts.repoDriverAddress,
+      provider,
+    ),
+    AddressDriver__factory.connect(
+      appSettings.network.contracts.addressDriverAddress,
+      provider,
+    ),
   );
 
   const votingRoundMapper = new VotingRoundMapper(receiverMapper);
