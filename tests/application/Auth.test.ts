@@ -28,7 +28,7 @@ import type { SafeAdapter } from '../../src/application/SafeAdapter';
 
 jest.mock('@safe-global/protocol-kit');
 
-jest.mock('../../src/application/provider');
+jest.mock('../../src/application/getProvider');
 
 jest.mock('ethers', () => {
   const originalModule = jest.requireActual('ethers');
