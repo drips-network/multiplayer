@@ -10,6 +10,7 @@ import {
   InvalidLinkOperationError,
   InvalidVotingRoundOperationError,
 } from './domain/errors';
+import AppDataSource from './infrastructure/AppDataSource';
 
 export default class ApiServer {
   public static async run(
@@ -30,6 +31,36 @@ export default class ApiServer {
         res.status(401).json({ message: 'Unauthorized' });
       }
     };
+
+    app.route('/health').get(async (_, res) => {
+      try {
+        const checkDatabaseHealth = () => {
+          if (!AppDataSource.isInitialized) {
+            throw new Error('Database connection is not initialized.');
+          }
+        };
+
+        const checkApiHealth = async () => {
+          try {
+            const response = await fetch(`${appSettings.graphQlUrl}/health`);
+            if (response.status !== 200) {
+              throw new Error(`API returned status ${response.status}`);
+            }
+          } catch (err) {
+            throw new Error('Failed to reach API.');
+          }
+        };
+
+        checkDatabaseHealth();
+        await checkApiHealth();
+
+        return res.status(200).send('OK');
+      } catch (error: any) {
+        logger.error(`Health check failed: ${error}`);
+
+        return res.status(503).send('Service unavailable.');
+      }
+    });
 
     app.use(authenticateApiKey);
 
