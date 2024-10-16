@@ -17,7 +17,8 @@
     "start": "npm run build && node dist/src/main.js",
     "test": "jest --detectOpenHandles",
     "test:coverage": "jest --coverage",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "codegen": "graphql-codegen --config codegen.ts",
+    "typeorm": "typeorm-ts-node-commonjs"
   },
   "keywords": [],
   "author": "",
