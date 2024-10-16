@@ -13,7 +13,7 @@
     "check": "tsc --noEmit",
     "build": "npm run build:graphql && npm run build:contracts && tsc",
     "build:contracts": "typechain --target=ethers-v6 --out-dir ./src/generated/contracts ./src/abi/**.json",
-    "build:graphql": "graphql-codegen",
+    "build:graphql": "./scripts/build-gql-types.sh",
     "start": "npm run build && node dist/src/main.js",
     "test": "jest --detectOpenHandles",
     "test:coverage": "jest --coverage",
