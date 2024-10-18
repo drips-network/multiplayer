@@ -78,7 +78,10 @@ export default class LinkUseCase implements UseCase<LinkCommand> {
 
     let safeTx: SafeTx | undefined;
     if (safeTransactionHash) {
-      safeTx = await this._safeService.getSafeTransaction(safeTransactionHash);
+      safeTx = await this._safeService.getSafeTransaction(
+        safeTransactionHash,
+        votingRound._chainId,
+      );
     } else {
       await this._auth.verifyDripListOwnership(votingRound, dlId);
     }

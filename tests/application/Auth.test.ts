@@ -19,7 +19,6 @@ import type {
   DripListId,
 } from '../../src/domain/typeUtils';
 import { yesterday } from '../testUtils';
-import appSettings from '../../src/appSettings';
 import type { AddressNominationReceiver } from '../../src/domain/votingRoundAggregate/Nomination';
 import { NominationStatus } from '../../src/domain/votingRoundAggregate/Nomination';
 import type { Receiver } from '../../src/domain/votingRoundAggregate/Vote';
@@ -78,7 +77,7 @@ describe('Auth', () => {
 
       // Act
       const verify = () =>
-        auth.verifyMessage('message', 'signature', otherSigner, new Date());
+        auth.verifyMessage('message', 'signature', otherSigner, new Date(), 1);
 
       // Assert
       expect(verify).rejects.toThrow('Invalid signature');
@@ -100,7 +99,13 @@ describe('Auth', () => {
 
       // Act
       const verify = () =>
-        auth.verifyMessage('message', 'signature', originalSigner, new Date());
+        auth.verifyMessage(
+          'message',
+          'signature',
+          originalSigner,
+          new Date(),
+          1,
+        );
 
       // Assert
       expect(verify).not.toThrow();
@@ -129,7 +134,7 @@ describe('Auth', () => {
 
       // Act
       const verify = () =>
-        auth.verifyMessage('message', 'signature', otherSigner, new Date());
+        auth.verifyMessage('message', 'signature', otherSigner, new Date(), 1);
 
       // Assert
       expect(verify).rejects.toThrow('Invalid signature');
@@ -155,7 +160,13 @@ describe('Auth', () => {
 
       // Act
       const verify = () =>
-        auth.verifyMessage('message', 'signature', originalSigner, new Date());
+        auth.verifyMessage(
+          'message',
+          'signature',
+          originalSigner,
+          new Date(),
+          1,
+        );
 
       // Assert
       expect(verify).not.toThrow();
@@ -177,7 +188,13 @@ describe('Auth', () => {
 
       // Act
       const verify = () =>
-        auth.verifyMessage('message', 'signature', originalSigner, yesterday);
+        auth.verifyMessage(
+          'message',
+          'signature',
+          originalSigner,
+          yesterday,
+          1,
+        );
 
       // Assert
       expect(verify).rejects.toThrow('Vote is outdated.');
@@ -204,7 +221,7 @@ describe('Auth', () => {
       it('should throw when the Drip List is not found', async () => {
         // Arrange
         const dripListId = 'dripListId' as DripListId;
-        const votingRound = { _dripListId: dripListId } as any;
+        const votingRound = { _dripListId: dripListId, _chainId: 1 } as any;
 
         const clientMock = {
           request: jest.fn(),
@@ -226,6 +243,7 @@ describe('Auth', () => {
         const votingRound = {
           _dripListId: dripListId,
           _publisher: { _address: Wallet.createRandom().address },
+          _chainId: 1,
         } as unknown as VotingRound;
 
         const clientMock = {
@@ -260,6 +278,7 @@ describe('Auth', () => {
           _id: randomUUID(),
           _dripListId: dripListId,
           _publisher: { _address: address },
+          _chainId: 1,
         } as unknown as VotingRound;
 
         const clientMock = {
@@ -295,6 +314,7 @@ describe('Auth', () => {
           _id: randomUUID(),
           _dripListId: dripListId,
           _publisher: { _address: address },
+          _chainId: 1,
         } as unknown as VotingRound;
 
         const clientMock = {
@@ -327,17 +347,19 @@ describe('Auth', () => {
         const currentTime = new Date();
         const publisherAddress = Wallet.createRandom().address;
         const votingRoundId = randomUUID();
+        const chainId = 1;
 
         // Act
         const message = REVEAL_VOTES_MESSAGE_TEMPLATE(
           publisherAddress as Address,
           votingRoundId,
           currentTime,
+          chainId,
         );
 
         // Assert
         expect(message).toBe(
-          `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
+          `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}.`,
         );
       });
     });
@@ -354,6 +376,7 @@ describe('Auth', () => {
             status: NominationStatus.Accepted,
           },
         ];
+        const chainId = 1;
 
         // Act
         const message = SET_NOMINATION_STATUS_MESSAGE_TEMPLATE(
@@ -361,11 +384,12 @@ describe('Auth', () => {
           votingRoundId,
           currentTime,
           nominations,
+          chainId,
         );
 
         // Assert
         expect(message).toBe(
-          `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
+          `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
             nominations,
           )}.`,
         );
@@ -383,6 +407,7 @@ describe('Auth', () => {
           accountId: 'accountId' as AccountId,
           type: 'address',
         } as AddressNominationReceiver;
+        const chainId = 1;
 
         // Act
         const message = NOMINATE_MESSAGE_TEMPLATE(
@@ -390,11 +415,12 @@ describe('Auth', () => {
           votingRoundId,
           currentTime,
           nomination,
+          chainId,
         );
 
         // Assert
         expect(message).toBe(
-          `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`,
+          `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`,
         );
       });
     });
@@ -405,17 +431,19 @@ describe('Auth', () => {
         const publisherAddress = Wallet.createRandom().address as Address;
         const votingRoundId = randomUUID();
         const currentTime = new Date();
+        const chainId = 1;
 
         // Act
         const message = REVEAL_RESULT_MESSAGE_TEMPLATE(
           publisherAddress,
           votingRoundId,
           currentTime,
+          chainId,
         );
 
         // Assert
         expect(message).toBe(
-          `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
+          `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}.`,
         );
       });
     });
@@ -426,6 +454,7 @@ describe('Auth', () => {
         const currentTime = new Date('2024-01-01T00:00:00Z');
         const voterAddress = '0xVoterAddress';
         const votingRoundId = 'votingRound123';
+        const chainId = 1;
 
         const receivers = [
           { type: 'dripList', accountId: 'b', weight: 3 },
@@ -439,7 +468,7 @@ describe('Auth', () => {
           ['project', 'c', 2],
         ];
 
-        const expectedMessage = `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(expectedSortedReceivers)}`;
+        const expectedMessage = `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(expectedSortedReceivers)}`;
 
         // Act
         const message = VOTE_MESSAGE_TEMPLATE(
@@ -447,6 +476,7 @@ describe('Auth', () => {
           voterAddress,
           votingRoundId,
           receivers,
+          chainId,
         );
 
         // Assert
@@ -460,17 +490,19 @@ describe('Auth', () => {
         const publisherAddress = Wallet.createRandom().address as Address;
         const votingRoundId = randomUUID();
         const currentTime = new Date();
+        const chainId = 1;
 
         // Act
         const message = DELETE_VOTING_ROUND_MESSAGE_TEMPLATE(
           currentTime,
           publisherAddress,
           votingRoundId,
+          chainId,
         );
 
         // Assert
         expect(message).toBe(
-          `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`,
+          `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}.`,
         );
       });
     });
@@ -481,14 +513,16 @@ describe('Auth', () => {
         const currentTime = new Date();
         const publisherAddress = Wallet.createRandom().address as Address;
         const dripListId = 'dripListId' as DripListId;
+        const chainId = 1;
 
-        const expectedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+        const expectedMessage = `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}.`;
 
         // Act
         const message = START_VOTING_ROUND_MESSAGE_TEMPLATE(
           currentTime,
           publisherAddress,
           dripListId,
+          chainId,
         );
 
         // Assert
@@ -501,13 +535,15 @@ describe('Auth', () => {
         // Arrange
         const currentTime = new Date();
         const publisherAddress = Wallet.createRandom().address as Address;
+        const chainId = 1;
 
-        const expectedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+        const expectedMessage = `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}.`;
 
         // Act
         const message = CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
           currentTime,
           publisherAddress,
+          chainId,
         );
 
         // Assert

@@ -4,11 +4,11 @@ import type UseCase from '../../application/interfaces/IUseCase';
 import { NotFoundError, UnauthorizedError } from '../../application/errors';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import type { GetVotingRoundVotesResponse } from './GetVotingRoundVotesResponse';
-import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 import {
   REVEAL_VOTES_MESSAGE_TEMPLATE,
   type IAuthStrategy,
 } from '../../application/Auth';
+import { ReceiverMapperFactory } from '../../application/ReceiverMapper';
 
 export type GetVotingRoundVotesCommand = {
   votingRoundId: UUID;
@@ -21,19 +21,16 @@ export default class GetVotingRoundVotesUseCase
 {
   private readonly _logger: Logger;
   private readonly _auth: IAuthStrategy;
-  private readonly _receiverMapper: IReceiverMapper;
   private readonly _repository: IVotingRoundRepository;
 
   public constructor(
     repository: IVotingRoundRepository,
     logger: Logger,
-    receiverMapper: IReceiverMapper,
     auth: IAuthStrategy,
   ) {
     this._auth = auth;
     this._logger = logger;
     this._repository = repository;
-    this._receiverMapper = receiverMapper;
   }
 
   public async execute(
@@ -57,6 +54,7 @@ export default class GetVotingRoundVotesUseCase
           votingRound._publisher._address,
           votingRoundId,
           new Date(date),
+          votingRound._chainId,
         );
 
         await this._auth.verifyMessage(
@@ -64,6 +62,7 @@ export default class GetVotingRoundVotesUseCase
           signature,
           votingRound._publisher._address,
           new Date(date),
+          votingRound._chainId,
         );
       }
     }
@@ -73,7 +72,9 @@ export default class GetVotingRoundVotesUseCase
         collaboratorAddress: collaboratorsWithVotes.collaborator,
         latestVote:
           collaboratorsWithVotes.latestVote?.receivers?.map((receiver) =>
-            this._receiverMapper.mapToReceiverDto(receiver),
+            ReceiverMapperFactory.create(votingRound._chainId).mapToReceiverDto(
+              receiver,
+            ),
           ) || null,
       })),
     };

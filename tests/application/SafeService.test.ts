@@ -49,7 +49,7 @@ describe('SafeService', () => {
 
       // Act
       const getSafeTransaction = () =>
-        safeService.getSafeTransaction('safeTransactionHash');
+        safeService.getSafeTransaction('safeTransactionHash', 1);
 
       // Assert
       await expect(getSafeTransaction()).rejects.toThrow(
@@ -76,6 +76,7 @@ describe('SafeService', () => {
       // Act
       const result = await safeService.getSafeTransaction(
         'safeTransactionHash',
+        1,
       );
 
       // Assert
@@ -97,6 +98,7 @@ describe('SafeService', () => {
         },
         _dripListId: 'dripListId',
         publisherAddress: 'publisherAddress',
+        _chainId: 1,
       } as any;
       safeAdapterMock.getTransaction.mockResolvedValue({
         safe: 'safe',
@@ -125,6 +127,7 @@ describe('SafeService', () => {
     it('should complete link', async () => {
       // Arrange
       const votingRound = {
+        _chainId: 1,
         _link: {
           _safeTransactionHash: 'safeTransactionHash',
           _isSafeTransactionExecuted: false,

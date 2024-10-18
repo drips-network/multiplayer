@@ -65,6 +65,7 @@ describe('SoftDeleteVotingRoundUseCase', () => {
         _publisher: {
           _address: publisherAddress,
         },
+        _chainId: 1,
       } as unknown as VotingRound;
       votingRoundRepositoryMock.getById.mockResolvedValue(votingRound);
 
@@ -94,11 +95,13 @@ describe('SoftDeleteVotingRoundUseCase', () => {
         command.signature,
         votingRound._publisher._address,
         command.date,
+        votingRound._chainId,
       );
       expect(DELETE_VOTING_ROUND_MESSAGE_TEMPLATE).toHaveBeenCalledWith(
         command.date,
         command.publisherAddress as Address,
         votingRound._id,
+        votingRound._chainId,
       );
     });
   });

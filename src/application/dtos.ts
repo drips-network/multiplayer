@@ -1,5 +1,6 @@
 import type { UUID } from 'crypto';
 import type { NominationStatus } from '../domain/votingRoundAggregate/Nomination';
+import type { ChainId } from './network';
 
 export type AddressDto = string;
 export type AccountIdDto = string;
@@ -126,4 +127,5 @@ export type VotingRoundDto = {
   name: string | null;
   description: string | null;
   allowedReceivers: AllowedReceiverDto[] | null;
+  chainId: ChainId;
 };

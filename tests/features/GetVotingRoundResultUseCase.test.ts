@@ -6,7 +6,6 @@ import {
   REVEAL_RESULT_MESSAGE_TEMPLATE,
   type IAuthStrategy,
 } from '../../src/application/Auth';
-import type IReceiverMapper from '../../src/application/interfaces/IReceiverMapper';
 import type { GetVotingRoundResultCommand } from '../../src/features/getVotingRoundResult/GetVotingRoundResultUseCase';
 import GetVotingRoundResultUseCase from '../../src/features/getVotingRoundResult/GetVotingRoundResultUseCase';
 import type VotingRound from '../../src/domain/votingRoundAggregate/VotingRound';
@@ -27,9 +26,6 @@ describe('GetVotingRoundResultUseCase', () => {
   const authMock = {
     verifyMessage: jest.fn(),
   } as unknown as jest.Mocked<IAuthStrategy>;
-  const receiverMapperMock = {
-    verifyMessage: jest.fn(),
-  } as unknown as jest.Mocked<IReceiverMapper>;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -43,7 +39,6 @@ describe('GetVotingRoundResultUseCase', () => {
       const useCase = new GetVotingRoundResultUseCase(
         votingRoundRepositoryMock,
         loggerMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -70,7 +65,6 @@ describe('GetVotingRoundResultUseCase', () => {
       const useCase = new GetVotingRoundResultUseCase(
         votingRoundRepositoryMock,
         loggerMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -96,6 +90,7 @@ describe('GetVotingRoundResultUseCase', () => {
         _publisher: {
           _address: Wallet.createRandom().address,
         },
+        _chainId: 1,
         getResult: jest.fn(),
       } as unknown as jest.Mocked<VotingRound>;
       votingRoundRepositoryMock.getById.mockResolvedValue(votingRound);
@@ -109,7 +104,6 @@ describe('GetVotingRoundResultUseCase', () => {
       const useCase = new GetVotingRoundResultUseCase(
         votingRoundRepositoryMock,
         loggerMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -126,11 +120,13 @@ describe('GetVotingRoundResultUseCase', () => {
         command.signature,
         votingRound._publisher._address,
         new Date(command.date!),
+        votingRound._chainId,
       );
       expect(REVEAL_RESULT_MESSAGE_TEMPLATE).toHaveBeenCalledWith(
         votingRound._publisher._address,
         votingRoundId,
         new Date(command.date!),
+        votingRound._chainId,
       );
     });
 
@@ -157,7 +153,6 @@ describe('GetVotingRoundResultUseCase', () => {
       const useCase = new GetVotingRoundResultUseCase(
         votingRoundRepositoryMock,
         loggerMock,
-        receiverMapperMock,
         authMock,
       );
 

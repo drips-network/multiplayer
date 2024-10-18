@@ -1,5 +1,6 @@
 import { isAddress } from 'ethers';
 import { body } from 'express-validator';
+import { SUPPORTED_CHAIN_IDS } from '../../application/network';
 
 export const startVotingRoundRequestRequestValidators = [
   body('schedule').isObject(),
@@ -49,4 +50,8 @@ export const startVotingRoundRequestRequestValidators = [
     .isLength({ max: 42 })
     .custom((value) => isAddress(value))
     .escape(),
+  body('chainId')
+    .isInt()
+    .custom((value) => SUPPORTED_CHAIN_IDS.includes(value))
+    .withMessage('Invalid Chain ID. Must be one of the supported chain IDs.'),
 ];

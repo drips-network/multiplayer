@@ -62,6 +62,7 @@ export default class SetNominationsStatusesUseCase
       votingRoundId,
       date,
       nominations,
+      votingRound._chainId,
     );
 
     await this._auth.verifyMessage(
@@ -69,6 +70,7 @@ export default class SetNominationsStatusesUseCase
       signature,
       votingRound._publisher._address,
       date,
+      votingRound._chainId,
     );
 
     votingRound.setNominationsStatuses(nominations);

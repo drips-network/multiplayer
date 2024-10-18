@@ -46,9 +46,16 @@ export default class SoftDeleteVotingRoundUseCase
       date,
       publisherAddress,
       votingRound._id,
+      votingRound._chainId,
     );
 
-    await this._auth.verifyMessage(message, signature, publisherAddress, date);
+    await this._auth.verifyMessage(
+      message,
+      signature,
+      publisherAddress,
+      date,
+      votingRound._chainId,
+    );
 
     await this._repository.softRemove(votingRound);
 

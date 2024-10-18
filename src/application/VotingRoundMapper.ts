@@ -1,17 +1,11 @@
 import type { ScheduleDto, VotingRoundDto } from './dtos';
-import type IReceiverMapper from './interfaces/IReceiverMapper';
 import type IVotingRoundMapper from './interfaces/IVotingRoundMapper';
 import shouldNeverHappen from './shouldNeverHappen';
 import type VotingRound from '../domain/votingRoundAggregate/VotingRound';
 import { VotingRoundStatus } from '../domain/votingRoundAggregate/VotingRound';
+import { ReceiverMapperFactory } from './ReceiverMapper';
 
 export default class VotingRoundMapper implements IVotingRoundMapper {
-  private readonly _receiverMapper: IReceiverMapper;
-
-  public constructor(receiverMapper: IReceiverMapper) {
-    this._receiverMapper = receiverMapper;
-  }
-
   mapToDto(votingRound: VotingRound): VotingRoundDto {
     const schedule: ScheduleDto = votingRound.nominationPeriod.isSet
       ? {
@@ -32,18 +26,21 @@ export default class VotingRoundMapper implements IVotingRoundMapper {
           nomination: undefined,
         };
 
+    const receiverMapper = ReceiverMapperFactory.create(votingRound._chainId);
+
     const nominationPeriod = votingRound.nominationPeriod.isSet
       ? {
           isOpen: votingRound.nominationPeriod.isOpen,
           nominations:
             votingRound._nominations?.map((n) =>
-              this._receiverMapper.mapToNominationInfoDto(n),
+              receiverMapper.mapToNominationInfoDto(n),
             ) || [],
         }
       : undefined;
 
     return {
       id: votingRound._id,
+      chainId: votingRound._chainId,
       schedule,
       status: votingRound.status,
       dripListId: votingRound._dripListId || null,
@@ -60,9 +57,7 @@ export default class VotingRoundMapper implements IVotingRoundMapper {
           ? null
           : votingRound
               .getResult()
-              .map((receiver) =>
-                this._receiverMapper.mapToReceiverDto(receiver),
-              ),
+              .map((receiver) => receiverMapper.mapToReceiverDto(receiver)),
       votes: votingRound._areVotesPrivate
         ? null
         : votingRound.getLatestVotes().map((collaboratorsWithVotes) => ({
@@ -70,7 +65,7 @@ export default class VotingRoundMapper implements IVotingRoundMapper {
             votedAt: collaboratorsWithVotes.latestVote?._updatedAt || null,
             latestVote:
               collaboratorsWithVotes.latestVote?.receivers?.map((receiver) =>
-                this._receiverMapper.mapToReceiverDto(receiver),
+                receiverMapper.mapToReceiverDto(receiver),
               ) || null,
           })),
       hasVotingPeriodStarted: votingRound.votingPeriod.hasStarted,

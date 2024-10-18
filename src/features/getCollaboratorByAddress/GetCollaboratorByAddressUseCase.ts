@@ -7,7 +7,7 @@ import type { GetCollaboratorByAddressResponse } from './GetCollaboratorByAddres
 import type { GetCollaboratorByAddressRequest } from './GetCollaboratorByAddressRequest';
 import type { IAuthStrategy } from '../../application/Auth';
 import { REVEAL_VOTE } from '../../application/Auth';
-import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
+import { ReceiverMapperFactory } from '../../application/ReceiverMapper';
 
 type GetCollaboratorByAddressCommand = GetCollaboratorByAddressRequest & {
   votingRoundId: UUID;
@@ -20,16 +20,10 @@ export default class GetCollaboratorByAddressUseCase
 {
   private readonly _auth: IAuthStrategy;
   private readonly _repository: IVotingRoundRepository;
-  private readonly _receiverMapper: IReceiverMapper;
 
-  public constructor(
-    repository: IVotingRoundRepository,
-    auth: IAuthStrategy,
-    receiverMapper: IReceiverMapper,
-  ) {
+  public constructor(repository: IVotingRoundRepository, auth: IAuthStrategy) {
     this._auth = auth;
     this._repository = repository;
-    this._receiverMapper = receiverMapper;
   }
 
   public async execute(
@@ -52,13 +46,18 @@ export default class GetCollaboratorByAddressUseCase
     const shouldRevealVote = votingRound._areVotesPrivate && signature && date;
 
     if (shouldRevealVote) {
-      const message = REVEAL_VOTE(votingRoundId, new Date(date));
+      const message = REVEAL_VOTE(
+        votingRoundId,
+        new Date(date),
+        votingRound._chainId,
+      );
 
       await this._auth.verifyMessage(
         message,
         signature,
         collaboratorAddress,
         new Date(date),
+        votingRound._chainId,
       );
     }
 
@@ -83,7 +82,9 @@ export default class GetCollaboratorByAddressUseCase
               )
               .map((collaborator) =>
                 collaborator.latestVote?.receivers?.map((receiver) =>
-                  this._receiverMapper.mapToReceiverDto(receiver),
+                  ReceiverMapperFactory.create(
+                    votingRound._chainId,
+                  ).mapToReceiverDto(receiver),
                 ),
               )[0] || null
           : null,

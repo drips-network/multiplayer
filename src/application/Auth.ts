@@ -6,7 +6,6 @@ import type { Logger } from 'winston';
 import type { AccountId, Address, DripListId } from '../domain/typeUtils';
 import { BadRequestError, UnauthorizedError } from './errors';
 import type { DripList } from '../domain/DripList';
-import appSettings from '../appSettings';
 import type {
   AddressReceiver,
   DripListReceiver,
@@ -19,28 +18,33 @@ import type {
   NominationStatus,
 } from '../domain/votingRoundAggregate/Nomination';
 import type ISafeAdapter from './interfaces/ISafeAdapter';
+import type { ChainId } from './network';
+import { getNetwork } from './network';
 
 const GNOSIS_API_SAFES_BASE: { [chainId: number]: string } = {
   11155111: 'https://safe-transaction-sepolia.safe.global/',
   1: 'https://safe-transaction-mainnet.safe.global/',
 };
 
-export async function isSafe(chainId: number, address: string) {
-  const apiBase = GNOSIS_API_SAFES_BASE[chainId];
-  if (!apiBase) return false;
+export async function isSafe(address: string) {
+  for (const apiBase of Object.values(GNOSIS_API_SAFES_BASE)) {
+    const res = await fetch(`${apiBase}/api/v1/safes/${address}`);
 
-  const res = await fetch(
-    `${GNOSIS_API_SAFES_BASE[chainId]}/api/v1/safes/${address}`,
-  );
+    if (res.status === 200) {
+      return true;
+    }
+  }
 
-  return res.status === 200;
+  return false;
 }
+
 export interface IAuthStrategy {
   verifyMessage(
     message: string,
     signature: string,
     signerAddress: Address,
     currentTime: Date,
+    chainId: ChainId,
   ): Promise<void>;
 
   verifyDripListOwnership(
@@ -78,12 +82,13 @@ export class Auth implements IAuthStrategy {
     signature: string,
     signerAddress: Address,
     currentTime: Date,
+    chainId: ChainId,
   ): Promise<void> {
     this._logger.info(
       `Verifying reconstructed message '${message}' with signature '${signature}' for signer '${signerAddress}'...`,
     );
 
-    const isEoa = !(await isSafe(appSettings.chainId, signerAddress));
+    const isEoa = !(await isSafe(signerAddress));
 
     if (isEoa) {
       this._logger.info(`Signer '${signerAddress}' is EOA.`);
@@ -104,6 +109,7 @@ export class Auth implements IAuthStrategy {
         message,
         signature,
         signerAddress,
+        chainId,
       );
 
       if (isValid) {
@@ -159,7 +165,7 @@ export class Auth implements IAuthStrategy {
           }
         }
       `,
-      { dripListId, chain: appSettings.network.gqlName },
+      { dripListId, chain: getNetwork(votingRound._chainId).gqlName },
     );
 
     if (!result?.dripList) {
@@ -196,16 +202,18 @@ export const REVEAL_VOTES_MESSAGE_TEMPLATE = (
   publisherAddress: Address,
   votingRoundId: UUID,
   currentTime: Date,
+  chainId: ChainId,
 ) =>
-  `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+  `Reveal the votes for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}.`;
 
 export const SET_NOMINATION_STATUS_MESSAGE_TEMPLATE = (
   publisherAddress: Address,
   votingRoundId: UUID,
   currentTime: Date,
   nominations: { accountId: AccountId; status: NominationStatus }[],
+  chainId: ChainId,
 ) =>
-  `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
+  `Setting nominations statuses for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}. The statuses are: ${JSON.stringify(
     nominations,
   )}.`;
 
@@ -214,15 +222,17 @@ export const NOMINATE_MESSAGE_TEMPLATE = (
   votingRoundId: UUID,
   currentTime: Date,
   nomination: NominationReceiver,
+  chainId: ChainId,
 ) =>
-  `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`;
+  `Nominating receiver for voting round with ID ${votingRoundId}, nominated by ${nominatedBy}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}. The nomination is: ${JSON.stringify(nomination)})`;
 
 export const REVEAL_RESULT_MESSAGE_TEMPLATE = (
   publisherAddress: Address,
   votingRoundId: UUID,
   currentTime: Date,
+  chainId: ChainId,
 ) =>
-  `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+  `Reveal the result for voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}.`;
 
 export const VOTE_MESSAGE_TEMPLATE = (
   currentTime: Date,
@@ -233,6 +243,7 @@ export const VOTE_MESSAGE_TEMPLATE = (
     | Omit<AddressReceiver, 'accountId'>
     | DripListReceiver
   )[],
+  chainId: ChainId,
 ) => {
   const sortedReceivers = receivers
     .map((r) => {
@@ -249,28 +260,35 @@ export const VOTE_MESSAGE_TEMPLATE = (
     })
     .sort();
 
-  return `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(sortedReceivers)}`;
+  return `Submit the vote for address ${voterAddress}, for the voting round with ID ${votingRoundId}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}. The receivers for this vote are: ${JSON.stringify(sortedReceivers)}`;
 };
 
 export const DELETE_VOTING_ROUND_MESSAGE_TEMPLATE = (
   currentTime: Date,
   publisherAddress: Address,
   votingRoundId: string,
+  chainId: ChainId,
 ) =>
-  `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+  `Delete the voting round with ID ${votingRoundId}, owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}.`;
 
 export const START_VOTING_ROUND_MESSAGE_TEMPLATE = (
   currentTime: Date,
   publisherAddress: Address,
   dripListId: string,
+  chainId: ChainId,
 ) =>
-  `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+  `Create a new voting round for the Drip List with ID ${dripListId}, owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}.`;
 
 export const CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE = (
   currentTime: Date,
   publisherAddress: Address,
+  chainId: ChainId,
 ) =>
-  `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+  `Create a new collaborative Drip List owned by ${publisherAddress}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}.`;
 
-export const REVEAL_VOTE = (votingRoundId: UUID, currentTime: Date) =>
-  `Reveal my vote for the voting round with ID ${votingRoundId}, on chain ID ${appSettings.chainId}. The current time is ${currentTime.toISOString()}.`;
+export const REVEAL_VOTE = (
+  votingRoundId: UUID,
+  currentTime: Date,
+  chainId: ChainId,
+) =>
+  `Reveal my vote for the voting round with ID ${votingRoundId}, on chain ID ${chainId}. The current time is ${currentTime.toISOString()}.`;
