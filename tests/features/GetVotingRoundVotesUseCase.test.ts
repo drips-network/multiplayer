@@ -6,7 +6,6 @@ import {
   REVEAL_VOTES_MESSAGE_TEMPLATE,
   type IAuthStrategy,
 } from '../../src/application/Auth';
-import type IReceiverMapper from '../../src/application/interfaces/IReceiverMapper';
 import type VotingRound from '../../src/domain/votingRoundAggregate/VotingRound';
 import { VotingRoundStatus } from '../../src/domain/votingRoundAggregate/VotingRound';
 import type { Receiver } from '../../src/domain/votingRoundAggregate/Vote';
@@ -14,6 +13,7 @@ import type { GetVotingRoundVotesCommand } from '../../src/features/getVotingRou
 import GetVotingRoundVotesUseCase from '../../src/features/getVotingRoundVotes/GetVotingRoundVotesUseCase';
 import type Vote from '../../src/domain/votingRoundAggregate/Vote';
 import type { Address } from '../../src/domain/typeUtils';
+import { ReceiverMapperFactory } from '../../src/application/ReceiverMapper';
 
 jest.mock('../../src/application/Auth');
 
@@ -29,9 +29,6 @@ describe('GetVotingRoundVotesUseCase', () => {
   const authMock = {
     verifyMessage: jest.fn(),
   } as unknown as jest.Mocked<IAuthStrategy>;
-  const receiverMapperMock = {
-    mapToReceiverDto: jest.fn(),
-  } as unknown as jest.Mocked<IReceiverMapper>;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -45,7 +42,6 @@ describe('GetVotingRoundVotesUseCase', () => {
       const useCase = new GetVotingRoundVotesUseCase(
         votingRoundRepositoryMock,
         loggerMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -72,7 +68,6 @@ describe('GetVotingRoundVotesUseCase', () => {
       const useCase = new GetVotingRoundVotesUseCase(
         votingRoundRepositoryMock,
         loggerMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -98,6 +93,7 @@ describe('GetVotingRoundVotesUseCase', () => {
         _publisher: {
           _address: Wallet.createRandom().address,
         },
+        _chainId: 1,
         getLatestVotes: jest.fn(),
       } as unknown as jest.Mocked<VotingRound>;
       votingRoundRepositoryMock.getById.mockResolvedValue(votingRound);
@@ -111,7 +107,6 @@ describe('GetVotingRoundVotesUseCase', () => {
       const useCase = new GetVotingRoundVotesUseCase(
         votingRoundRepositoryMock,
         loggerMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -128,11 +123,13 @@ describe('GetVotingRoundVotesUseCase', () => {
         command.signature,
         votingRound._publisher._address,
         new Date(command.date!),
+        votingRound._chainId,
       );
       expect(REVEAL_VOTES_MESSAGE_TEMPLATE).toHaveBeenCalledWith(
         votingRound._publisher._address,
         votingRoundId,
         new Date(command.date!),
+        votingRound._chainId,
       );
     });
 
@@ -159,7 +156,6 @@ describe('GetVotingRoundVotesUseCase', () => {
       const useCase = new GetVotingRoundVotesUseCase(
         votingRoundRepositoryMock,
         loggerMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -181,11 +177,19 @@ describe('GetVotingRoundVotesUseCase', () => {
         latestVote: Vote | null;
       }[];
 
-      receiverMapperMock.mapToReceiverDto.mockReturnValue({
-        _accountId: 'mappedAccountId',
-      } as unknown as Receiver);
+      ReceiverMapperFactory.create = jest.fn().mockReturnValue({
+        mapToReceiverDto: jest.fn().mockReturnValue({
+          _accountId: 'mappedAccountId',
+        } as unknown as Receiver),
+      });
 
       votingRound.getLatestVotes.mockReturnValue(expectedResult);
+
+      ReceiverMapperFactory.create = jest.fn().mockReturnValue({
+        mapToReceiverDto: jest.fn().mockReturnValue({
+          _accountId: 'mappedAccountId',
+        } as unknown as Receiver),
+      });
 
       // Act
       const result = await useCase.execute(command);
@@ -197,7 +201,7 @@ describe('GetVotingRoundVotesUseCase', () => {
           collaboratorAddress: collaboratorsWithVotes.collaborator,
           latestVote:
             collaboratorsWithVotes.latestVote?.receivers?.map((r) =>
-              receiverMapperMock.mapToReceiverDto(r),
+              ReceiverMapperFactory.create(1).mapToReceiverDto(r),
             ) || null,
         })),
       );

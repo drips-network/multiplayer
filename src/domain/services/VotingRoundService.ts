@@ -7,6 +7,7 @@ import type IPublisherRepository from '../publisherAggregate/IPublisherRepositor
 import type IAllowedReceiversRepository from '../allowedReceiver/IAllowedReceiversRepository';
 import type { AllowedReceiverData } from '../allowedReceiver/AllowedReceiver';
 import AllowedReceiver from '../allowedReceiver/AllowedReceiver';
+import type { ChainId } from '../../application/network';
 
 export default class VotingRoundService {
   private readonly _publisherRepository: IPublisherRepository;
@@ -32,6 +33,7 @@ export default class VotingRoundService {
     description: string | undefined,
     collaborators: Address[],
     areVotesPrivate: boolean,
+    chainId: ChainId,
     nominationStartsAt: Date | undefined = undefined,
     nominationEndsAt: Date | undefined = undefined,
     allowedReceiversData: AllowedReceiverData[] | undefined = undefined,
@@ -61,6 +63,7 @@ export default class VotingRoundService {
       startsAt,
       endsAt,
       existingPublisher || publisher,
+      chainId,
       dripListId,
       name,
       description,

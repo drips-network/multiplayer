@@ -59,6 +59,7 @@ describe('SetNominationStatusesUseCase', () => {
         _publisher: {
           _address: 'publisherAddress',
         },
+        _chainId: 1,
         setNominationsStatuses: jest.fn(),
       } as unknown as VotingRound;
       votingRoundRepositoryMock.getById.mockResolvedValue(votingRound);
@@ -96,12 +97,14 @@ describe('SetNominationStatusesUseCase', () => {
         command.signature,
         votingRound._publisher._address,
         command.date,
+        votingRound._chainId,
       );
       expect(SET_NOMINATION_STATUS_MESSAGE_TEMPLATE).toHaveBeenCalledWith(
         votingRound._publisher._address,
         votingRoundId,
         command.date,
         command.nominations,
+        votingRound._chainId,
       );
     });
 

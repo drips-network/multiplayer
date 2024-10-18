@@ -13,25 +13,25 @@ import {
   START_VOTING_ROUND_MESSAGE_TEMPLATE,
 } from '../../application/Auth';
 import type { AllowedReceiverData } from '../../domain/allowedReceiver/AllowedReceiver';
-import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
+import { assert } from '../../application/assert';
+import type { ChainId } from '../../application/network';
+import { isSupportedChainId } from '../../application/network';
+import { ReceiverMapperFactory } from '../../application/ReceiverMapper';
 
 export default class StartVotingRoundUseCase
   implements UseCase<StartVotingRoundRequest, StartVotingRoundResponse>
 {
   private readonly _logger: Logger;
   private readonly _auth: IAuthStrategy;
-  private readonly _receiverMapper: IReceiverMapper;
   private readonly _votingRoundService: VotingRoundService;
 
   public constructor(
     logger: Logger,
     votingRoundService: VotingRoundService,
     auth: IAuthStrategy,
-    receiverMapper: IReceiverMapper,
   ) {
     this._auth = auth;
     this._logger = logger;
-    this._receiverMapper = receiverMapper;
     this._votingRoundService = votingRoundService;
   }
 
@@ -48,6 +48,7 @@ export default class StartVotingRoundUseCase
       signature,
       date,
       areVotesPrivate,
+      chainId: chainIdParam,
     } = request;
 
     const dripListId = 'dripListId' in request ? request.dripListId : undefined;
@@ -58,6 +59,8 @@ export default class StartVotingRoundUseCase
     const nominationEndsAt = nomination?.endsAt;
     const allowedReceivers =
       'allowedReceivers' in request ? request.allowedReceivers : undefined;
+    const chainId = parseInt(chainIdParam, 10);
+    assert(isSupportedChainId(chainId), `Invalid Chain ID '${chainId}'.`);
 
     this._logger.info(
       `Starting a new voting round for ${dripListId ? `Drip List '${dripListId}'` : `Drip List '${name}'`}...`,
@@ -65,13 +68,21 @@ export default class StartVotingRoundUseCase
 
     assertIsAddress(publisherAddress);
 
-    await this._verifyMessage(publisherAddress, date, signature, dripListId);
+    await this._verifyMessage(
+      publisherAddress,
+      date,
+      signature,
+      dripListId,
+      chainId,
+    );
+
+    const receiverMapper = ReceiverMapperFactory.create(chainId);
 
     let allowedReceiversData: AllowedReceiverData[] = [];
     if (allowedReceivers?.length) {
       allowedReceiversData = await Promise.all(
         allowedReceivers.map(async (receiverDto) =>
-          this._receiverMapper.mapToAllowedReceiver(receiverDto),
+          receiverMapper.mapToAllowedReceiver(receiverDto),
         ),
       );
     }
@@ -85,6 +96,7 @@ export default class StartVotingRoundUseCase
       description,
       collaborators.map(getAddress) as Address[],
       areVotesPrivate,
+      chainId,
       nominationStartsAt,
       nominationEndsAt,
       allowedReceiversData,
@@ -104,6 +116,7 @@ export default class StartVotingRoundUseCase
     currentTime: Date,
     signature: string,
     dripListId: string | undefined,
+    chainId: ChainId,
   ): Promise<void> {
     let reconstructedMessage: string;
 
@@ -113,6 +126,7 @@ export default class StartVotingRoundUseCase
         currentTime,
         publisherAddress,
         dripListId,
+        chainId,
       );
     }
     // Draft Drip List.
@@ -120,6 +134,7 @@ export default class StartVotingRoundUseCase
       reconstructedMessage = CREATE_COLLABORATIVE_LIST_MESSAGE_TEMPLATE(
         currentTime,
         publisherAddress,
+        chainId,
       );
     }
 
@@ -128,6 +143,7 @@ export default class StartVotingRoundUseCase
       signature,
       publisherAddress,
       currentTime,
+      chainId,
     );
   }
 }

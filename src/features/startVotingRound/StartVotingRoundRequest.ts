@@ -11,6 +11,7 @@ type CommonStartVotingRoundProps = {
   signature: string;
   date: Date;
   areVotesPrivate: boolean;
+  chainId: string;
 };
 
 type WithDripListId = CommonStartVotingRoundProps & {

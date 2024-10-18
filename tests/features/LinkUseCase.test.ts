@@ -141,6 +141,7 @@ describe('LinkUseCase', () => {
     const votingRound = {
       _id: votingRoundId,
       _dripListId: dripListId,
+      _chainId: 1,
       linkToDripList: jest.fn(),
     } as unknown as VotingRound;
 
@@ -172,6 +173,7 @@ describe('LinkUseCase', () => {
     expect(votingRoundRepositoryMock.save).toHaveBeenCalledWith(votingRound);
     expect(safeServiceMock.getSafeTransaction).toHaveBeenCalledWith(
       safeTransactionHash,
+      votingRound._chainId,
     );
   });
 });

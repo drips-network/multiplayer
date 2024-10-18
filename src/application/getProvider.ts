@@ -1,42 +1,11 @@
 import { FetchRequest } from 'ethers';
 import appSettings from '../appSettings';
 import { FailoverJsonRpcProvider } from '../infrastructure/FailoverProvider';
+import { getNetwork, type ChainId } from './network';
 
-let providerInstance: FailoverJsonRpcProvider;
+const { rpcConfig } = appSettings;
 
-export default function getProvider(): FailoverJsonRpcProvider {
-  if (!providerInstance) {
-    const {
-      primaryRpcUrl,
-      primaryRpcAccessToken,
-      fallbackRpcUrl,
-      fallbackRpcAccessToken,
-    } = appSettings;
-    if (
-      !primaryRpcUrl?.startsWith('http') ||
-      (fallbackRpcUrl && !fallbackRpcUrl?.startsWith('http'))
-    ) {
-      throw new Error('Unsupported RPC URL protocol.');
-    }
-
-    const primaryEndpoint = primaryRpcAccessToken
-      ? createAuthFetchRequest(primaryRpcUrl, primaryRpcAccessToken)
-      : primaryRpcUrl;
-
-    const rpcEndpoints = [primaryEndpoint];
-
-    if (fallbackRpcUrl) {
-      const fallbackEndpoint = fallbackRpcAccessToken
-        ? createAuthFetchRequest(fallbackRpcUrl, fallbackRpcAccessToken)
-        : fallbackRpcUrl;
-      rpcEndpoints.push(fallbackEndpoint);
-    }
-
-    providerInstance = new FailoverJsonRpcProvider(rpcEndpoints);
-  }
-
-  return providerInstance;
-}
+const providers: { [chainId: string]: FailoverJsonRpcProvider } = {};
 
 function createAuthFetchRequest(rpcUrl: string, token: string): FetchRequest {
   const fetchRequest = new FetchRequest(rpcUrl);
@@ -44,4 +13,47 @@ function createAuthFetchRequest(rpcUrl: string, token: string): FetchRequest {
   fetchRequest.setHeader('Content-Type', 'application/json');
   fetchRequest.setHeader('Authorization', `Bearer ${token}`);
   return fetchRequest;
+}
+
+function initProvider(chainId: ChainId): FailoverJsonRpcProvider {
+  const { name: networkName } = getNetwork(chainId);
+  const config = rpcConfig[networkName];
+
+  if (!config) {
+    throw new Error(
+      `RPC configuration not found for chain ${chainId} (${networkName}) in environment variables.`,
+    );
+  }
+
+  const { url, accessToken, fallbackUrl, fallbackAccessToken } = config;
+
+  if (
+    !url.startsWith('http') ||
+    (fallbackUrl && !fallbackUrl.startsWith('http'))
+  ) {
+    throw new Error('Unsupported RPC URL protocol.');
+  }
+
+  const primaryEndpoint = accessToken
+    ? createAuthFetchRequest(url, accessToken)
+    : url;
+
+  const rpcEndpoints = [primaryEndpoint];
+
+  if (fallbackUrl) {
+    const fallbackEndpoint = fallbackAccessToken
+      ? createAuthFetchRequest(fallbackUrl, fallbackAccessToken)
+      : fallbackUrl;
+    rpcEndpoints.push(fallbackEndpoint);
+  }
+
+  return new FailoverJsonRpcProvider(rpcEndpoints);
+}
+
+export default function getProvider(chainId: ChainId): FailoverJsonRpcProvider {
+  if (!providers[chainId]) {
+    providers[chainId] = initProvider(chainId);
+  }
+
+  return providers[chainId];
 }

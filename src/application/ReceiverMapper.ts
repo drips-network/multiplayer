@@ -1,4 +1,6 @@
-import { hexlify, toUtf8Bytes } from 'ethers';
+import { Contract, hexlify, toUtf8Bytes } from 'ethers';
+import path from 'path';
+import { existsSync, readFileSync } from 'fs';
 import type IReceiverMapper from './interfaces/IReceiverMapper';
 import { parseGitHubUrl } from './utils';
 import {
@@ -12,7 +14,6 @@ import type {
   ProjectReceiver,
   Receiver,
 } from '../domain/votingRoundAggregate/Vote';
-import type { AddressDriver, RepoDriver } from '../generated/contracts';
 import type {
   AddressNominationReceiver,
   DripListNominationReceiver,
@@ -30,12 +31,14 @@ import type {
   ReceiverDto,
 } from './dtos';
 import type { AllowedReceiverData } from '../domain/allowedReceiver/AllowedReceiver';
+import { getNetwork, type ChainId } from './network';
+import getProvider from './getProvider';
 
 export default class ReceiverMapper implements IReceiverMapper {
-  private readonly _repoDriver: RepoDriver;
-  private readonly _addressDriver: AddressDriver;
+  private readonly _repoDriver: Contract;
+  private readonly _addressDriver: Contract;
 
-  public constructor(repoDriver: RepoDriver, addressDriver: AddressDriver) {
+  public constructor(repoDriver: Contract, addressDriver: Contract) {
     this._repoDriver = repoDriver;
     this._addressDriver = addressDriver;
   }
@@ -54,6 +57,7 @@ export default class ReceiverMapper implements IReceiverMapper {
     if ('url' in receiverDto) {
       const { username, repoName } = parseGitHubUrl(receiverDto.url);
       const projectName = `${username}/${repoName}`;
+
       return {
         ...receiverDto,
         accountId: (
@@ -182,5 +186,53 @@ export default class ReceiverMapper implements IReceiverMapper {
       weight: receiver.weight,
       type: receiver.type,
     };
+  }
+}
+
+export class ReceiverMapperFactory {
+  public static create(chainId: ChainId): ReceiverMapper {
+    if (!chainId) {
+      throw new Error('Chain ID is not provided.');
+    }
+
+    const {
+      name: networkName,
+      contracts: { addressDriverAddress, repoDriverAddress },
+    } = getNetwork(chainId);
+
+    const repoDriverAbi = this._loadAbi('RepoDriver', networkName);
+    const addressDriverAbi = this._loadAbi('AddressDriver', networkName);
+
+    const repoDriverContract = new Contract(
+      repoDriverAddress,
+      repoDriverAbi,
+      getProvider(chainId),
+    );
+
+    const addressDriverContract = new Contract(
+      addressDriverAddress,
+      addressDriverAbi,
+      getProvider(chainId),
+    );
+
+    return new ReceiverMapper(repoDriverContract, addressDriverContract);
+  }
+
+  private static _loadAbi(contractName: string, networkName: string) {
+    const abiPath = path.join(
+      __dirname,
+      '..',
+      'abi',
+      networkName,
+      `${contractName}.json`,
+    );
+
+    if (!existsSync(abiPath)) {
+      throw new Error(
+        `${contractName} ABI was not found for '${networkName}'.`,
+      );
+    }
+
+    return JSON.parse(readFileSync(abiPath, 'utf-8'));
   }
 }

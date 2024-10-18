@@ -2,7 +2,6 @@ import type { Logger } from 'winston';
 import { randomUUID } from 'crypto';
 import { Wallet } from 'ethers';
 import type IVotingRoundRepository from '../../src/domain/votingRoundAggregate/IVotingRoundRepository';
-import type IReceiverMapper from '../../src/application/interfaces/IReceiverMapper';
 import {
   NOMINATE_MESSAGE_TEMPLATE,
   type IAuthStrategy,
@@ -13,6 +12,7 @@ import type VotingRound from '../../src/domain/votingRoundAggregate/VotingRound'
 import type { NominationReceiver } from '../../src/domain/votingRoundAggregate/Nomination';
 import type { Address } from '../../src/domain/typeUtils';
 import Nomination from '../../src/domain/votingRoundAggregate/Nomination';
+import { ReceiverMapperFactory } from '../../src/application/ReceiverMapper';
 
 jest.mock('../../src/application/Auth');
 jest.mock('../../src/domain/votingRoundAggregate/Nomination');
@@ -26,9 +26,6 @@ describe('NominateUseCase', () => {
     getById: jest.fn(),
     save: jest.fn(),
   } as unknown as jest.Mocked<IVotingRoundRepository>;
-  const receiverMapperMock = {
-    mapToNominationReceiver: jest.fn(),
-  } as unknown as jest.Mocked<IReceiverMapper>;
   const authMock = {
     verifyMessage: jest.fn(),
   } as unknown as jest.Mocked<IAuthStrategy>;
@@ -64,7 +61,6 @@ describe('NominateUseCase', () => {
       const useCase = new NominateUseCase(
         loggerMock,
         votingRoundRepositoryMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -108,7 +104,6 @@ describe('NominateUseCase', () => {
       const useCase = new NominateUseCase(
         loggerMock,
         votingRoundRepositoryMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -127,6 +122,7 @@ describe('NominateUseCase', () => {
         _publisher: {
           _address: 'publisherAddress',
         },
+        _chainId: 1,
         nominate: jest.fn(),
       } as unknown as VotingRound;
       votingRoundRepositoryMock.getById.mockResolvedValue(votingRound);
@@ -135,7 +131,9 @@ describe('NominateUseCase', () => {
         accountId: 'accountId',
       } as NominationReceiver;
 
-      receiverMapperMock.mapToNominationReceiver.mockResolvedValue(receiver);
+      ReceiverMapperFactory.create = jest.fn().mockReturnValue({
+        mapToNominationReceiver: jest.fn().mockResolvedValue(receiver),
+      });
 
       const command: NominateCommand = {
         votingRoundId,
@@ -159,7 +157,6 @@ describe('NominateUseCase', () => {
       const useCase = new NominateUseCase(
         loggerMock,
         votingRoundRepositoryMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -177,12 +174,14 @@ describe('NominateUseCase', () => {
         command.signature,
         votingRound._publisher._address,
         command.date,
+        votingRound._chainId,
       );
       expect(NOMINATE_MESSAGE_TEMPLATE).toHaveBeenCalledWith(
         command.nominatedBy as Address,
         command.votingRoundId,
         command.date,
         receiver,
+        votingRound._chainId,
       );
     });
 
@@ -202,7 +201,9 @@ describe('NominateUseCase', () => {
         accountId: 'accountId',
       } as NominationReceiver;
 
-      receiverMapperMock.mapToNominationReceiver.mockResolvedValue(receiver);
+      ReceiverMapperFactory.create = jest.fn().mockReturnValue({
+        mapToNominationReceiver: jest.fn().mockResolvedValue(receiver),
+      });
 
       const command: NominateCommand = {
         votingRoundId,
@@ -229,7 +230,6 @@ describe('NominateUseCase', () => {
       const useCase = new NominateUseCase(
         loggerMock,
         votingRoundRepositoryMock,
-        receiverMapperMock,
         authMock,
       );
 

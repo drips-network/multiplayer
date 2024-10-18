@@ -25,11 +25,6 @@ import GetVotingRoundVotesEndpoint from './features/getVotingRoundVotes/GetVotin
 import GetVotingRoundVotesUseCase from './features/getVotingRoundVotes/GetVotingRoundVotesUseCase';
 import type { IAuthStrategy } from './application/Auth';
 import { Auth, DevAuth } from './application/Auth';
-import {
-  AddressDriver__factory,
-  RepoDriver__factory,
-} from './generated/contracts';
-import ReceiverMapper from './application/ReceiverMapper';
 import NominateEndpoint from './features/nominate/NominateEndpoint';
 import NominateUseCase from './features/nominate/NominateUseCase';
 import GetCollaboratorByAddressEndpoint from './features/getCollaboratorByAddress/GetCollaboratorByAddressEndpoint';
@@ -38,14 +33,8 @@ import SetNominationsStatusesEndpoint from './features/setNominationsStatuses/Se
 import SetNominationsStatusesUseCase from './features/setNominationsStatuses/SetNominationsStatusesUseCase';
 import VotingRoundMapper from './application/VotingRoundMapper';
 import SafeService from './application/SafeService';
-import {
-  SafeAdapter,
-  UnsupportedSafeOperationsAdapter,
-} from './application/SafeAdapter';
-import type ISafeAdapter from './application/interfaces/ISafeAdapter';
+import { SafeAdapter } from './application/SafeAdapter';
 import AllowedReceiversRepository from './infrastructure/repositories/AllowedReceiversRepository';
-import { SAFE_UNSUPPORTED_NETWORKS } from './application/network';
-import getProvider from './application/getProvider';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
@@ -71,12 +60,7 @@ export async function main(): Promise<void> {
     },
   });
 
-  let safeAdapter: ISafeAdapter;
-  if (SAFE_UNSUPPORTED_NETWORKS.includes(appSettings.network as any)) {
-    safeAdapter = new UnsupportedSafeOperationsAdapter();
-  } else {
-    safeAdapter = new SafeAdapter();
-  }
+  const safeAdapter = new SafeAdapter();
 
   let auth: IAuthStrategy;
   if (appSettings.authStrategy === 'dev') {
@@ -98,26 +82,10 @@ export async function main(): Promise<void> {
     logger,
   );
 
-  const receiverMapper = new ReceiverMapper(
-    RepoDriver__factory.connect(
-      appSettings.network.contracts.repoDriverAddress,
-      getProvider(),
-    ),
-    AddressDriver__factory.connect(
-      appSettings.network.contracts.addressDriverAddress,
-      getProvider(),
-    ),
-  );
-
-  const votingRoundMapper = new VotingRoundMapper(receiverMapper);
+  const votingRoundMapper = new VotingRoundMapper();
 
   const startVotingRoundEndpoint = new StartVotingRoundEndpoint(
-    new StartVotingRoundUseCase(
-      logger,
-      votingRoundService,
-      auth,
-      receiverMapper,
-    ),
+    new StartVotingRoundUseCase(logger, votingRoundService, auth),
   );
   const softDeleteVotingRoundEndpoint = new SoftDeleteVotingRoundEndpoint(
     new SoftDeleteVotingRoundUseCase(logger, votingRoundRepository, auth),
@@ -131,15 +99,11 @@ export async function main(): Promise<void> {
   );
 
   const getCollaboratorByAddressEndpoint = new GetCollaboratorByAddressEndpoint(
-    new GetCollaboratorByAddressUseCase(
-      votingRoundRepository,
-      auth,
-      receiverMapper,
-    ),
+    new GetCollaboratorByAddressUseCase(votingRoundRepository, auth),
   );
 
   const castVoteEndpoint = new CastVoteEndpoint(
-    new CastVoteUseCase(logger, votingRoundRepository, receiverMapper, auth),
+    new CastVoteUseCase(logger, votingRoundRepository, auth),
   );
 
   const getVotingRoundsEndpoint = new GetVotingRoundsEndpoint(
@@ -155,25 +119,15 @@ export async function main(): Promise<void> {
   );
 
   const getVotingRoundVotesEndpoint = new GetVotingRoundVotesEndpoint(
-    new GetVotingRoundVotesUseCase(
-      votingRoundRepository,
-      logger,
-      receiverMapper,
-      auth,
-    ),
+    new GetVotingRoundVotesUseCase(votingRoundRepository, logger, auth),
   );
 
   const getVotingRoundResultEndpoint = new GetVotingRoundResultEndpoint(
-    new GetVotingRoundResultUseCase(
-      votingRoundRepository,
-      logger,
-      receiverMapper,
-      auth,
-    ),
+    new GetVotingRoundResultUseCase(votingRoundRepository, logger, auth),
   );
 
   const nominateEndpoint = new NominateEndpoint(
-    new NominateUseCase(logger, votingRoundRepository, receiverMapper, auth),
+    new NominateUseCase(logger, votingRoundRepository, auth),
   );
 
   const setNominationsStatusesEndpoint = new SetNominationsStatusesEndpoint(

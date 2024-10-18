@@ -3,18 +3,19 @@ import SafeApiKit from '@safe-global/api-kit';
 import Safe, { EthersAdapter } from '@safe-global/protocol-kit';
 import { ethers, hashMessage } from 'ethers';
 import type ISafeAdapter from './interfaces/ISafeAdapter';
-import appSettings from '../appSettings';
 import getProvider from './getProvider';
+import { getNetwork, SAFE_UNSUPPORTED_NETWORKS, type ChainId } from './network';
 
 export class SafeAdapter implements ISafeAdapter {
   async isValidSignature(
     message: string,
     signature: string,
     signerAddress: string,
+    chainId: ChainId,
   ): Promise<boolean> {
     const ethAdapter = new EthersAdapter({
       ethers,
-      signerOrProvider: getProvider(),
+      signerOrProvider: getProvider(chainId),
     });
 
     const safeSdk: Safe = await Safe.create({
@@ -28,25 +29,16 @@ export class SafeAdapter implements ISafeAdapter {
   }
   getTransaction(
     safeTransactionHash: string,
+    chainId: ChainId,
   ): Promise<SafeMultisigTransactionResponse> {
+    if (SAFE_UNSUPPORTED_NETWORKS.includes(getNetwork(chainId).name)) {
+      throw new Error(`Unsupported Safe chain '${chainId}'.`);
+    }
+
     const safeApiKit = new SafeApiKit({
-      chainId: BigInt(appSettings.chainId),
+      chainId: BigInt(chainId),
     });
 
     return safeApiKit.getTransaction(safeTransactionHash);
-  }
-}
-
-export class UnsupportedSafeOperationsAdapter implements ISafeAdapter {
-  isValidSignature(): Promise<boolean> {
-    throw new Error(
-      `Safe operations are not supported on chain ${appSettings.chainId}`,
-    );
-  }
-
-  getTransaction(): Promise<SafeMultisigTransactionResponse> {
-    throw new Error(
-      `Safe operations are not supported on chain ${appSettings.chainId}`,
-    );
   }
 }

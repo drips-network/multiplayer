@@ -60,6 +60,7 @@ describe('VotingRoundService', () => {
           'description',
           [Wallet.createRandom().address as Address],
           true,
+          1,
         );
 
       // Assert
@@ -102,6 +103,7 @@ describe('VotingRoundService', () => {
         'description',
         collaborators,
         true,
+        1,
       );
 
       // Assert
@@ -140,6 +142,7 @@ describe('VotingRoundService', () => {
         'description',
         collaborators,
         true,
+        1,
       );
 
       // Assert
@@ -185,6 +188,7 @@ describe('VotingRoundService', () => {
         'description',
         collaborators,
         true,
+        1,
         undefined,
         undefined,
         allowedReceiversData,

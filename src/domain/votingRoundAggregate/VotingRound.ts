@@ -24,6 +24,7 @@ import type Nomination from './Nomination';
 import { NominationStatus } from './Nomination';
 import { nowInMillis } from '../../application/utils';
 import type AllowedReceiver from '../allowedReceiver/AllowedReceiver';
+import type { ChainId } from '../../application/network';
 
 export enum VotingRoundStatus {
   Started = 'Started',
@@ -72,6 +73,9 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
 
   @Column('varchar', { nullable: true, length: 1000, name: 'description' })
   public _description: string | undefined;
+
+  @Column('integer', { nullable: false, name: 'chainId' })
+  public _chainId!: ChainId;
 
   @Column('bool', { nullable: false, name: 'areVotesPrivate' })
   public _areVotesPrivate!: boolean;
@@ -162,6 +166,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     startsAt: Date,
     endsAt: Date,
     publisher: Publisher,
+    chainId: ChainId,
     dripListId: DripListId | undefined,
     name: string | undefined,
     description: string | undefined,
@@ -248,6 +253,10 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
       seen.add(address);
     }
 
+    if (!chainId) {
+      throw new InvalidArgumentError('Chain ID is required.');
+    }
+
     const votingRound = new VotingRound();
 
     votingRound._votingStartsAt = startsAt;
@@ -260,6 +269,7 @@ export default class VotingRound extends BaseEntity implements IAggregateRoot {
     votingRound._areVotesPrivate = areVotesPrivate;
     votingRound._nominationStartsAt = nominationStartsAt;
     votingRound._nominationEndsAt = nominationEndsAt;
+    votingRound._chainId = chainId;
 
     return votingRound;
   }

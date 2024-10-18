@@ -8,25 +8,22 @@ import { assertIsAddress } from '../../domain/typeUtils';
 import type { Receiver } from '../../domain/votingRoundAggregate/Vote';
 import type { IAuthStrategy } from '../../application/Auth';
 import { VOTE_MESSAGE_TEMPLATE } from '../../application/Auth';
-import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
+import { ReceiverMapperFactory } from '../../application/ReceiverMapper';
 
 export type CastVoteCommand = CastVoteRequest & { votingRoundId: UUID };
 
 export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
   private readonly _logger: Logger;
   private readonly _auth: IAuthStrategy;
-  private readonly _receiverMapper: IReceiverMapper;
   private readonly _votingRoundRepository: IVotingRoundRepository;
 
   public constructor(
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
-    receiverMapper: IReceiverMapper,
     auth: IAuthStrategy,
   ) {
     this._auth = auth;
     this._logger = logger;
-    this._receiverMapper = receiverMapper;
     this._votingRoundRepository = votingRoundRepository;
   }
 
@@ -58,7 +55,9 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
 
     const receiverEntities: Receiver[] = await Promise.all(
       receivers.map(async (receiverDto) =>
-        this._receiverMapper.mapToReceiver(receiverDto),
+        ReceiverMapperFactory.create(votingRound._chainId).mapToReceiver(
+          receiverDto,
+        ),
       ),
     );
 
@@ -75,6 +74,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       collaboratorAddress,
       votingRoundId,
       receiverEntities,
+      votingRound._chainId,
     );
 
     await this._auth.verifyMessage(
@@ -82,6 +82,7 @@ export default class CastVoteUseCase implements UseCase<CastVoteCommand> {
       signature,
       collaboratorAddress,
       date,
+      votingRound._chainId,
     );
 
     votingRound._votes

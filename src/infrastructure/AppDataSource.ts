@@ -7,15 +7,15 @@ import Link from '../domain/linkedDripList/Link';
 import Nomination from '../domain/votingRoundAggregate/Nomination';
 import AllowedReceiver from '../domain/allowedReceiver/AllowedReceiver';
 
-const { network, postgresConnectionString } = appSettings;
+const { postgresConnectionString } = appSettings;
 
 const AppDataSource = new DataSource({
   url: postgresConnectionString,
   type: 'postgres',
   entities: [VotingRound, Vote, Publisher, Link, Nomination, AllowedReceiver],
-  synchronize: true,
+  synchronize: false,
   logging: false,
-  schema: network.name,
+  schema: 'drips',
 });
 
 export default AppDataSource;

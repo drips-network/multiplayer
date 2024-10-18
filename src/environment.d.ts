@@ -2,7 +2,7 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       PORT: string;
-      CHAIN_ID: string;
+      RPC_CONFIG: string;
       POSTGRES_CONNECTION_STRING: string;
       LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error';
       GRAPHQL_URL: string;

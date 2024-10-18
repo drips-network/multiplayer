@@ -4,7 +4,6 @@ import type { Logger } from 'winston';
 import type { CastVoteCommand } from '../../src/features/castVote/CastVoteUseCase';
 import CastVoteUseCase from '../../src/features/castVote/CastVoteUseCase';
 import type IVotingRoundRepository from '../../src/domain/votingRoundAggregate/IVotingRoundRepository';
-import type IReceiverMapper from '../../src/application/interfaces/IReceiverMapper';
 import {
   VOTE_MESSAGE_TEMPLATE,
   type IAuthStrategy,
@@ -13,6 +12,7 @@ import type VotingRound from '../../src/domain/votingRoundAggregate/VotingRound'
 import type { Receiver } from '../../src/domain/votingRoundAggregate/Vote';
 import { yesterday } from '../testUtils';
 import type { Address } from '../../src/domain/typeUtils';
+import { ReceiverMapperFactory } from '../../src/application/ReceiverMapper';
 
 jest.mock('../../src/application/Auth');
 
@@ -25,9 +25,6 @@ describe('CastVoteUseCase', () => {
     getById: jest.fn(),
     save: jest.fn(),
   } as unknown as jest.Mocked<IVotingRoundRepository>;
-  const receiverMapperMock = {
-    mapToReceiver: jest.fn(),
-  } as unknown as jest.Mocked<IReceiverMapper>;
   const authMock = {
     verifyMessage: jest.fn(),
   } as unknown as jest.Mocked<IAuthStrategy>;
@@ -44,7 +41,6 @@ describe('CastVoteUseCase', () => {
       const useCase = new CastVoteUseCase(
         loggerMock,
         votingRoundRepositoryMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -74,7 +70,6 @@ describe('CastVoteUseCase', () => {
       const useCase = new CastVoteUseCase(
         loggerMock,
         votingRoundRepositoryMock,
-        receiverMapperMock,
         authMock,
       );
 
@@ -95,23 +90,26 @@ describe('CastVoteUseCase', () => {
     it('should verify signature', async () => {
       // Arrange
       const votingRoundId = randomUUID();
+      const chainId = 1;
 
       const collaborator = Wallet.createRandom().address as Address;
       votingRoundRepositoryMock.getById.mockResolvedValue({
         _id: votingRoundId,
         _collaborators: [collaborator],
+        _chainId: chainId,
         castVote: jest.fn(),
       } as unknown as VotingRound);
 
       const useCase = new CastVoteUseCase(
         loggerMock,
         votingRoundRepositoryMock,
-        receiverMapperMock,
         authMock,
       );
 
       const receiverEntity = {} as unknown as Receiver;
-      receiverMapperMock.mapToReceiver.mockResolvedValue(receiverEntity);
+      ReceiverMapperFactory.create = jest.fn().mockReturnValue({
+        mapToReceiver: jest.fn().mockResolvedValue(receiverEntity),
+      });
 
       const command: CastVoteCommand = {
         votingRoundId,
@@ -132,12 +130,14 @@ describe('CastVoteUseCase', () => {
         command.signature,
         command.collaboratorAddress,
         command.date,
+        chainId,
       );
       expect(VOTE_MESSAGE_TEMPLATE).toHaveBeenCalledWith(
         command.date,
         command.collaboratorAddress,
         command.votingRoundId,
         [receiverEntity],
+        chainId,
       );
     });
   });
@@ -164,7 +164,6 @@ describe('CastVoteUseCase', () => {
     const useCase = new CastVoteUseCase(
       loggerMock,
       votingRoundRepositoryMock,
-      receiverMapperMock,
       authMock,
     );
 
@@ -198,12 +197,13 @@ describe('CastVoteUseCase', () => {
     votingRoundRepositoryMock.getById.mockResolvedValue(votingRound);
 
     const receiverEntity = {} as unknown as Receiver;
-    receiverMapperMock.mapToReceiver.mockResolvedValue(receiverEntity);
+    ReceiverMapperFactory.create = jest.fn().mockReturnValue({
+      mapToReceiver: jest.fn().mockResolvedValue(receiverEntity),
+    });
 
     const useCase = new CastVoteUseCase(
       loggerMock,
       votingRoundRepositoryMock,
-      receiverMapperMock,
       authMock,
     );
 

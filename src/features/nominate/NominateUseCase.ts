@@ -5,29 +5,26 @@ import type { NominateRequest } from './NominateRequest';
 import type IVotingRoundRepository from '../../domain/votingRoundAggregate/IVotingRoundRepository';
 import { BadRequestError, NotFoundError } from '../../application/errors';
 import Nomination from '../../domain/votingRoundAggregate/Nomination';
-import type IReceiverMapper from '../../application/interfaces/IReceiverMapper';
 import type { IAuthStrategy } from '../../application/Auth';
 import { NOMINATE_MESSAGE_TEMPLATE } from '../../application/Auth';
 import { assertIsAddress } from '../../domain/typeUtils';
 import { isValidHttpsUrl } from '../../application/utils';
+import { ReceiverMapperFactory } from '../../application/ReceiverMapper';
 
 export type NominateCommand = NominateRequest & { votingRoundId: UUID };
 
 export default class NominateUseCase implements UseCase<NominateCommand> {
   private readonly _logger: Logger;
   private readonly _auth: IAuthStrategy;
-  private readonly _receiverMapper: IReceiverMapper;
   private readonly _votingRoundRepository: IVotingRoundRepository;
 
   public constructor(
     logger: Logger,
     votingRoundRepository: IVotingRoundRepository,
-    receiverMapper: IReceiverMapper,
     auth: IAuthStrategy,
   ) {
     this._auth = auth;
     this._logger = logger;
-    this._receiverMapper = receiverMapper;
     this._votingRoundRepository = votingRoundRepository;
   }
 
@@ -59,8 +56,9 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
       }
     });
 
-    const receiver =
-      await this._receiverMapper.mapToNominationReceiver(nominationDto);
+    const receiver = await ReceiverMapperFactory.create(
+      votingRound._chainId,
+    ).mapToNominationReceiver(nominationDto);
 
     assertIsAddress(nominatedBy);
 
@@ -69,6 +67,7 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
       votingRoundId,
       date,
       receiver,
+      votingRound._chainId,
     );
 
     await this._auth.verifyMessage(
@@ -76,6 +75,7 @@ export default class NominateUseCase implements UseCase<NominateCommand> {
       signature,
       votingRound._publisher._address,
       date,
+      votingRound._chainId,
     );
 
     const nomination = Nomination.create(

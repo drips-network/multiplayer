@@ -10,7 +10,7 @@ import type { DripList } from '../domain/DripList';
 import type ISafeService from './interfaces/ISafeService';
 import type { SafeTx } from '../domain/linkedDripList/Link';
 import type ISafeApiKit from './interfaces/ISafeAdapter';
-import appSettings from '../appSettings';
+import { getNetwork, type ChainId } from './network';
 
 export default class SafeService implements ISafeService {
   private readonly _logger: Logger;
@@ -35,12 +35,13 @@ export default class SafeService implements ISafeService {
 
   public async getSafeTransaction(
     safeTransactionHash: string,
+    chainId: ChainId,
   ): Promise<SafeTx> {
     const {
       safe: safeAddress,
       isExecuted,
       isSuccessful,
-    } = await this._safeApiKit.getTransaction(safeTransactionHash);
+    } = await this._safeApiKit.getTransaction(safeTransactionHash, chainId);
 
     if (isExecuted && !isSuccessful) {
       throw new Error(
@@ -70,7 +71,7 @@ export default class SafeService implements ISafeService {
       );
 
     const { isExecuted, isSuccessful, safeAddress } =
-      await this.getSafeTransaction(safeTransactionHash);
+      await this.getSafeTransaction(safeTransactionHash, votingRound._chainId);
 
     if (safeAddress !== votingRound.publisherAddress) {
       shouldNeverHappen(
@@ -96,7 +97,7 @@ export default class SafeService implements ISafeService {
         `,
         {
           dripListId,
-          chain: appSettings.network.gqlName,
+          chain: getNetwork(votingRound._chainId).gqlName,
         },
       );
 
