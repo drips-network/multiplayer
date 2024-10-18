@@ -11,7 +11,7 @@
     "dev": "AUTH_STRATEGY=signature npx nodemon",
     "dev:no-auth": "AUTH_STRATEGY=dev npx nodemon",
     "check": "tsc --noEmit",
-    "build": "npm run build:graphql && npm run build:contracts && tsc",
+    "build": "npm run build:graphql && tsc",
     "build:graphql": "./scripts/build-gql-types.sh",
     "start": "npm run build && node dist/src/main.js",
     "test": "jest --detectOpenHandles",
