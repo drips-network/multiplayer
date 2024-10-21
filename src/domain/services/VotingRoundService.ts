@@ -61,6 +61,7 @@ export default class VotingRoundService {
       startsAt,
       endsAt,
       existingPublisher || publisher,
+      undefined,
       dripListId,
       name,
       description,

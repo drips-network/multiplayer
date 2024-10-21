@@ -18,7 +18,10 @@
     "test": "jest --detectOpenHandles",
     "test:coverage": "jest --coverage",
     "codegen": "graphql-codegen --config codegen.ts",
-    "typeorm": "typeorm-ts-node-commonjs"
+    "typeorm": "typeorm-ts-node-commonjs",
+    "typeorm:generate": "typeorm-ts-node-commonjs migration:generate src/infrastructure/migrations/$npm_config_name -d src/infrastructure/AppDataSource.ts",
+    "typeorm:migrate": "typeorm-ts-node-commonjs migration:run -d src/infrastructure/AppDataSource.ts",
+    "typeorm:revert": "typeorm-ts-node-commonjs migration:revert -d src/infrastructure/AppDataSource.ts"
   },
   "keywords": [],
   "author": "",
