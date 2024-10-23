@@ -13,9 +13,11 @@ const AppDataSource = new DataSource({
   url: postgresConnectionString,
   type: 'postgres',
   entities: [VotingRound, Vote, Publisher, Link, Nomination, AllowedReceiver],
-  synchronize: true,
   logging: false,
   schema: network.name,
+  synchronize: false,
+  migrationsTableName: '_Migrations',
+  migrations: ['dist/src/infrastructure/migrations/*.js'],
 });
 
 export default AppDataSource;

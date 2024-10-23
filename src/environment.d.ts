@@ -3,6 +3,7 @@ declare global {
     interface ProcessEnv {
       PORT: string;
       CHAIN_ID: string;
+      SHOULD_RUN_MIGRATIONS: boolean;
       POSTGRES_CONNECTION_STRING: string;
       LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error';
       GRAPHQL_URL: string;

@@ -46,12 +46,13 @@ import type ISafeAdapter from './application/interfaces/ISafeAdapter';
 import AllowedReceiversRepository from './infrastructure/repositories/AllowedReceiversRepository';
 import { SAFE_UNSUPPORTED_NETWORKS } from './application/network';
 import getProvider from './application/getProvider';
+import configureDatabase from './infrastructure/dbUtils';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
   logger.info(`App Settings: ${JSON.stringify(appSettings, null, 2)}`);
 
-  await AppDataSource.initialize();
+  await configureDatabase();
 
   const publisherRepository = new PublisherRepository(AppDataSource);
   const votingRoundRepository = new VotingRoundRepository(AppDataSource);

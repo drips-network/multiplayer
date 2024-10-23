@@ -40,6 +40,9 @@ const appSettings = {
       ? (parseInt(process.env.CHAIN_ID, 10) as ChainId)
       : missingEnvVar('Missing chain ID.'),
   ),
+
+  shouldRunMigrations:
+    (process.env.SHOULD_RUN_MIGRATIONS as unknown as string) === 'true',
 };
 
 export default appSettings;
