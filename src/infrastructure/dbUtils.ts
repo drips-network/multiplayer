@@ -64,6 +64,7 @@ function checkMigrationsExist() {
     __dirname,
     '../../dist/src/infrastructure/migrations',
   );
+  logger.info(`Checking if migrations exist in '${migrationPath}'...`);
 
   if (!fs.existsSync(migrationPath)) {
     return false;
