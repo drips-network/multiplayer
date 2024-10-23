@@ -6,17 +6,23 @@ import logger from './logger';
 import AppDataSource from './AppDataSource';
 
 export default async function configureDatabase() {
-  logger.info('Configuring the database...');
+  try {
+    logger.info('Configuring the database...');
 
-  await createSchemaIfNotExists();
+    await createSchemaIfNotExists();
 
-  await AppDataSource.initialize();
-  logger.info('DataSource has been initialized.');
+    await AppDataSource.initialize();
+    logger.info('DataSource has been initialized.');
 
-  if (appSettings.shouldRunMigrations) {
-    logger.info('Run migrations on startup is enabled.');
+    if (appSettings.shouldRunMigrations) {
+      logger.info('Run migrations on startup is enabled.');
 
-    await runMigrations();
+      await runMigrations();
+    }
+  } catch (error) {
+    logger.error('Failed to configure the database:', error);
+
+    throw error;
   }
 }
 
