@@ -60,10 +60,13 @@ async function runMigrations() {
 }
 
 function checkMigrationsExist() {
-  const migrationPath = path.join(
-    __dirname,
-    '../../dist/src/infrastructure/migrations',
-  );
+  const migrationPath = path.resolve(
+    'dist',
+    'src',
+    'infrastructure',
+    'migrations',
+  ); // Consistent for both dev and prod
+
   logger.info(`Checking if migrations exist in '${migrationPath}'...`);
 
   if (!fs.existsSync(migrationPath)) {
