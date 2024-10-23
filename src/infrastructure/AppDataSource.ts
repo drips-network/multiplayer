@@ -17,7 +17,7 @@ const AppDataSource = new DataSource({
   schema: network.name,
   synchronize: false,
   migrationsTableName: '_Migrations',
-  migrations: ['src/infrastructure/migrations/*.ts'],
+  migrations: ['src/infrastructure/migrations/*{.ts,.js}'],
   migrationsRun: shouldRunMigrations,
 });
 
