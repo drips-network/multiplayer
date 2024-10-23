@@ -7,7 +7,7 @@ import Link from '../domain/linkedDripList/Link';
 import Nomination from '../domain/votingRoundAggregate/Nomination';
 import AllowedReceiver from '../domain/allowedReceiver/AllowedReceiver';
 
-const { network, postgresConnectionString, shouldRunMigrations } = appSettings;
+const { network, postgresConnectionString } = appSettings;
 
 const AppDataSource = new DataSource({
   url: postgresConnectionString,
@@ -17,8 +17,7 @@ const AppDataSource = new DataSource({
   schema: network.name,
   synchronize: false,
   migrationsTableName: '_Migrations',
-  migrations: ['src/infrastructure/migrations/*{.ts,.js}'],
-  migrationsRun: shouldRunMigrations,
+  migrations: ['dist/src/infrastructure/migrations/*.js'],
 });
 
 export default AppDataSource;

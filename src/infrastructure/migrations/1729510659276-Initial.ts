@@ -9,10 +9,6 @@ export class Initial1729510659276 implements MigrationInterface {
   schema = appSettings.network.name;
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
-      CREATE SCHEMA IF NOT EXISTS "${this.schema}";
-    `);
-
     const syncQuery = `
       DO $$
       DECLARE

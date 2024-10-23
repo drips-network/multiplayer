@@ -1,4 +1,3 @@
-import { Client } from 'pg';
 import { GraphQLClient } from 'graphql-request';
 import ApiServer from './ApiServer';
 import 'reflect-metadata';
@@ -47,13 +46,13 @@ import type ISafeAdapter from './application/interfaces/ISafeAdapter';
 import AllowedReceiversRepository from './infrastructure/repositories/AllowedReceiversRepository';
 import { SAFE_UNSUPPORTED_NETWORKS } from './application/network';
 import getProvider from './application/getProvider';
+import configureDatabase from './infrastructure/dbUtils';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
   logger.info(`App Settings: ${JSON.stringify(appSettings, null, 2)}`);
 
-  await createSchemaIfNotExists();
-  await AppDataSource.initialize();
+  await configureDatabase();
 
   const publisherRepository = new PublisherRepository(AppDataSource);
   const votingRoundRepository = new VotingRoundRepository(AppDataSource);
@@ -207,17 +206,3 @@ export async function main(): Promise<void> {
 process.on('uncaughtException', (error: Error) => {
   logger.error(`Uncaught Exception: ${error.message} ${error.stack}`);
 });
-
-async function createSchemaIfNotExists() {
-  const client = new Client({
-    connectionString: appSettings.postgresConnectionString,
-  });
-
-  await client.connect();
-
-  await client.query(
-    `CREATE SCHEMA IF NOT EXISTS "${appSettings.network.name}";`,
-  );
-
-  await client.end();
-}
