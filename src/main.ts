@@ -1,3 +1,4 @@
+import { Client } from 'pg';
 import { GraphQLClient } from 'graphql-request';
 import ApiServer from './ApiServer';
 import 'reflect-metadata';
@@ -51,6 +52,7 @@ export async function main(): Promise<void> {
   logger.info('Starting the application...');
   logger.info(`App Settings: ${JSON.stringify(appSettings, null, 2)}`);
 
+  await createSchemaIfNotExists();
   await AppDataSource.initialize();
 
   const publisherRepository = new PublisherRepository(AppDataSource);
@@ -205,3 +207,17 @@ export async function main(): Promise<void> {
 process.on('uncaughtException', (error: Error) => {
   logger.error(`Uncaught Exception: ${error.message} ${error.stack}`);
 });
+
+async function createSchemaIfNotExists() {
+  const client = new Client({
+    connectionString: appSettings.postgresConnectionString,
+  });
+
+  await client.connect();
+
+  await client.query(
+    `CREATE SCHEMA IF NOT EXISTS "${appSettings.network.name}";`,
+  );
+
+  await client.end();
+}

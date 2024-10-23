@@ -7,6 +7,7 @@ import type IPublisherRepository from '../publisherAggregate/IPublisherRepositor
 import type IAllowedReceiversRepository from '../allowedReceiver/IAllowedReceiversRepository';
 import type { AllowedReceiverData } from '../allowedReceiver/AllowedReceiver';
 import AllowedReceiver from '../allowedReceiver/AllowedReceiver';
+import appSettings from '../../appSettings';
 
 export default class VotingRoundService {
   private readonly _publisherRepository: IPublisherRepository;
@@ -61,7 +62,7 @@ export default class VotingRoundService {
       startsAt,
       endsAt,
       existingPublisher || publisher,
-      undefined,
+      appSettings.chainId, // This will be coming from the actual request when chain agnostic changes are merged.
       dripListId,
       name,
       description,
