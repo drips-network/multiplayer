@@ -7,7 +7,7 @@ import Link from '../domain/linkedDripList/Link';
 import Nomination from '../domain/votingRoundAggregate/Nomination';
 import AllowedReceiver from '../domain/allowedReceiver/AllowedReceiver';
 
-const { postgresConnectionString } = appSettings;
+const { postgresConnectionString, dbSchemaName } = appSettings;
 
 const AppDataSource = new DataSource({
   url: postgresConnectionString,
@@ -15,7 +15,9 @@ const AppDataSource = new DataSource({
   entities: [VotingRound, Vote, Publisher, Link, Nomination, AllowedReceiver],
   synchronize: false,
   logging: false,
-  schema: 'drips',
+  schema: dbSchemaName,
+  migrationsTableName: '_Migrations',
+  migrations: ['dist/src/infrastructure/migrations/*.js'],
 });
 
 export default AppDataSource;

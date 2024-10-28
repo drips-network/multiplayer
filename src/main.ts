@@ -35,12 +35,13 @@ import VotingRoundMapper from './application/VotingRoundMapper';
 import SafeService from './application/SafeService';
 import { SafeAdapter } from './application/SafeAdapter';
 import AllowedReceiversRepository from './infrastructure/repositories/AllowedReceiversRepository';
+import configureDatabase from './infrastructure/dbUtils';
 
 export async function main(): Promise<void> {
   logger.info('Starting the application...');
   logger.info(`App Settings: ${JSON.stringify(appSettings, null, 2)}`);
 
-  await AppDataSource.initialize();
+  await configureDatabase();
 
   const publisherRepository = new PublisherRepository(AppDataSource);
   const votingRoundRepository = new VotingRoundRepository(AppDataSource);

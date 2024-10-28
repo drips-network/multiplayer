@@ -47,7 +47,10 @@ const appSettings = {
 
   apiKey: process.env.API_KEY,
 
-  nodeEnv: process.env.NODE_ENV || 'development',
+  dbSchemaName: process.env.DB_SCHEMA_NAME || missingEnvVar('DB_SCHEMA_NAME'),
+
+  shouldRunMigrations:
+    (process.env.SHOULD_RUN_MIGRATIONS as unknown as string) === 'true',
 };
 
 export default appSettings;

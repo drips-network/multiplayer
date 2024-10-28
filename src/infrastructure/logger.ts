@@ -11,13 +11,7 @@ const format = winston.format.combine(
   ),
 );
 
-const developmentLogger = winston.createLogger({
-  level: appSettings.logLevel,
-  format,
-  transports: [new winston.transports.Console()],
-});
-
-const productionLogger = winston.createLogger({
+const logger = winston.createLogger({
   level: appSettings.logLevel,
   format,
   transports: [
@@ -28,8 +22,5 @@ const productionLogger = winston.createLogger({
     // }),
   ],
 });
-
-const logger =
-  appSettings.nodeEnv === 'development' ? developmentLogger : productionLogger;
 
 export default logger;
