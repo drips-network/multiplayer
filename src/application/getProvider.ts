@@ -1,6 +1,6 @@
 import { FetchRequest } from 'ethers';
 import appSettings from '../appSettings';
-import { FailoverJsonRpcProvider } from '../infrastructure/FailoverProvider';
+import FailoverJsonRpcProvider from '../infrastructure/FailoverJsonRpcProvider';
 import { getNetwork, type ChainId } from './network';
 
 const { rpcConfig } = appSettings;
@@ -47,7 +47,9 @@ function initProvider(chainId: ChainId): FailoverJsonRpcProvider {
     rpcEndpoints.push(fallbackEndpoint);
   }
 
-  return new FailoverJsonRpcProvider(rpcEndpoints);
+  return new FailoverJsonRpcProvider(rpcEndpoints, undefined, undefined, {
+    logger: console,
+  });
 }
 
 export default function getProvider(chainId: ChainId): FailoverJsonRpcProvider {
