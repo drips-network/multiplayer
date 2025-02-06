@@ -140,3 +140,5 @@ dist
 **/__generated__/
 
 .idea/
+
+schema.graphql
