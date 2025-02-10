@@ -15,7 +15,7 @@
     "gql:build-types": "./scripts/build-gql-types.sh",
     "gql:build": "npm run gql:generate-schema && npm run gql:build-types",
     "copy-abis": "cp -R src/abi dist/src/",
-    "build": "rm -rf dist && npm run build:graphql && tsc && npm run copy-abis",
+    "build": "rm -rf dist && npm run gql:build && tsc && npm run copy-abis",
     "start": "npm run build && node dist/src/main.js",
     "test": "jest --detectOpenHandles",
     "test:coverage": "jest --coverage",
