@@ -2,7 +2,7 @@ import { SupportedChain } from './__generated__/graphql/base-types';
 import { assert } from './assert';
 
 export const SUPPORTED_CHAIN_IDS = [
-  1, 80002, 11155420, 11155111, 84532, 314, 31337, 1088,
+  1, 80002, 11155420, 11155111, 84532, 314, 31337, 1088, 10,
 ] as const;
 export type ChainId = (typeof SUPPORTED_CHAIN_IDS)[number];
 
@@ -14,7 +14,8 @@ type NetworkName =
   | 'sepolia'
   | 'filecoin'
   | 'localtestnet'
-  | 'metis';
+  | 'metis'
+  | 'optimism';
 
 export type Network = {
   chainId: ChainId;
@@ -111,6 +112,16 @@ export const NETWORK_CONFIG: ValueForEachSupportedChain<Network> = {
       dripsAddress: '0xd320F59F109c618b19707ea5C5F068020eA333B3',
       addressDriverAddress: '0x04693D13826a37dDdF973Be4275546Ad978cb9EE',
       repoDriverAddress: '0xe75f56B26857cAe06b455Bfc9481593Ae0FB4257',
+    },
+  },
+  10: {
+    chainId: 10,
+    name: 'metis',
+    gqlName: SupportedChain.OPTIMISM,
+    contracts: {
+      dripsAddress: '0x1803DA2FA1F711B7aEb46E416032d6ae24d3E6c2',
+      addressDriverAddress: '0xfD1aF9f95f093eE852dc276d9A15A299F3f88735',
+      repoDriverAddress: '0x7dDaa1055Dd1e9E01f09D7D70A400CE8BCb3825b',
     },
   },
 };
