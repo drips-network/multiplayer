@@ -116,7 +116,7 @@ export const NETWORK_CONFIG: ValueForEachSupportedChain<Network> = {
   },
   10: {
     chainId: 10,
-    name: 'metis',
+    name: 'optimism',
     gqlName: SupportedChain.OPTIMISM,
     contracts: {
       dripsAddress: '0x1803DA2FA1F711B7aEb46E416032d6ae24d3E6c2',
