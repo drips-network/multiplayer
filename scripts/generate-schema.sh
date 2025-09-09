@@ -2,8 +2,8 @@
 
 # GQL_ACCESS_TOKEN is always required, plus either GQL_URL or CODEGEN_GQL_URL. If these requirements aren't satisfied, exit with an error.
 # Again, this has to check that 1) GQL_ACCESS_TOKEN is set, AND THAT EITHER GQL_URL OR CODEGEN_GQL_URL is provided
-if [[ -z "$GRAPHQL_URL" || -z "$GRAPHQL_ACCESS_TOKEN" ]]; then
-  echo "Error: In order to build GraphQL types, you must provide GRAPHQL_URL and GRAPHQL_ACCESS_TOKEN env vars for the Drips GraphQL API."
+if [[ -z "$CODEGEN_GRAPHQL_URL" || -z "$GRAPHQL_ACCESS_TOKEN" ]]; then
+  echo "Error: In order to build GraphQL types, you must provide CODEGEN_GRAPHQL_URL and GRAPHQL_ACCESS_TOKEN env vars for the Drips GraphQL API."
   echo "Default values are included in .env.template."
   exit 1
 fi
